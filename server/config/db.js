@@ -1,3 +1,4 @@
+import MONGO_URI from "../../.env"
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
