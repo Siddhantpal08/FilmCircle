@@ -1,0 +1,14 @@
+{
+    "name": "filmcircle",
+    "version": "1.0.0",
+    "description": "FilmCircle — Community-based movie review platform",
+    "scripts": {
+        "dev:server": "cd server && npm run dev",
+        "dev:client": "cd client && npm run dev",
+        "install:all": "cd server && npm install && cd ../client && npm install",
+        "test:server": "cd server && npm test",
+        "test:client": "cd client && npm test",
+        "test:all": "npm run test:server && npm run test:client"
+    },
+    "private": true
+}

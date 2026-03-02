@@ -1,0 +1,386 @@
+# FilmCircle — Full-Stack Implementation Plan
+
+> **College Final Year Project** | React + Vite · Node.js + Express · MongoDB  
+> Source: [Synoopsis_003.docx](file:///d:/College/Final%20project/Synoopsis_003.docx)
+
+---
+
+## Overview
+
+FilmCircle is a **community-based movie review and discovery platform** that replaces traditional star ratings with a 4-option opinion system. Users can search movies (via OMDb/IMDB API), submit structured reviews, discuss films in a community feed, create topic-based clubs, and independently upload their own films — all at zero cost using free-tier cloud services.
+
+**Core innovation**: replacing ambiguous star ratings with four clearly-named categories:
+`Skip` · `Considerable` · `Go For It` · `Excellent`
+
+---
+
+## Architecture Decision
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    BROWSER (Client)                     │
+│         React 18 + Vite · React Router v6               │
+│         Chart.js (infographics) · Axios (HTTP)          │
+└──────────────────────┬──────────────────────────────────┘
+                       │ REST API (JSON)
+┌──────────────────────▼──────────────────────────────────┐
+│                  Node.js + Express (Server)              │
+│  JWT Auth · express-validator · Mongoose ORM            │
+│  OMDb Proxy · CORS · Global Error Handler               │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+        ┌──────────────┴───────────────┐
+        ▼                              ▼
+  MongoDB Atlas                  OMDb API
+  (Free M0 Tier)             (Free, 1k req/day)
+  Collections:               Movie search + details
+  Users, Movies,             Poster, plot, genre,
+  Reviews, Posts, Clubs      director, cast, year
+```
+
+**Why this stack?**
+- **React + Vite**: Fast HMR, modern JSX, component-based — college standard
+- **Express**: Lightweight, flexible, massive ecosystem
+- **MongoDB**: Flexible schema suits community content; Atlas free tier fits zero-cost requirement
+- **OMDb API**: Free, IMDB-backed, no scraping, 1000 req/day sufficient for college project
+
+---
+
+## Proposed Changes
+
+---
+
+### Component 1 — Project Root Configuration
+
+#### [NEW] [.env.example](file:///d:/College/Final%20project/Filmcircle/.env.example)
+Template for all required environment variables (no secrets committed).
+
+#### [NEW] [.gitignore](file:///d:/College/Final%20project/Filmcircle/.gitignore)
+Excludes `node_modules/`, `.env`, `dist/`, build artifacts.
+
+---
+
+### Component 2 — Backend: Server Foundation
+
+#### [NEW] [server/server.js](file:///d:/College/Final%20project/Filmcircle/server/server.js)
+- Express app initialization
+- `cors({ origin: process.env.CLIENT_URL })` middleware
+- `express.json()` body parser
+- Mount all route files under `/api/`
+- Mount global error middleware at the very end
+- Call `connectDB()` on startup, exit process on failure
+
+#### [NEW] [server/config/db.js](file:///d:/College/Final%20project/Filmcircle/server/config/db.js)
+- `mongoose.connect(process.env.MONGO_URI)` with connection event logging
+- Exported as `connectDB()` async function
+
+#### [NEW] [server/middleware/authMiddleware.js](file:///d:/College/Final%20project/Filmcircle/server/middleware/authMiddleware.js)
+- Verifies `Authorization: Bearer <token>` header
+- Decodes JWT with `jsonwebtoken.verify()`
+- Attaches `req.user = { id, username }` on success
+- Returns `401` if token missing or invalid
+
+#### [NEW] [server/middleware/errorMiddleware.js](file:///d:/College/Final%20project/Filmcircle/server/middleware/errorMiddleware.js)
+- Express 4-argument error handler `(err, req, res, next)`
+- Returns structured JSON `{ message, stack (dev only) }`
+- Handles Mongoose `CastError` (invalid ObjectId → 404) and `ValidationError` (→ 400)
+
+#### [NEW] [server/middleware/validateBody.js](file:///d:/College/Final%20project/Filmcircle/server/middleware/validateBody.js)
+- Wrapper around `express-validator`'s `validationResult()`
+- Returns `400` with array of field errors if validation fails
+
+---
+
+### Component 3 — Backend: Auth Module
+
+#### [NEW] [server/models/User.js](file:///d:/College/Final%20project/Filmcircle/server/models/User.js)
+```
+Schema {
+  username:      String, required, unique, trim
+  email:         String, required, unique, lowercase
+  password:      String, required, minLength: 6
+  bio:           String, default: ''
+  avatarUrl:     String, default: ''
+  uploadedMovies: [ObjectId ref Movie]
+  joinedClubs:   [ObjectId ref Club]
+  createdAt:     Date, default: Date.now
+}
+```
+- `pre('save')` hook: hash password with `bcrypt.hash(password, 10)` if modified
+- Instance method `matchPassword(entered)` → `bcrypt.compare(entered, this.password)`
+
+#### [NEW] [server/controllers/authController.js](file:///d:/College/Final%20project/Filmcircle/server/controllers/authController.js)
+- `register`: validate → check duplicate email → create user → sign JWT → return token + user
+- `login`: find user → matchPassword → sign JWT → return token + user
+- `getMe`: return `req.user` (populated from DB, password excluded)
+
+#### [NEW] [server/routes/auth.routes.js](file:///d:/College/Final%20project/Filmcircle/server/routes/auth.routes.js)
+```
+POST /api/auth/register   → validation rules → validateBody → register
+POST /api/auth/login      → validation rules → validateBody → login
+GET  /api/auth/me         → protect → getMe
+```
+
+#### [NEW] [server/tests/auth.test.js](file:///d:/College/Final%20project/Filmcircle/server/tests/auth.test.js)
+Tests: register success, duplicate email (409), missing fields (400), login success, wrong password (401), non-existent user (401)
+
+---
+
+### Component 4 — Backend: Movie Module
+
+#### [NEW] [server/models/Movie.js](file:///d:/College/Final%20project/Filmcircle/server/models/Movie.js)
+```
+Schema {
+  title:          String, required
+  imdbID:         String, unique, sparse   ← null for independent films
+  year:           String
+  genre:          String
+  director:       String
+  actors:         String
+  plot:           String
+  posterUrl:      String
+  streamingLinks: [{ platform: String, url: String }]
+  uploadedBy:     ObjectId ref User
+  isIndependent:  Boolean, default: false
+  createdAt:      Date, default: Date.now
+}
+```
+
+#### [NEW] [server/services/omdbService.js](file:///d:/College/Final%20project/Filmcircle/server/services/omdbService.js)
+- `searchMovies(query)` → `axios.get(OMDB_BASE, { params: { s: query, apikey } })`
+- `getMovieById(imdbId)` → `axios.get(OMDB_BASE, { params: { i: imdbId, apikey, plot: 'full' } })`
+- Returns normalized data; throws on API error or `Response: 'False'`
+
+#### [NEW] [server/controllers/movieController.js](file:///d:/College/Final%20project/Filmcircle/server/controllers/movieController.js)
+- `searchMovies`: proxy OMDb search, return results array
+- `getMovieById`: try OMDb first, fallback to DB for independent films
+- `getIndependentMovies`: return all `isIndependent: true` movies from DB
+- `uploadMovie`: create DB entry with `isIndependent: true`, push to user's `uploadedMovies`
+- `updateMovie`: find → verify `uploadedBy === req.user.id` → update → return
+- `deleteMovie`: find → verify ownership → delete
+
+#### [NEW] [server/routes/movies.routes.js](file:///d:/College/Final%20project/Filmcircle/server/routes/movies.routes.js)
+
+#### [NEW] [server/tests/movies.test.js](file:///d:/College/Final%20project/Filmcircle/server/tests/movies.test.js)
+Tests: search (valid, empty query), get by ID (valid, invalid imdbID), upload (auth, missing fields), edit/delete ownership enforcement
+
+---
+
+### Component 5 — Backend: Review Module
+
+#### [NEW] [server/models/Review.js](file:///d:/College/Final%20project/Filmcircle/server/models/Review.js)
+```
+Schema {
+  movieId:  String, required   ← imdbID or MongoDB ObjectId string
+  userId:   ObjectId ref User, required
+  opinion:  String, enum: ['skip','considerable','goForIt','excellent'], required
+  createdAt: Date, default: Date.now
+}
+Compound unique index: { movieId: 1, userId: 1 }
+```
+
+#### [NEW] [server/controllers/reviewController.js](file:///d:/College/Final%20project/Filmcircle/server/controllers/reviewController.js)
+- `submitReview`: check for existing review → if exists → `409 Conflict` → else create
+- `updateReview`: find → verify ownership → update opinion
+- `getReviewsForMovie`: fetch all reviews, compute distribution object
+  ```js
+  const dist = { skip: 0, considerable: 0, goForIt: 0, excellent: 0 };
+  reviews.forEach(r => dist[r.opinion]++);
+  ```
+
+#### [NEW] [server/routes/reviews.routes.js](file:///d:/College/Final%20project/Filmcircle/server/routes/reviews.routes.js)
+
+#### [NEW] [server/tests/reviews.test.js](file:///d:/College/Final%20project/Filmcircle/server/tests/reviews.test.js)
+Tests: submit success, duplicate (409), update own review, update other's review (403), distribution calculation correctness
+
+---
+
+### Component 6 — Backend: Community Module
+
+#### [NEW] [server/models/Post.js](file:///d:/College/Final%20project/Filmcircle/server/models/Post.js)
+```
+Schema {
+  content:   String, required, maxLength: 500
+  author:    ObjectId ref User, required
+  movieRef:  String, default: null   ← optional imdbID or movie ObjectId
+  likes:     [ObjectId ref User]
+  comments:  [{ author: ObjectId ref User, text: String, createdAt: Date }]
+  createdAt: Date, default: Date.now
+}
+```
+
+#### [NEW] [server/controllers/communityController.js](file:///d:/College/Final%20project/Filmcircle/server/controllers/communityController.js)
+- `getPosts`: paginated with `skip/limit`, populate author username + avatar
+- `createPost`: validate content → create with `author: req.user.id`
+- `toggleLike`: if userId in likes → pull → else push
+- `addComment`: push to comments array
+- `deletePost`: find → verify `author == req.user.id` → delete
+
+#### [NEW] [server/tests/community.test.js](file:///d:/College/Final%20project/Filmcircle/server/tests/community.test.js)
+
+---
+
+### Component 7 — Backend: Club Module
+
+#### [NEW] [server/models/Club.js](file:///d:/College/Final%20project/Filmcircle/server/models/Club.js)
+```
+Schema {
+  name:        String, required, unique
+  description: String
+  genre:       String
+  createdBy:   ObjectId ref User, required
+  members:     [ObjectId ref User]
+  posts:       [{ author: ObjectId ref User, content: String, createdAt: Date }]
+  createdAt:   Date, default: Date.now
+}
+```
+- Creator is added to `members[]` on creation
+
+#### [NEW] [server/controllers/clubController.js](file:///d:/College/Final%20project/Filmcircle/server/controllers/clubController.js)
+- `getClubs`, `createClub`, `getClubById`, `joinClub`, `leaveClub`, `postInClub`
+- `joinClub`: check if already member → 409 → else `$push members`
+- `leaveClub`: check if member → 400 → else `$pull members`
+
+#### [NEW] [server/routes/clubs.routes.js](file:///d:/College/Final%20project/Filmcircle/server/routes/clubs.routes.js)
+
+#### [NEW] [server/tests/clubs.test.js](file:///d:/College/Final%20project/Filmcircle/server/tests/clubs.test.js)
+
+---
+
+### Component 8 — Frontend: App Shell & Auth
+
+#### [NEW] [client/src/App.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/App.jsx)
+- React Router v6 `<BrowserRouter>`
+- Routes: `/`, `/movie/:id`, `/community`, `/clubs`, `/clubs/:id`, `/upload`, `/profile`, `/login`, `/register`
+- Protected routes via `<ProtectedRoute>` wrapper
+
+#### [NEW] [client/src/context/AuthContext.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/context/AuthContext.jsx)
+- Stores `user` state (decoded from JWT or fetched via `/api/auth/me`)
+- Exposes `login(token)`, `logout()`, `isAuthenticated`
+- Initializes from `localStorage.getItem('fc_token')` on mount
+
+#### [NEW] [client/src/pages/Login.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/Login.jsx) | [Register.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/Register.jsx)
+- Controlled forms with client-side validation
+- Calls `authService.login/register()`, stores JWT, navigates to `/`
+
+#### [NEW] [client/src/components/common/Navbar.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/components/common/Navbar.jsx)
+- Logo, search bar, nav links, login/logout button
+- Conditionally shows user avatar if authenticated
+
+---
+
+### Component 9 — Frontend: Movie Pages
+
+#### [NEW] [client/src/pages/Home.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/Home.jsx)
+- Hero section with search bar
+- Recent independent uploads grid
+- Trending section (featured movies hardcoded or from community activity)
+
+#### [NEW] [client/src/pages/MovieDetail.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/MovieDetail.jsx)
+- Fetches movie by `params.id` (OMDb or DB)
+- Shows poster, metadata, streaming links
+- Renders `<InfographicChart>` for review distribution
+- Shows `<SubmitReview>` form if authenticated and not yet reviewed
+
+#### [NEW] [client/src/components/movie/InfographicChart.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/components/movie/InfographicChart.jsx)
+- Chart.js `Doughnut` chart with 4 segments: Skip, Considerable, Go For It, Excellent
+- Color coded: red, yellow, blue, green
+- Shows percentage labels; "No reviews yet" empty state
+
+#### [NEW] [client/src/components/movie/ReviewButton.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/components/movie/ReviewButton.jsx)
+- 4 stylized buttons — one per opinion
+- Active state highlights the user's current selection
+- Calls `reviewService.submit()` or `reviewService.update()` on click
+
+---
+
+### Component 10 — Frontend: Community, Clubs, Upload, Profile
+
+#### [NEW] [client/src/pages/Community.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/Community.jsx)
+- Paginated post feed with `PostCard` components
+- `CreatePostForm` at the top (visible if authenticated)
+
+#### [NEW] [client/src/pages/Clubs.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/Clubs.jsx)
+- Grid of `ClubCard` components with search/filter
+
+#### [NEW] [client/src/pages/Upload.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/Upload.jsx)
+- Protected page with controlled form fields
+
+#### [NEW] [client/src/pages/Profile.jsx](file:///d:/College/Final%20project/Filmcircle/client/src/pages/Profile.jsx)
+- Shows user bio, reviews given, uploaded films, joined clubs
+
+---
+
+## Verification Plan
+
+### Automated Tests
+
+#### Backend (Jest + Supertest)
+```bash
+cd server
+npm test
+# Or with coverage report:
+npm test -- --coverage
+```
+Each test file connects to a **separate in-memory MongoDB** using `mongodb-memory-server`:
+```bash
+npm install --save-dev mongodb-memory-server
+```
+This ensures tests never touch the production database.
+
+Test files and what they cover:
+
+| File | Test Cases |
+|---|---|
+| `auth.test.js` | Register success, duplicate email, missing fields, login success, wrong password |
+| `movies.test.js` | Search valid/empty, get by ID, upload (auth/missing fields), ownership enforcement |
+| `reviews.test.js` | Submit, duplicate 409, update own, update other's 403, distribution calc |
+| `community.test.js` | CRUD posts, toggle like, comments, delete own vs others |
+| `clubs.test.js` | Create, list, join, duplicate join 409, leave, leave not-a-member 400 |
+
+#### Frontend (Vitest + React Testing Library)
+```bash
+cd client
+npm test
+```
+
+| Component | Test Cases |
+|---|---|
+| `Login.jsx` | Renders form, submits correctly, shows error on 401 |
+| `Register.jsx` | Validates required fields, shows 409 duplicate error |
+| `InfographicChart.jsx` | Renders chart with data, renders empty state |
+| `ReviewButton.jsx` | Highlights active opinion, calls submit on click |
+| `PostCard.jsx` | Renders content, like button toggles, delete shown only to author |
+
+### Manual Verification Steps
+
+1. **Register & Login**
+   - Go to `http://localhost:5173/register` → fill form → submit → should redirect to home
+   - Go to `http://localhost:5173/login` → wrong password → should see error message
+
+2. **Search Movie**
+   - Type "Inception" in the search bar → should see movie cards → click one → detail page with poster and plot
+
+3. **Submit Review**
+   - On a movie detail page (while logged in) → click "Go For It" → chart should update
+
+4. **Duplicate Review**
+   - Try clicking a different opinion on the same movie → if review already submitted, should update (not create duplicate)
+
+5. **Community Feed**
+   - Go to `/community` → create a post → it should appear at the top → like it → comment on it
+
+6. **Clubs**
+   - Go to `/clubs` → create a club → it appears in the grid → join it → you are now a member
+
+7. **Upload Film**
+   - Go to `/upload` → fill in film details → submit → film appears under independent films on home page
+
+8. **Unauthenticated Access**
+   - Logout → try visiting `/upload` → should be redirected to `/login`
+
+9. **Token Expiry**
+   - Manually set `fc_token` in localStorage to garbage → reload → should be redirected to login
+
+10. **OMDb Empty Search**
+    - Search for `""` (empty) or `"xyzzznotamovie123"` → should show "No results found" message

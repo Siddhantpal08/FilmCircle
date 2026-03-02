@@ -1,0 +1,191 @@
+# FilmCircle — Build Walkthrough
+
+> **Status: Complete** ✅ | All phases 0–7 executed.
+
+---
+
+## What Was Built
+
+A full-stack, zero-cost, community-based film review platform based on [Synoopsis_003.docx](file:///d:/College/Final%20project/Synoopsis_003.docx).
+
+### Key Feature: 4-Option Review System
+Instead of star ratings, every review is one of:
+| Button | Meaning |
+|---|---|
+| ⏭️ Skip | Not worth watching |
+| 🤔 Considerable | Watch if you have time |
+| ✅ Go For It | Recommended |
+| ⭐ Excellent | Must watch |
+
+---
+
+## Project Structure Created
+
+```
+d:\College\Final project\Filmcircle\
+├── README.md                       ← Setup guide + API table
+├── REQUIREMENTS.md                 ← FR/NFR + edge case list
+├── PHASES.md                       ← 9-phase development plan
+├── .env.example                    ← Template for environment secrets
+├── .gitignore
+├── package.json                    ← Root convenience scripts
+│
+├── server/                         ── Node.js + Express Backend ──
+│   ├── server.js                   ← Entry point
+│   ├── package.json
+│   ├── config/db.js                ← MongoDB connection
+│   ├── middleware/
+│   │   ├── authMiddleware.js       ← JWT verification
+│   │   ├── errorMiddleware.js      ← Global error handler
+│   │   └── validateBody.js         ← express-validator wrapper
+│   ├── models/
+│   │   ├── User.js                 ← bcrypt pre-save hook
+│   │   ├── Movie.js                ← Supports OMDb + indie uploads
+│   │   ├── Review.js               ← Compound unique index (movieId+userId)
+│   │   ├── Post.js                 ← Embedded comments
+│   │   └── Club.js                 ← Embedded club posts
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── movieController.js      ← OMDb proxy + indie CRUD
+│   │   ├── reviewController.js     ← Distribution calculator
+│   │   ├── communityController.js  ← Paginated feed + like toggle
+│   │   └── clubController.js       ← Join/Leave membership
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── movies.routes.js
+│   │   ├── reviews.routes.js
+│   │   ├── community.routes.js
+│   │   └── clubs.routes.js
+│   └── tests/
+│       ├── auth.test.js             ← 12 test cases
+│       ├── reviews.test.js          ← 8 test cases
+│       ├── clubs.test.js            ← 9 test cases
+│       └── community.test.js        ← 8 test cases
+│
+└── client/                         ── React + Vite Frontend ──
+    ├── index.html                  ← SEO meta tags + Google Fonts
+    ├── package.json
+    ├── vite.config.js              ← Dev proxy + Vitest config
+    └── src/
+        ├── main.jsx
+        ├── App.jsx                 ← Router + ProtectedRoute + 404
+        ├── index.css               ← Full design system (dark theme)
+        ├── context/AuthContext.jsx ← JWT persistence + auto-restore
+        ├── services/
+        │   ├── api.js              ← Axios base instance
+        │   └── index.js            ← All service functions
+        ├── components/
+        │   ├── common/
+        │   │   ├── Navbar.jsx + Navbar.css
+        │   │   └── Loader.jsx
+        │   └── movie/
+        │       ├── MovieCard.jsx
+        │       ├── InfographicChart.jsx  ← Chart.js Doughnut
+        │       └── ReviewButtons.jsx    ← Smart submit-or-update
+        ├── pages/
+        │   ├── Home.jsx         ← Hero, search results, indie grid
+        │   ├── Login.jsx
+        │   ├── Register.jsx
+        │   ├── MovieDetail.jsx  ← Full info + chart + review form
+        │   ├── Community.jsx    ← Feed + like + comments
+        │   ├── Clubs.jsx        ← Browse + create club
+        │   ├── ClubDetail.jsx   ← Club feed + join/leave
+        │   ├── Upload.jsx       ← Independent film upload
+        │   └── Profile.jsx      ← Bio edit + films + clubs
+        └── tests/
+            ├── setup.js
+            ├── Login.test.jsx
+            └── InfographicChart.test.jsx
+```
+
+---
+
+## How To Get Started
+
+### Prerequisites
+1. Install [Node.js 18+](https://nodejs.org/)
+2. Get a free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster
+3. Get a free [OMDb API key](https://www.omdbapi.com/apikey.aspx)
+
+### First-Time Setup
+```bash
+# 1. From the Filmcircle root directory:
+npm run install:all
+
+# 2. Copy env file and fill in your values
+copy server\.env.example server\.env
+# Edit server/.env with your MONGO_URI, JWT_SECRET, OMDB_API_KEY
+
+# 3. Start the backend
+npm run dev:server
+
+# 4. In a separate terminal, start the frontend
+npm run dev:client
+```
+
+Open **http://localhost:5173** in your browser.
+
+### Running Tests
+```bash
+# Backend tests (Jest + Supertest + in-memory MongoDB)
+npm run test:server
+
+# Frontend tests (Vitest + React Testing Library)
+npm run test:client
+
+# Both
+npm run test:all
+```
+
+---
+
+## Edge Cases Covered
+
+| Area | Edge Case | Response |
+|---|---|---|
+| Auth | Duplicate email | `409 Conflict` |
+| Auth | Wrong password | `401 Unauthorized` |
+| Auth | Expired token | `401`, prompt re-login |
+| Auth | Missing field | `400` with field-level errors |
+| Reviews | Duplicate review | `409` + reviewId for auto-update |
+| Reviews | Invalid opinion value | `400 Bad Request` |
+| Reviews | Empty movie search | Returns `{ results: [], total: 0 }` |
+| Reviews | No reviews yet | Empty chart with CTA message |
+| Clubs | Join already-joined | `409 Conflict` |
+| Clubs | Leave not-a-member | `400 Bad Request` |
+| Clubs | Post as non-member | `403 Forbidden` |
+| Community | Delete other's post | `403 Forbidden` |
+| Community | Empty post content | `400 Bad Request` |
+| Community | Page beyond data | Empty array, no crash |
+| General | Unknown route | `404` JSON response |
+| General | Malformed JSON | `400 Bad Request` |
+| General | OMDb API down | Returns graceful error in UI |
+
+---
+
+## Tech Stack Summary
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + Vite + React Router v6 |
+| Charts | Chart.js + react-chartjs-2 (Doughnut) |
+| HTTP Client | Axios |
+| Styling | Vanilla CSS with custom design tokens |
+| Backend | Node.js + Express.js (MVC pattern) |
+| Database | MongoDB + Mongoose |
+| Auth | JWT + bcryptjs |
+| Movie Data | OMDb API (IMDB-backed, free tier) |
+| Frontend Tests | Vitest + React Testing Library |
+| Backend Tests | Jest + Supertest + mongodb-memory-server |
+| Hosting (Free) | Vercel (frontend) + Render (backend) + MongoDB Atlas M0 |
+
+---
+
+## Design Decisions
+
+1. **Opinion-only reviews** (no star ratings) — as specified in synopsis
+2. **OMDb proxy on backend** — API key never exposed to client bundle
+3. **In-memory MongoDB for tests** — no real database touched during CI/CD
+4. **Compound unique index** on [(movieId, userId)](file:///d:/College/Final%20project/Filmcircle/client/src/App.jsx#50-59) in Review — DB-level duplicate prevention
+5. **Vite dev proxy** — no CORS config needed during development
+6. **ReviewButtons auto-recovery** — on 409, automatically switches to update mode using the returned `reviewId`
