@@ -1,0 +1,35 @@
+$kind: http-request
+name: Get Reviews for Movie
+method: GET
+url: '{{baseUrl}}/api/reviews/movie/{{movieId}}'
+order: 3000
+queryParams:
+  - key: page
+    value: '1'
+  - key: limit
+    value: '10'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has reviews array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("reviews");
+          pm.expect(json.reviews).to.be.an("array");
+      });
+      pm.test("Response has pagination info", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("total");
+          pm.expect(json).to.have.property("page");
+      });
+      pm.test("Each review has required fields", () => {
+          const json = pm.response.json();
+          if (json.reviews.length > 0) {
+              const review = json.reviews[0];
+              pm.expect(review).to.have.property("_id");
+              pm.expect(review).to.have.property("rating");
+              pm.expect(review).to.have.property("opinion");
+              pm.expect(review).to.have.property("userId");
+          }
+      });

@@ -2,6 +2,7 @@
   "name": "filmcircle-server",
   "version": "1.0.0",
   "description": "FilmCircle backend - Community-based movie review platform",
+  "type": "commonjs",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

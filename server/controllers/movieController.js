@@ -4,9 +4,19 @@ const Movie = require('../models/Movie');
 const OMDB_BASE = process.env.OMDB_BASE_URL || 'https://www.omdbapi.com/';
 const OMDB_KEY = process.env.OMDB_API_KEY;
 
+// Log warning at startup if key not configured
+if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
+    console.warn('⚠️  OMDB_API_KEY is not set. Movie search/detail for non-indie films will be unavailable.');
+    console.warn('   Get a free key at https://www.omdbapi.com/apikey.aspx and add it to your .env file.');
+}
+
 // Helper: call OMDb and handle errors
 const omdbGet = async (params) => {
-    if (!OMDB_KEY) throw new Error('OMDb API key not configured');
+    if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
+        const err = new Error('OMDB_API_KEY is not configured. Add your key to the .env file to enable movie search. Get one free at https://www.omdbapi.com/apikey.aspx');
+        err.statusCode = 503;
+        throw err;
+    }
     const response = await axios.get(OMDB_BASE, { params: { ...params, apikey: OMDB_KEY } });
     if (response.data.Response === 'False') {
         const err = new Error(response.data.Error || 'Movie not found');
@@ -15,6 +25,7 @@ const omdbGet = async (params) => {
     }
     return response.data;
 };
+
 
 // @route   GET /api/movies/search?q=title
 // @access  Public
@@ -29,6 +40,9 @@ const searchMovies = async (req, res, next) => {
     } catch (err) {
         if (err.statusCode === 404) {
             return res.status(200).json({ results: [], totalResults: '0' });
+        }
+        if (err.statusCode === 503) {
+            return res.status(503).json({ message: err.message });
         }
         next(err);
     }

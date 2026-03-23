@@ -1,0 +1,32 @@
+$kind: http-request
+name: 'Create Club - Duplicate Name (Negative)'
+method: POST
+url: '{{baseUrl}}/api/clubs'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Nolan Fans Club",
+      "description": "Another club with the same name",
+      "genre": ["Thriller"],
+      "isPrivate": false
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400 or 409 for duplicate club name", () => {
+          pm.expect(pm.response.code).to.be.oneOf([400, 409]);
+      });
+      pm.test("Response contains error message", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("message");
+      });
+      pm.test("No club ID returned on duplicate creation", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.not.have.property("_id");
+      });

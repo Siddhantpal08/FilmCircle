@@ -1,0 +1,32 @@
+$kind: http-request
+name: Update Profile
+method: PUT
+url: '{{baseUrl}}/api/auth/profile'
+order: 8000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "updateduser",
+      "bio": "Film enthusiast and critic",
+      "favoriteGenres": ["Drama", "Thriller", "Sci-Fi"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Profile updated successfully", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("username");
+          pm.expect(json.username).to.equal("updateduser");
+      });
+      pm.test("Bio is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("bio");
+          pm.expect(json.bio).to.equal("Film enthusiast and critic");
+      });
+      pm.test("Response time is under 2000ms", () => pm.expect(pm.response.responseTime).to.be.below(2000));

@@ -1,0 +1,36 @@
+$kind: collection
+name: FilmCircle API
+description: |-
+  Complete API collection for the FilmCircle application covering Auth, Movies, Reviews, Community, and Clubs modules.
+  
+  ## Setup
+  1. Select the **Development** environment
+  2. Run the **Login** request to auto-populate `authToken` and `userId`
+  3. Use the Collection Runner for end-to-end workflow testing
+variables:
+  - key: baseUrl
+    value: 'http://localhost:5000'
+    description: Base URL for the FilmCircle API server
+  - key: authToken
+    value: ''
+    description: JWT Bearer token — auto-set by Login / Register requests
+  - key: userId
+    value: ''
+    description: Authenticated user ID — auto-set by Login / Register requests
+  - key: movieId
+    value: ''
+    description: Movie ID used across Movies, Reviews, and Clubs requests
+  - key: reviewId
+    value: ''
+    description: Review ID — auto-set by Submit Review request
+  - key: clubId
+    value: ''
+    description: Club ID — auto-set by Create Club request
+  - key: postId
+    value: ''
+    description: Community post ID — auto-set by Create Post request
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{authToken}}'

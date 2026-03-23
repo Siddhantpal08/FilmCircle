@@ -1,0 +1,40 @@
+$kind: http-request
+name: Submit Review
+method: POST
+url: '{{baseUrl}}/api/reviews'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "movieId": "{{movieId}}",
+      "rating": 4,
+      "opinion": "loved",
+      "reviewText": "An absolutely stunning film with incredible cinematography and a gripping storyline.",
+      "containsSpoilers": false
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 201 Created", () => pm.response.to.have.status(201));
+      pm.test("Review created with required fields", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("movieId");
+          pm.expect(json).to.have.property("rating");
+          pm.expect(json).to.have.property("opinion");
+          pm.collectionVariables.set("reviewId", json._id);
+      });
+      pm.test("Rating is within valid range", () => {
+          const json = pm.response.json();
+          pm.expect(json.rating).to.be.at.least(1).and.at.most(5);
+      });
+      pm.test("Review linked to authenticated user", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("userId");
+          pm.expect(json.userId).to.equal(pm.collectionVariables.get("userId"));
+      });

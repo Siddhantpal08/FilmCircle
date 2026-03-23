@@ -26,7 +26,13 @@ export default function Home() {
         setError('');
         movieService.search(query)
             .then(res => setResults(res.data.results))
-            .catch(() => setError('Failed to search. Please try again.'))
+            .catch(err => {
+                if (err.response?.status === 503) {
+                    setError('🔑 OMDB API key not configured. To enable movie search, get a free key at omdbapi.com/apikey.aspx and add OMDB_API_KEY to your server .env file.');
+                } else {
+                    setError('Failed to search. Please try again.');
+                }
+            })
             .finally(() => setLoading(false));
     }, [query]);
 

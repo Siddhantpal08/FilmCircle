@@ -1,0 +1,22 @@
+$kind: http-request
+name: Get Club by ID
+method: GET
+url: '{{baseUrl}}/api/clubs/{{clubId}}'
+order: 4000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has club details", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("name");
+          pm.expect(json).to.have.property("description");
+          pm.expect(json).to.have.property("members");
+          pm.expect(json).to.have.property("createdBy");
+      });
+      pm.test("Club ID matches requested ID", () => {
+          const json = pm.response.json();
+          pm.expect(json._id).to.equal(pm.collectionVariables.get("clubId"));
+      });

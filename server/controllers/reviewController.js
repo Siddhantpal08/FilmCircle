@@ -4,7 +4,7 @@ const Review = require('../models/Review');
 // @access  Private
 const submitReview = async (req, res, next) => {
     try {
-        const { movieId, opinion } = req.body;
+        const { movieId, opinion, comment } = req.body;
 
         if (!movieId) return res.status(400).json({ message: 'movieId is required' });
         const validOpinions = ['skip', 'considerable', 'goForIt', 'excellent'];
@@ -21,7 +21,7 @@ const submitReview = async (req, res, next) => {
             });
         }
 
-        const review = await Review.create({ movieId, userId: req.user._id, opinion });
+        const review = await Review.create({ movieId, userId: req.user._id, opinion, comment: comment?.trim() || '' });
         res.status(201).json(review);
     } catch (err) {
         next(err);
@@ -45,6 +45,7 @@ const updateReview = async (req, res, next) => {
         }
 
         review.opinion = req.body.opinion;
+        if (req.body.comment !== undefined) review.comment = req.body.comment?.trim() || '';
         await review.save();
         res.json(review);
     } catch (err) {

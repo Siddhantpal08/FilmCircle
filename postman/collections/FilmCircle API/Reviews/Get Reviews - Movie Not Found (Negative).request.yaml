@@ -1,0 +1,14 @@
+$kind: http-request
+name: 'Get Reviews - Movie Not Found (Negative)'
+method: GET
+url: '{{baseUrl}}/api/reviews/movie/000000000000000000000000'
+order: 4000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 404 Not Found for invalid movie ID", () => pm.response.to.have.status(404));
+      pm.test("Response contains error message", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("message");
+      });

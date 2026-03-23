@@ -1,0 +1,38 @@
+$kind: http-request
+name: Get All Posts
+method: GET
+url: '{{baseUrl}}/api/community/posts'
+order: 3000
+queryParams:
+  - key: page
+    value: '1'
+  - key: limit
+    value: '10'
+  - key: sort
+    value: latest
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has posts array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("posts");
+          pm.expect(json.posts).to.be.an("array");
+      });
+      pm.test("Response has pagination metadata", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("total");
+          pm.expect(json).to.have.property("page");
+          pm.expect(json).to.have.property("pages");
+      });
+      pm.test("Each post has required fields", () => {
+          const json = pm.response.json();
+          if (json.posts.length > 0) {
+              const post = json.posts[0];
+              pm.expect(post).to.have.property("_id");
+              pm.expect(post).to.have.property("content");
+              pm.expect(post).to.have.property("author");
+              pm.expect(post).to.have.property("likes");
+          }
+      });

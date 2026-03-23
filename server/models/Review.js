@@ -12,7 +12,9 @@ const reviewSchema = new mongoose.Schema({
             message: 'Opinion must be one of: skip, considerable, goForIt, excellent',
         },
     },
+    comment: { type: String, maxlength: 500, default: '' },
 }, { timestamps: true });
+
 
 // Enforce one review per user per movie at the database level
 reviewSchema.index({ movieId: 1, userId: 1 }, { unique: true });

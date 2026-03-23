@@ -1,0 +1,14 @@
+$kind: http-request
+name: 'Get Club - Not Found (Negative)'
+method: GET
+url: '{{baseUrl}}/api/clubs/000000000000000000000000'
+order: 5000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 404 Not Found for invalid club ID", () => pm.response.to.have.status(404));
+      pm.test("Response contains error message", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("message");
+      });

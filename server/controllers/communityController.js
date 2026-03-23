@@ -86,6 +86,38 @@ const addComment = async (req, res, next) => {
     }
 };
 
+// @route   PUT /api/community/posts/:id
+// @access  Private (owner only, within 5 min)
+const updatePost = async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        if (post.author.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to edit this post' });
+        }
+
+        const FIVE_MINUTES = 5 * 60 * 1000;
+        if (Date.now() - new Date(post.createdAt).getTime() > FIVE_MINUTES) {
+            return res.status(403).json({ message: 'Posts can only be edited within 5 minutes of posting' });
+        }
+
+        const { content } = req.body;
+        if (!content || content.trim() === '') {
+            return res.status(400).json({ message: 'Post content cannot be empty' });
+        }
+
+        post.content = content.trim();
+        post.editedAt = new Date();
+        await post.save();
+
+        const updated = await Post.findById(post._id).populate('author', 'username avatarUrl');
+        res.json(updated);
+    } catch (err) {
+        next(err);
+    }
+};
+
 // @route   DELETE /api/community/posts/:id
 // @access  Private (owner only)
 const deletePost = async (req, res, next) => {
@@ -104,4 +136,4 @@ const deletePost = async (req, res, next) => {
     }
 };
 
-module.exports = { getPosts, createPost, toggleLike, addComment, deletePost };
+module.exports = { getPosts, createPost, toggleLike, addComment, updatePost, deletePost };

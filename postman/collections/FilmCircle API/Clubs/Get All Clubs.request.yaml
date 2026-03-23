@@ -1,0 +1,37 @@
+$kind: http-request
+name: Get All Clubs
+method: GET
+url: '{{baseUrl}}/api/clubs'
+order: 3000
+queryParams:
+  - key: page
+    value: '1'
+  - key: limit
+    value: '10'
+  - key: sort
+    value: popular
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has clubs array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("clubs");
+          pm.expect(json.clubs).to.be.an("array");
+      });
+      pm.test("Response has pagination metadata", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("total");
+          pm.expect(json).to.have.property("page");
+          pm.expect(json).to.have.property("pages");
+      });
+      pm.test("Each club has required fields", () => {
+          const json = pm.response.json();
+          if (json.clubs.length > 0) {
+              const club = json.clubs[0];
+              pm.expect(club).to.have.property("_id");
+              pm.expect(club).to.have.property("name");
+              pm.expect(club).to.have.property("members");
+          }
+      });

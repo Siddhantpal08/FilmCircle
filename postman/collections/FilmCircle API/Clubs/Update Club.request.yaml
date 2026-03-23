@@ -1,0 +1,32 @@
+$kind: http-request
+name: Update Club
+method: PUT
+url: '{{baseUrl}}/api/clubs/{{clubId}}'
+order: 9000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Nolan Fans Club (Official)",
+      "description": "The official club for fans of Christopher Nolan — discussing all his films from Following to Oppenheimer",
+      "genre": ["Thriller", "Sci-Fi", "Drama", "Historical"],
+      "isPrivate": false
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Club name is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("name");
+          pm.expect(json.name).to.equal("Nolan Fans Club (Official)");
+      });
+      pm.test("Club description is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json.description).to.include("Oppenheimer");
+      });
+      pm.test("Response time is under 2000ms", () => pm.expect(pm.response.responseTime).to.be.below(2000));

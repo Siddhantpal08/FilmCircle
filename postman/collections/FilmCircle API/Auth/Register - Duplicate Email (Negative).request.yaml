@@ -1,0 +1,32 @@
+$kind: http-request
+name: 'Register - Duplicate Email (Negative)'
+method: POST
+url: '{{baseUrl}}/api/auth/register'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "anotheruser",
+      "email": "testuser@example.com",
+      "password": "Test@1234"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400 or 409 for duplicate email", () => {
+          pm.expect(pm.response.code).to.be.oneOf([400, 409]);
+      });
+      pm.test("Response contains error message", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("message");
+          pm.expect(json.message).to.be.a("string").and.not.empty;
+      });
+      pm.test("No token returned on duplicate registration", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.not.have.property("token");
+      });

@@ -1,0 +1,35 @@
+$kind: http-request
+name: Update Review
+method: PUT
+url: '{{baseUrl}}/api/reviews/{{reviewId}}'
+order: 5000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "rating": 5,
+      "opinion": "loved",
+      "reviewText": "On reflection, this film is a masterpiece. The direction and performances are flawless.",
+      "containsSpoilers": true
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Review rating is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("rating");
+          pm.expect(json.rating).to.equal(5);
+      });
+      pm.test("Review text is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json.reviewText).to.include("masterpiece");
+      });
+      pm.test("Spoiler flag is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json.containsSpoilers).to.equal(true);
+      });

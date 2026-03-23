@@ -1,0 +1,40 @@
+$kind: http-request
+name: Create Club
+method: POST
+url: '{{baseUrl}}/api/clubs'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Nolan Fans Club",
+      "description": "A club for fans of Christopher Nolan's mind-bending films",
+      "genre": ["Thriller", "Sci-Fi", "Drama"],
+      "isPrivate": false,
+      "coverImage": "https://example.com/nolan-cover.jpg"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 201 Created", () => pm.response.to.have.status(201));
+      pm.test("Club created with required fields", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("name");
+          pm.expect(json).to.have.property("description");
+          pm.collectionVariables.set("clubId", json._id);
+      });
+      pm.test("Creator is set as admin/owner", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("createdBy");
+          pm.expect(json.createdBy).to.equal(pm.collectionVariables.get("userId"));
+      });
+      pm.test("Club has members array initialized", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("members");
+          pm.expect(json.members).to.be.an("array");
+      });

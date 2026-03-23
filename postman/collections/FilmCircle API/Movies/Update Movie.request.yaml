@@ -1,0 +1,32 @@
+$kind: http-request
+name: Update Movie
+method: PUT
+url: '{{baseUrl}}/api/movies/{{movieId}}'
+order: 9000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "My Indie Film (Updated)",
+      "description": "Updated description for the indie film",
+      "genre": ["Drama", "Indie", "Art House"],
+      "tags": ["indie", "drama", "urban", "updated"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Movie title is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("title");
+          pm.expect(json.title).to.equal("My Indie Film (Updated)");
+      });
+      pm.test("Movie description is updated", () => {
+          const json = pm.response.json();
+          pm.expect(json.description).to.equal("Updated description for the indie film");
+      });
+      pm.test("Response time is under 2000ms", () => pm.expect(pm.response.responseTime).to.be.below(2000));

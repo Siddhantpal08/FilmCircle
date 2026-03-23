@@ -1,0 +1,21 @@
+$kind: http-request
+name: 'Get Movie by ID (Independent)'
+method: GET
+url: '{{baseUrl}}/api/movies/{{movieId}}'
+order: 7000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has movie fields", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("title");
+          pm.expect(json).to.have.property("description");
+          pm.expect(json).to.have.property("uploadedBy");
+      });
+      pm.test("Movie ID matches requested ID", () => {
+          const json = pm.response.json();
+          pm.expect(json._id).to.equal(pm.collectionVariables.get("movieId"));
+      });

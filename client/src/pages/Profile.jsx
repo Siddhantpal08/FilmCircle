@@ -77,7 +77,7 @@ export default function Profile() {
                         {uploadedFilms.map(m => (
                             <div key={m._id} className="card" style={{ overflow: 'hidden' }}>
                                 <Link to={`/movie/${m._id}`}>
-                                    <img src={m.posterUrl || 'https://via.placeholder.com/200x300/13131f/7c5cfc?text=No+Poster'} alt={m.title} style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover' }} onError={e => { e.target.src = 'https://via.placeholder.com/200x300/13131f/7c5cfc?text=No+Poster'; }} />
+                                    <img src={m.posterUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23131322'/%3E%3Ctext x='50%25' y='46%25' text-anchor='middle' fill='%237c5cfc' font-size='40'%3E🎬%3C/text%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' fill='%237c5cfc' font-size='14'%3ENo Poster%3C/text%3E%3C/svg%3E"} alt={m.title} style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover' }} onError={e => { e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23131322'/%3E%3Ctext x='50%25' y='46%25' text-anchor='middle' fill='%237c5cfc' font-size='40'%3E🎬%3C/text%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' fill='%237c5cfc' font-size='14'%3ENo Poster%3C/text%3E%3C/svg%3E"; }} />
                                 </Link>
                                 <div style={{ padding: '0.75rem' }}>
                                     <Link to={`/movie/${m._id}`}><h3 style={{ fontSize: '0.9rem', color: 'var(--clr-text)' }}>{m.title}</h3></Link>

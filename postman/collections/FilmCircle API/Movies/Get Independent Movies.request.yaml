@@ -1,0 +1,35 @@
+$kind: http-request
+name: Get Independent Movies
+method: GET
+url: '{{baseUrl}}/api/movies/independent'
+order: 3000
+queryParams:
+  - key: page
+    value: '1'
+  - key: limit
+    value: '10'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has movies array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("movies");
+          pm.expect(json.movies).to.be.an("array");
+      });
+      pm.test("Response has pagination metadata", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("total");
+          pm.expect(json).to.have.property("page");
+          pm.expect(json).to.have.property("pages");
+      });
+      pm.test("Each movie has required fields", () => {
+          const json = pm.response.json();
+          if (json.movies.length > 0) {
+              const movie = json.movies[0];
+              pm.expect(movie).to.have.property("_id");
+              pm.expect(movie).to.have.property("title");
+              pm.expect(movie).to.have.property("uploadedBy");
+          }
+      });

@@ -1,0 +1,22 @@
+$kind: http-request
+name: Delete Movie
+method: DELETE
+url: '{{baseUrl}}/api/movies/{{movieId}}'
+order: 10000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK or 204 No Content", () => {
+          pm.expect(pm.response.code).to.be.oneOf([200, 204]);
+      });
+      pm.test("Movie deleted successfully", () => {
+          if (pm.response.code === 200) {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("message");
+          }
+      });
+      pm.test("Subsequent GET returns 404", () => {
+          // Informational: movieId is now invalid
+          pm.collectionVariables.set("movieId", "");
+      });

@@ -135,4 +135,71 @@ const postInClub = async (req, res, next) => {
     }
 };
 
-module.exports = { getClubs, createClub, getClubById, joinClub, leaveClub, postInClub };
+// @route   PUT /api/clubs/:id
+// @access  Private (creator only)
+const updateClub = async (req, res, next) => {
+    try {
+        const club = await Club.findById(req.params.id);
+        if (!club) return res.status(404).json({ message: 'Club not found' });
+
+        if (club.createdBy.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Only the club creator can edit this club' });
+        }
+
+        const { name, description, genre } = req.body;
+        if (name) club.name = name.trim();
+        if (description !== undefined) club.description = description;
+        if (genre !== undefined) club.genre = genre;
+
+        await club.save();
+        res.json(club);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @route   DELETE /api/clubs/:id
+// @access  Private (creator only)
+const deleteClub = async (req, res, next) => {
+    try {
+        const club = await Club.findById(req.params.id);
+        if (!club) return res.status(404).json({ message: 'Club not found' });
+
+        if (club.createdBy.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Only the club creator can delete this club' });
+        }
+
+        await club.deleteOne();
+        res.json({ message: 'Club deleted successfully' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @route   DELETE /api/clubs/:id/posts/:postId
+// @access  Private (post author or club creator)
+const deleteClubPost = async (req, res, next) => {
+    try {
+        const club = await Club.findById(req.params.id);
+        if (!club) return res.status(404).json({ message: 'Club not found' });
+
+        const postIndex = club.posts.findIndex(p => p._id.toString() === req.params.postId);
+        if (postIndex === -1) return res.status(404).json({ message: 'Post not found' });
+
+        const post = club.posts[postIndex];
+        const isClubCreator = club.createdBy.toString() === req.user._id.toString();
+        const isPostAuthor = post.author.toString() === req.user._id.toString();
+
+        if (!isClubCreator && !isPostAuthor) {
+            return res.status(403).json({ message: 'Not authorized to delete this post' });
+        }
+
+        club.posts.splice(postIndex, 1);
+        await club.save();
+        res.json({ message: 'Post deleted' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { getClubs, createClub, getClubById, joinClub, leaveClub, postInClub, updateClub, deleteClub, deleteClubPost };

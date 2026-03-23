@@ -1,0 +1,21 @@
+$kind: http-request
+name: Delete Review
+method: DELETE
+url: '{{baseUrl}}/api/reviews/{{reviewId}}'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK or 204 No Content", () => {
+          pm.expect(pm.response.code).to.be.oneOf([200, 204]);
+      });
+      pm.test("Review deleted successfully", () => {
+          if (pm.response.code === 200) {
+              const json = pm.response.json();
+              pm.expect(json).to.have.property("message");
+          }
+      });
+      pm.test("Clear reviewId after deletion", () => {
+          pm.collectionVariables.set("reviewId", "");
+      });

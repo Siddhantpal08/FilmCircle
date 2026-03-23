@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-const FALLBACK = 'https://via.placeholder.com/200x300/13131f/7c5cfc?text=No+Poster';
+const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%2313131f'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%237c5cfc' font-size='30'%3E🎬%3C/text%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' fill='%237c5cfc' font-size='14'%3ENo Poster%3C/text%3E%3C/svg%3E";
 
 export default function MovieCard({ movie, indie = false }) {
     const id = movie.imdbID || movie._id;

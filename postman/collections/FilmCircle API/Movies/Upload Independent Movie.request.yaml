@@ -1,0 +1,40 @@
+$kind: http-request
+name: Upload Independent Movie
+method: POST
+url: '{{baseUrl}}/api/movies/upload'
+order: 4000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "My Indie Film",
+      "description": "A short independent film about urban life",
+      "genre": ["Drama", "Indie"],
+      "releaseYear": 2024,
+      "director": "Jane Doe",
+      "duration": 95,
+      "posterUrl": "https://example.com/poster.jpg",
+      "videoUrl": "https://example.com/video.mp4",
+      "tags": ["indie", "drama", "urban"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 201 Created", () => pm.response.to.have.status(201));
+      pm.test("Movie created with required fields", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("title");
+          pm.expect(json.title).to.equal("My Indie Film");
+          pm.collectionVariables.set("movieId", json._id);
+      });
+      pm.test("Movie linked to authenticated user", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("uploadedBy");
+          pm.expect(json.uploadedBy).to.equal(pm.collectionVariables.get("userId"));
+      });
+      pm.test("Response time is under 3000ms", () => pm.expect(pm.response.responseTime).to.be.below(3000));

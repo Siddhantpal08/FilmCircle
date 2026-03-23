@@ -1,0 +1,28 @@
+$kind: http-request
+name: 'Create Post - Empty Content (Negative)'
+method: POST
+url: '{{baseUrl}}/api/community/posts'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "content": "",
+      "tags": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400 Bad Request for empty content", () => pm.response.to.have.status(400));
+      pm.test("Response contains validation error", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("message");
+      });
+      pm.test("No post ID returned on failed creation", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.not.have.property("_id");
+      });

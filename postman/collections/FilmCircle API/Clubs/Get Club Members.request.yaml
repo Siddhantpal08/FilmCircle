@@ -1,0 +1,32 @@
+$kind: http-request
+name: Get Club Members
+method: GET
+url: '{{baseUrl}}/api/clubs/{{clubId}}/members'
+order: 8000
+queryParams:
+  - key: page
+    value: '1'
+  - key: limit
+    value: '20'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has members array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("members");
+          pm.expect(json.members).to.be.an("array");
+      });
+      pm.test("Each member has required fields", () => {
+          const json = pm.response.json();
+          if (json.members.length > 0) {
+              const member = json.members[0];
+              pm.expect(member).to.have.property("_id");
+              pm.expect(member).to.have.property("username");
+          }
+      });
+      pm.test("Response has total member count", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("total");
+      });

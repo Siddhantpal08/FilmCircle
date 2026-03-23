@@ -1,0 +1,36 @@
+$kind: http-request
+name: Search Movies
+method: GET
+url: '{{baseUrl}}/api/movies/search'
+order: 1000
+queryParams:
+  - key: q
+    value: Inception
+  - key: page
+    value: '1'
+  - key: limit
+    value: '10'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has results array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("results");
+          pm.expect(json.results).to.be.an("array");
+      });
+      pm.test("Response has pagination info", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("total");
+          pm.expect(json).to.have.property("page");
+      });
+      pm.test("Each result has required fields", () => {
+          const json = pm.response.json();
+          if (json.results.length > 0) {
+              const movie = json.results[0];
+              pm.expect(movie).to.have.property("title");
+              pm.collectionVariables.set("movieId", movie._id || movie.imdbID || movie.id);
+          }
+      });
+      pm.test("Response time is under 3000ms", () => pm.expect(pm.response.responseTime).to.be.below(3000));

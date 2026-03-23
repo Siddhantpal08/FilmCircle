@@ -1,0 +1,21 @@
+$kind: http-request
+name: Join Club
+method: POST
+url: '{{baseUrl}}/api/clubs/{{clubId}}/join'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response confirms membership", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("members");
+          pm.expect(json.members).to.be.an("array");
+      });
+      pm.test("User ID is in members array", () => {
+          const json = pm.response.json();
+          const userId = pm.collectionVariables.get("userId");
+          const isMember = json.members.some(m => m === userId || m._id === userId);
+          pm.expect(isMember).to.be.true;
+      });

@@ -1,0 +1,30 @@
+$kind: http-request
+name: Get Comments for Post
+method: GET
+url: '{{baseUrl}}/api/community/posts/{{postId}}/comments'
+order: 8000
+queryParams:
+  - key: page
+    value: '1'
+  - key: limit
+    value: '20'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has comments array", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("comments");
+          pm.expect(json.comments).to.be.an("array");
+      });
+      pm.test("Each comment has required fields", () => {
+          const json = pm.response.json();
+          if (json.comments.length > 0) {
+              const comment = json.comments[0];
+              pm.expect(comment).to.have.property("_id");
+              pm.expect(comment).to.have.property("text");
+              pm.expect(comment).to.have.property("author");
+              pm.expect(comment).to.have.property("createdAt");
+          }
+      });

@@ -1,0 +1,24 @@
+$kind: http-request
+name: Get Current User (Me)
+method: GET
+url: '{{baseUrl}}/api/auth/me'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response has user profile fields", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("username");
+          pm.expect(json).to.have.property("email");
+      });
+      pm.test("User ID matches stored userId", () => {
+          const json = pm.response.json();
+          pm.expect(json._id).to.equal(pm.collectionVariables.get("userId"));
+      });
+      pm.test("Password is not exposed in response", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.not.have.property("password");
+      });

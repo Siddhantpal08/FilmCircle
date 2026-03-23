@@ -1,0 +1,19 @@
+$kind: http-request
+name: Unlike Post
+method: DELETE
+url: '{{baseUrl}}/api/community/posts/{{postId}}/like'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 200 OK", () => pm.response.to.have.status(200));
+      pm.test("Response confirms unlike action", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("likes");
+          pm.expect(json.likes).to.be.an("array");
+      });
+      pm.test("User ID is removed from likes array", () => {
+          const json = pm.response.json();
+          pm.expect(json.likes).to.not.include(pm.collectionVariables.get("userId"));
+      });

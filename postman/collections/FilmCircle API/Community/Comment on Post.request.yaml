@@ -1,0 +1,33 @@
+$kind: http-request
+name: Comment on Post
+method: POST
+url: '{{baseUrl}}/api/community/posts/{{postId}}/comments'
+order: 7000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "text": "Totally agree! The basement scene is one of the most powerful moments in modern cinema."
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 201 Created", () => pm.response.to.have.status(201));
+      pm.test("Comment created with required fields", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("text");
+          pm.expect(json).to.have.property("author");
+      });
+      pm.test("Comment text matches submitted text", () => {
+          const json = pm.response.json();
+          pm.expect(json.text).to.include("basement scene");
+      });
+      pm.test("Comment linked to authenticated user", () => {
+          const json = pm.response.json();
+          pm.expect(json.author).to.equal(pm.collectionVariables.get("userId"));
+      });

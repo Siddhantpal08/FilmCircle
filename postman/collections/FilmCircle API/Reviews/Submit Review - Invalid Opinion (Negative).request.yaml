@@ -1,0 +1,30 @@
+$kind: http-request
+name: 'Submit Review - Invalid Opinion (Negative)'
+method: POST
+url: '{{baseUrl}}/api/reviews'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "movieId": "{{movieId}}",
+      "rating": 10,
+      "opinion": "meh",
+      "reviewText": "It was okay"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400 Bad Request for invalid opinion/rating", () => pm.response.to.have.status(400));
+      pm.test("Response contains validation error", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("message");
+      });
+      pm.test("No review ID returned on failed submission", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.not.have.property("_id");
+      });

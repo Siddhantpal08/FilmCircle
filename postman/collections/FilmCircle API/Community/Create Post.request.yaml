@@ -1,0 +1,37 @@
+$kind: http-request
+name: Create Post
+method: POST
+url: '{{baseUrl}}/api/community/posts'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "content": "Just watched Parasite for the third time. The symbolism in this film is absolutely incredible!",
+      "movieRef": "{{movieId}}",
+      "tags": ["Parasite", "Bong Joon-ho", "Korean Cinema"]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 201 Created", () => pm.response.to.have.status(201));
+      pm.test("Post created with required fields", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("_id");
+          pm.expect(json).to.have.property("content");
+          pm.expect(json).to.have.property("author");
+          pm.collectionVariables.set("postId", json._id);
+      });
+      pm.test("Post linked to authenticated user", () => {
+          const json = pm.response.json();
+          pm.expect(json.author).to.equal(pm.collectionVariables.get("userId"));
+      });
+      pm.test("Post has likes and comments initialized", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("likes");
+          pm.expect(json).to.have.property("comments");
+      });

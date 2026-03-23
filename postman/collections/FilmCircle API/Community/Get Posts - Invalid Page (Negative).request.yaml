@@ -1,0 +1,19 @@
+$kind: http-request
+name: 'Get Posts - Invalid Page (Negative)'
+method: GET
+url: '{{baseUrl}}/api/community/posts'
+order: 4000
+queryParams:
+  - key: page
+    value: '-1'
+  - key: limit
+    value: '999'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status is 400 Bad Request for invalid pagination", () => pm.response.to.have.status(400));
+      pm.test("Response contains error message", () => {
+          const json = pm.response.json();
+          pm.expect(json).to.have.property("message");
+      });
