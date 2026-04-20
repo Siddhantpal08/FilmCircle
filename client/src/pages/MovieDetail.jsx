@@ -128,7 +128,8 @@ export default function MovieDetail() {
 
     const title = movie.Title || movie.title;
     const rawPoster = movie.Poster && movie.Poster !== 'N/A' ? movie.Poster : (movie.posterUrl || '');
-    const poster = rawPoster || FALLBACK;
+    let poster = rawPoster || FALLBACK;
+    if (poster.startsWith('http://')) poster = poster.replace('http://', 'https://');
     const genre = movie.Genre || movie.genre || '—';
     const director = movie.Director || movie.director || '—';
     const plot = movie.Plot || movie.plot || 'No description available.';
@@ -162,7 +163,13 @@ export default function MovieDetail() {
                 <div className="movie-detail-grid">
                     {/* Poster */}
                     <div className="poster-col">
-                        <img src={poster} alt={title} className="detail-poster" onError={e => { e.target.src = FALLBACK; }} />
+                        {isIndie && streaming.length > 0 ? (
+                            <a href={streaming[0].url} target="_blank" rel="noreferrer" style={{ display: 'block' }} title={`Watch ${title}`}>
+                                <img src={poster} alt={title} className="detail-poster" onError={e => { e.target.src = FALLBACK; }} />
+                            </a>
+                        ) : (
+                            <img src={poster} alt={title} className="detail-poster" onError={e => { e.target.src = FALLBACK; }} />
+                        )}
                         {isIndie && <span className="badge badge-indie" style={{ marginTop: '0.75rem', display: 'block', textAlign: 'center' }}>🎬 Independent Film</span>}
                         {imdbRating && <div className="imdb-badge">⭐ IMDb: {imdbRating}</div>}
                         {isOwner && !editMode && (

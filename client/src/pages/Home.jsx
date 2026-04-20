@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { movieService } from '../services';
 import MovieCard from '../components/movie/MovieCard';
 import Loader from '../components/common/Loader';
+import SkeletonCard from '../components/common/SkeletonCard';
 
 export default function Home() {
     const [searchParams] = useSearchParams();
@@ -63,7 +64,11 @@ export default function Home() {
                         <h2 style={{ marginBottom: '1.5rem' }}>
                             Results for "<span style={{ color: 'var(--clr-primary)' }}>{query}</span>"
                         </h2>
-                        {loading && <Loader />}
+                        {loading && (
+                            <div className="grid-auto">
+                                {Array(8).fill().map((_, i) => <SkeletonCard key={i} />)}
+                            </div>
+                        )}
                         {error && <div className="alert alert-error">{error}</div>}
                         {!loading && results.length === 0 && !error && (
                             <div className="empty-state">

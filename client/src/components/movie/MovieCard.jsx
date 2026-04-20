@@ -4,7 +4,8 @@ const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 
 export default function MovieCard({ movie, indie = false }) {
     const id = movie.imdbID || movie._id;
-    const poster = (movie.Poster && movie.Poster !== 'N/A') ? movie.Poster : (movie.posterUrl || FALLBACK);
+    let poster = (movie.Poster && movie.Poster !== 'N/A') ? movie.Poster : (movie.posterUrl || FALLBACK);
+    if (poster.startsWith('http://')) poster = poster.replace('http://', 'https://');
     const title = movie.Title || movie.title;
     const year = movie.Year || movie.year || '';
     const genre = movie.Genre || movie.genre || '';

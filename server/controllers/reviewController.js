@@ -39,6 +39,11 @@ const updateReview = async (req, res, next) => {
             return res.status(403).json({ message: 'Not authorized to update this review' });
         }
 
+        const FIFTEEN_MINUTES = 15 * 60 * 1000;
+        if (Date.now() - new Date(review.createdAt).getTime() > FIFTEEN_MINUTES) {
+            return res.status(403).json({ message: 'Reviews can only be edited within 15 minutes of publishing.' });
+        }
+
         const validOpinions = ['skip', 'considerable', 'goForIt', 'excellent'];
         if (!validOpinions.includes(req.body.opinion)) {
             return res.status(400).json({ message: `Opinion must be one of: ${validOpinions.join(', ')}` });
