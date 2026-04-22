@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { movieService, reviewService } from '../services';
 import { useAuth } from '../context/AuthContext';
@@ -13,8 +13,29 @@ const OPINIONS = [
     { key: 'excellent', emoji: '⭐', label: 'Excellent', color: '#7c5cfc' },
 ];
 const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller', 'Romance', 'Documentary', 'Animation', 'Other'];
+const FIVE_MIN = 5 * 60 * 1000;
 
-// Read-only card shown once a user has already submitted their opinion
+// Countdown hook — tracks time remaining within the 5-min edit window
+function useEditTimer(createdAt) {
+    const [secsLeft, setSecsLeft] = useState(() => {
+        if (!createdAt) return 0;
+        return Math.max(0, Math.ceil((FIVE_MIN - (Date.now() - new Date(createdAt).getTime())) / 1000));
+    });
+    const ref = useRef(null);
+    useEffect(() => {
+        if (!createdAt) return;
+        const tick = () => {
+            const remaining = FIVE_MIN - (Date.now() - new Date(createdAt).getTime());
+            setSecsLeft(Math.max(0, Math.ceil(remaining / 1000)));
+            if (remaining <= 0) clearInterval(ref.current);
+        };
+        ref.current = setInterval(tick, 1000);
+        return () => clearInterval(ref.current);
+    }, [createdAt]);
+    return secsLeft;
+}
+
+// Read-only card — shown when review is locked (past 5-min window)
 function SubmittedOpinionCard({ review }) {
     const op = OPINIONS.find(o => o.key === review.opinion) || OPINIONS[0];
     return (
@@ -23,7 +44,7 @@ function SubmittedOpinionCard({ review }) {
                 <span style={{ fontSize: '2rem' }}>{op.emoji}</span>
                 <div>
                     <div style={{ fontWeight: 700, color: op.color, fontSize: '1.05rem' }}>{op.label}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)' }}>Your opinion · cannot be changed</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)' }}>Your opinion · locked</div>
                 </div>
             </div>
             {review.comment && (
@@ -35,23 +56,32 @@ function SubmittedOpinionCard({ review }) {
     );
 }
 
-function OpinionForm({ movieId, onUpdate }) {
-    const [selected, setSelected] = useState(null);
-    const [comment, setComment] = useState('');
+// Editable form — shown within the 5-min window (both new submission AND edits)
+function OpinionForm({ movieId, existingReview, secsLeft, onUpdate }) {
+    const [selected, setSelected] = useState(existingReview?.opinion || null);
+    const [comment, setComment] = useState(existingReview?.comment || '');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    const mm = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+    const ss = String(secsLeft % 60).padStart(2, '0');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!selected) { setError('Please select an opinion first.'); return; }
         setLoading(true); setError(''); setSuccess('');
         try {
-            await reviewService.submit({ movieId, opinion: selected, comment });
-            setSuccess('Opinion submitted!');
+            if (existingReview?._id) {
+                await reviewService.update(existingReview._id, { opinion: selected, comment });
+                setSuccess('Opinion updated!');
+            } else {
+                await reviewService.submit({ movieId, opinion: selected, comment });
+                setSuccess('Opinion submitted!');
+            }
             if (onUpdate) onUpdate();
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to submit opinion.');
+            setError(err.response?.data?.message || 'Failed to submit.');
         } finally {
             setLoading(false);
             setTimeout(() => setSuccess(''), 3000);
@@ -60,6 +90,11 @@ function OpinionForm({ movieId, onUpdate }) {
 
     return (
         <form onSubmit={handleSubmit}>
+            {existingReview && secsLeft > 0 && (
+                <div style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ color: '#f5a623', fontWeight: 600 }}>⏱ {mm}:{ss}</span> remaining to change your opinion
+                </div>
+            )}
             <div className="review-btn-grid">
                 {OPINIONS.map(({ key, emoji, label, color }) => (
                     <button
@@ -81,7 +116,7 @@ function OpinionForm({ movieId, onUpdate }) {
                     className="form-textarea"
                     rows={3}
                     maxLength={500}
-                    placeholder="Share your thoughts about this film…"
+                    placeholder="Share your thoughts…"
                     value={comment}
                     onChange={e => setComment(e.target.value)}
                     disabled={loading}
@@ -89,18 +124,37 @@ function OpinionForm({ movieId, onUpdate }) {
                 <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', textAlign: 'right' }}>{comment.length}/500</div>
             </div>
             <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={loading || !selected}>
-                {loading ? (
-                    <>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 0.8s linear infinite' }}>
-                            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                        </svg>
-                        Submitting…
-                    </>
-                ) : 'Submit Opinion'}
+                {loading ? (<><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 0.8s linear infinite' }}><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>Submitting…</>) : existingReview ? 'Update Opinion' : 'Submit Opinion'}
             </button>
             {error && <div className="alert alert-error" style={{ marginTop: '0.75rem' }}>{error}</div>}
             {success && <div className="alert alert-success" style={{ marginTop: '0.75rem' }}>✓ {success}</div>}
         </form>
+    );
+}
+
+// Shows a handful of other community opinions below the chart
+function ReviewFeed({ reviews }) {
+    if (!reviews || reviews.length === 0) return null;
+    const opMap = Object.fromEntries(OPINIONS.map(o => [o.key, o]));
+    return (
+        <div className="review-feed">
+            <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: 'var(--clr-text-muted)' }}>What others said</h4>
+            {reviews.map((r, i) => {
+                const op = opMap[r.opinion] || opMap.skip;
+                return (
+                    <div key={r._id || i} className="review-feed-item" style={{ borderLeftColor: op.color }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: r.comment ? '0.3rem' : 0 }}>
+                            <span style={{ fontSize: '1.1rem' }}>{op.emoji}</span>
+                            <strong style={{ color: op.color, fontSize: '0.85rem' }}>{op.label}</strong>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--clr-text-muted)' }}>
+                                {r.username || 'User'}
+                            </span>
+                        </div>
+                        {r.comment && <p style={{ margin: 0, fontSize: '0.83rem', color: 'var(--clr-text-muted)', lineHeight: 1.5 }}>"{r.comment}"</p>}
+                    </div>
+                );
+            })}
+        </div>
     );
 }
 
@@ -116,6 +170,9 @@ export default function MovieDetail() {
     const [editForm, setEditForm] = useState({});
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
+
+    const secsLeft = useEditTimer(myReview?.createdAt);
+    const canEdit = secsLeft > 0;
 
     const fetchAll = () => {
         setLoading(true);
@@ -169,6 +226,7 @@ export default function MovieDetail() {
         <main className="page">
             <div className="container">
                 <div className="movie-detail-grid">
+
                     {/* Poster */}
                     <div className="poster-col">
                         {isIndie && streaming.length > 0 ? (
@@ -217,13 +275,13 @@ export default function MovieDetail() {
                                 {actors && <div className="meta-row"><strong>Cast:</strong> {actors}</div>}
                                 {saveMsg && <div className="alert alert-success" style={{ marginTop: '0.5rem' }}>✓ {saveMsg}</div>}
 
-                                {/* Streaming / Watch Section */}
+                                {/* Streaming / Watch links */}
                                 {streaming.length > 0 && (
                                     <div className="streaming-section">
                                         <h3>Watch On</h3>
                                         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                                             {streaming.map((s, i) => (
-                                                <a key={i} href={s.url} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ gap: '0.4rem' }}>
+                                                <a key={i} href={s.url} target="_blank" rel="noreferrer" className="btn btn-primary">
                                                     ▶ {s.platform}
                                                 </a>
                                             ))}
@@ -231,10 +289,17 @@ export default function MovieDetail() {
                                     </div>
                                 )}
 
-                                {/* Community Opinion */}
+                                {/* Community Opinion chart + reviews */}
                                 <div className="review-section">
                                     <h3>Community Opinion</h3>
-                                    {reviewData ? <InfographicChart distribution={reviewData.distribution} total={reviewData.total} percentages={reviewData.percentages} /> : <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.9rem' }}>No opinions yet.</p>}
+                                    {reviewData && reviewData.total > 0 ? (
+                                        <>
+                                            <InfographicChart distribution={reviewData.distribution} total={reviewData.total} percentages={reviewData.percentages} />
+                                            <ReviewFeed reviews={reviewData.reviews} />
+                                        </>
+                                    ) : (
+                                        <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.9rem' }}>No opinions yet. Be the first!</p>
+                                    )}
                                 </div>
 
                                 {/* Your Opinion */}
@@ -242,9 +307,13 @@ export default function MovieDetail() {
                                     <h3>Your Opinion</h3>
                                     {isAuthenticated ? (
                                         myReview ? (
-                                            <SubmittedOpinionCard review={myReview} />
+                                            canEdit ? (
+                                                <OpinionForm movieId={id} existingReview={myReview} secsLeft={secsLeft} onUpdate={fetchAll} />
+                                            ) : (
+                                                <SubmittedOpinionCard review={myReview} />
+                                            )
                                         ) : (
-                                            <OpinionForm movieId={id} onUpdate={fetchAll} />
+                                            <OpinionForm movieId={id} existingReview={null} secsLeft={0} onUpdate={fetchAll} />
                                         )
                                     ) : (
                                         <p><Link to="/login" style={{ color: 'var(--clr-primary)', fontWeight: 600 }}>Login</Link> to submit your opinion.</p>
@@ -323,15 +392,19 @@ export default function MovieDetail() {
                 .opinion-btn:hover { border-color: var(--clr-primary); color: var(--clr-text); }
                 .opinion-active { font-weight: 600; }
 
-                /* Indie poster – watch overlay */
+                /* Indie poster overlay */
                 .poster-link-wrap { position: relative; display: block; border-radius: var(--radius); overflow: hidden; }
                 .poster-link-wrap .detail-poster { transition: filter 0.25s; }
                 .poster-link-wrap:hover .detail-poster { filter: brightness(0.55); }
                 .poster-watch-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 700; color: #fff; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
                 .poster-link-wrap:hover .poster-watch-overlay { opacity: 1; }
 
-                /* Submitted opinion card */
+                /* Locked opinion card */
                 .submitted-opinion-card { border: 1.5px solid; border-radius: var(--radius-sm); padding: 1rem 1.25rem; }
+
+                /* Community review feed */
+                .review-feed { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+                .review-feed-item { border-left: 3px solid; padding: 0.55rem 0.9rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; background: var(--clr-surface-2); }
 
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @media (max-width: 768px) { .movie-detail-grid { grid-template-columns: 1fr; } .poster-col { max-width: 260px; margin: 0 auto; } }

@@ -4,6 +4,45 @@ const Movie = require('../models/Movie');
 const OMDB_BASE = process.env.OMDB_BASE_URL || 'https://www.omdbapi.com/';
 const OMDB_KEY = process.env.OMDB_API_KEY;
 
+// Curated list of 30 popular/trending titles (by imdbID)
+const TRENDING_IDS = [
+    'tt9362722', // Spider-Man: Across the Spider-Verse
+    'tt15398776', // Oppenheimer
+    'tt1517268', // Barbie
+    'tt6791350', // Guardians of the Galaxy Vol. 3
+    'tt14209916', // The Creator
+    'tt5109784', // Asteroid City
+    'tt3447590', // Dune: Part Two
+    'tt1745960', // Top Gun: Maverick
+    'tt10151854', // The Whale
+    'tt15321791', // All of Us Strangers
+    'tt11304740', // Poor Things
+    'tt13186482', // The Zone of Interest
+    'tt0111161', // The Shawshank Redemption
+    'tt0468569', // The Dark Knight
+    'tt0816692', // Interstellar
+    'tt1375666', // Inception
+    'tt0120737', // The Lord of the Rings: The Fellowship
+    'tt6718170', // The Super Mario Bros. Movie
+    'tt1630029', // Avatar: The Way of Water
+    'tt7125580', // The Holdovers
+    'tt21823606', // Dream Scenario
+    'tt21954842', // Saltburn
+    'tt9114286', // Black Panther: Wakanda Forever
+    'tt10366460', // Knock at the Cabin
+    'tt12593682', // Elemental
+    'tt14916392', // Transformers: Rise of the Beasts
+    'tt0903747', // Breaking Bad (using movie-style)
+    'tt8589698', // Tenet
+    'tt3581652', // Bottoms
+    'tt15671028', // Mission: Impossible – Dead Reckoning
+];
+
+// Simple in-memory cache (refresh every 2 hours)
+let trendingCache = null;
+let trendingCachedAt = 0;
+const CACHE_TTL = 2 * 60 * 60 * 1000;
+
 // Log warning at startup if key not configured
 if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
     console.warn('⚠️  OMDB_API_KEY is not set. Movie search/detail for non-indie films will be unavailable.');
@@ -157,4 +196,39 @@ const deleteMovie = async (req, res, next) => {
     }
 };
 
-module.exports = { searchMovies, getIndependentMovies, getMovieById, uploadMovie, updateMovie, deleteMovie };
+// @route   GET /api/movies/trending
+// @access  Public — returns curated list of popular movies from OMDb (cached 2h)
+const getTrendingMovies = async (req, res, next) => {
+    try {
+        // Serve from cache if fresh
+        if (trendingCache && Date.now() - trendingCachedAt < CACHE_TTL) {
+            return res.json(trendingCache);
+        }
+
+        if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
+            const err = new Error('OMDB_API_KEY is not configured.');
+            err.statusCode = 503;
+            throw err;
+        }
+
+        // Fetch all in parallel, skip failures gracefully
+        const settled = await Promise.allSettled(
+            TRENDING_IDS.map(id =>
+                omdbGet({ i: id, plot: 'short' })
+                    .then(d => ({ imdbID: d.imdbID, Title: d.Title, Year: d.Year, Poster: d.Poster, Genre: d.Genre, imdbRating: d.imdbRating }))
+            )
+        );
+        const movies = settled
+            .filter(r => r.status === 'fulfilled' && r.value?.imdbID)
+            .map(r => r.value);
+
+        trendingCache = movies;
+        trendingCachedAt = Date.now();
+        res.json(movies);
+    } catch (err) {
+        if (err.statusCode === 503) return res.status(503).json({ message: err.message });
+        next(err);
+    }
+};
+
+module.exports = { searchMovies, getIndependentMovies, getMovieById, uploadMovie, updateMovie, deleteMovie, getTrendingMovies };

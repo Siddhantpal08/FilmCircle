@@ -1,5 +1,8 @@
 const Review = require('../models/Review');
 
+const FIVE_MINUTES = 5 * 60 * 1000;
+const validOpinions = ['skip', 'considerable', 'goForIt', 'excellent'];
+
 // @route   POST /api/reviews
 // @access  Private
 const submitReview = async (req, res, next) => {
@@ -7,7 +10,6 @@ const submitReview = async (req, res, next) => {
         const { movieId, opinion, comment } = req.body;
 
         if (!movieId) return res.status(400).json({ message: 'movieId is required' });
-        const validOpinions = ['skip', 'considerable', 'goForIt', 'excellent'];
         if (!validOpinions.includes(opinion)) {
             return res.status(400).json({ message: `Opinion must be one of: ${validOpinions.join(', ')}` });
         }
@@ -16,7 +18,7 @@ const submitReview = async (req, res, next) => {
         const existing = await Review.findOne({ movieId, userId: req.user._id });
         if (existing) {
             return res.status(409).json({
-                message: 'You have already reviewed this movie. Use PUT /api/reviews/:id to update it.',
+                message: 'You have already reviewed this movie.',
                 reviewId: existing._id,
             });
         }
@@ -29,7 +31,7 @@ const submitReview = async (req, res, next) => {
 };
 
 // @route   PUT /api/reviews/:id
-// @access  Private (owner only)
+// @access  Private (owner only, within 5 minutes of submission)
 const updateReview = async (req, res, next) => {
     try {
         const review = await Review.findById(req.params.id);
@@ -39,12 +41,10 @@ const updateReview = async (req, res, next) => {
             return res.status(403).json({ message: 'Not authorized to update this review' });
         }
 
-        const FIFTEEN_MINUTES = 15 * 60 * 1000;
-        if (Date.now() - new Date(review.createdAt).getTime() > FIFTEEN_MINUTES) {
-            return res.status(403).json({ message: 'Reviews can only be edited within 15 minutes of publishing.' });
+        if (Date.now() - new Date(review.createdAt).getTime() > FIVE_MINUTES) {
+            return res.status(403).json({ message: 'Opinions can only be changed within 5 minutes of submitting.' });
         }
 
-        const validOpinions = ['skip', 'considerable', 'goForIt', 'excellent'];
         if (!validOpinions.includes(req.body.opinion)) {
             return res.status(400).json({ message: `Opinion must be one of: ${validOpinions.join(', ')}` });
         }
@@ -63,7 +63,9 @@ const updateReview = async (req, res, next) => {
 const getReviewsForMovie = async (req, res, next) => {
     try {
         const { movieId } = req.params;
-        const reviews = await Review.find({ movieId }).populate('userId', 'username avatarUrl');
+        const reviews = await Review.find({ movieId })
+            .populate('userId', 'username avatarUrl')
+            .sort({ createdAt: -1 });
 
         // Compute opinion distribution
         const distribution = { skip: 0, considerable: 0, goForIt: 0, excellent: 0 };
@@ -76,7 +78,20 @@ const getReviewsForMovie = async (req, res, next) => {
             percentages[k] = total > 0 ? Math.round((distribution[k] / total) * 100) : 0;
         });
 
-        res.json({ reviews, distribution, percentages, total });
+        // Return up to 10 individual reviews for the feed (filter out ones with deleted users)
+        const reviewList = reviews
+            .filter(r => r.userId != null)
+            .slice(0, 10)
+            .map(r => ({
+                _id: r._id,
+                opinion: r.opinion,
+                comment: r.comment,
+                createdAt: r.createdAt,
+                username: r.userId.username,
+                avatarUrl: r.userId.avatarUrl,
+            }));
+
+        res.json({ reviews: reviewList, distribution, percentages, total });
     } catch (err) {
         next(err);
     }

@@ -12,12 +12,27 @@ export default function Home() {
 
     const [results, setResults] = useState([]);
     const [indie, setIndie] = useState([]);
+    const [trending, setTrending] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [homeLoading, setHomeLoading] = useState(true); // home content not ready yet
     const [error, setError] = useState('');
+    const [trendingError, setTrendingError] = useState('');
 
-    // Fetch indie films on mount
+    // Fetch indie + trending on mount (in parallel)
     useEffect(() => {
-        movieService.getIndependent().then(res => setIndie(res.data)).catch(() => { });
+        setHomeLoading(true);
+        Promise.allSettled([
+            movieService.getIndependent(),
+            movieService.getTrending(),
+        ]).then(([indieRes, trendingRes]) => {
+            if (indieRes.status === 'fulfilled') setIndie(indieRes.value.data);
+            if (trendingRes.status === 'fulfilled') setTrending(trendingRes.value.data);
+            if (trendingRes.status === 'rejected') {
+                const status = trendingRes.reason?.response?.status;
+                if (status === 503) setTrendingError('OMDB API key not configured — trending movies unavailable.');
+                else setTrendingError('Could not load trending movies.');
+            }
+        }).finally(() => setHomeLoading(false));
     }, []);
 
     // Search when query changes
@@ -29,7 +44,7 @@ export default function Home() {
             .then(res => setResults(res.data.results))
             .catch(err => {
                 if (err.response?.status === 503) {
-                    setError('🔑 OMDB API key not configured. To enable movie search, get a free key at omdbapi.com/apikey.aspx and add OMDB_API_KEY to your server .env file.');
+                    setError('🔑 OMDB API key not configured. Get a free key at omdbapi.com/apikey.aspx and add OMDB_API_KEY to your server .env file.');
                 } else {
                     setError('Failed to search. Please try again.');
                 }
@@ -41,7 +56,7 @@ export default function Home() {
         <main className="page">
             <div className="container">
 
-                {/* Hero */}
+                {/* Hero (no query) */}
                 {!query && (
                     <div className="hero section">
                         <div className="hero-text">
@@ -82,25 +97,64 @@ export default function Home() {
                     </section>
                 )}
 
-                {/* Independent Films */}
-                {!query && indie.length > 0 && (
-                    <section className="section">
-                        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
-                            <h2>🎥 Independent Films</h2>
-                            <Link to="/upload" className="btn btn-outline btn-sm">Upload Yours →</Link>
-                        </div>
-                        <div className="grid-auto">
-                            {indie.map(m => <MovieCard key={m._id} movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }} indie />)}
-                        </div>
-                    </section>
-                )}
+                {/* Home content (trending + indie) */}
+                {!query && (
+                    <>
+                        {homeLoading ? (
+                            /* Full home skeleton loader */
+                            <section className="section">
+                                <div style={{ height: '1.5rem', width: '200px', background: 'var(--clr-surface-2)', borderRadius: '6px', marginBottom: '1.5rem' }} />
+                                <div className="grid-auto">
+                                    {Array(12).fill().map((_, i) => <SkeletonCard key={i} />)}
+                                </div>
+                            </section>
+                        ) : (
+                            <>
+                                {/* Trending Section */}
+                                {trending.length > 0 && (
+                                    <section className="section">
+                                        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+                                            <h2>🔥 Trending Now</h2>
+                                            <span style={{ fontSize: '0.82rem', color: 'var(--clr-text-muted)' }}>Curated picks</span>
+                                        </div>
+                                        <div className="grid-auto">
+                                            {trending.map(m => <MovieCard key={m.imdbID} movie={m} />)}
+                                        </div>
+                                    </section>
+                                )}
+                                {trendingError && !trending.length && (
+                                    <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>{trendingError}</div>
+                                )}
 
-                {/* CTA — no results */}
-                {!query && indie.length === 0 && (
-                    <div className="empty-state">
-                        <div className="icon">🍿</div>
-                        <p style={{ fontSize: '1.1rem' }}>Search for any movie above to get started!</p>
-                    </div>
+                                {/* Independent Films Section */}
+                                {indie.length > 0 && (
+                                    <section className="section">
+                                        <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+                                            <h2>🎥 Independent Films</h2>
+                                            <Link to="/upload" className="btn btn-outline btn-sm">Upload Yours →</Link>
+                                        </div>
+                                        <div className="grid-auto">
+                                            {indie.map(m => (
+                                                <MovieCard
+                                                    key={m._id}
+                                                    movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }}
+                                                    indie
+                                                />
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {/* CTA when nothing loaded yet */}
+                                {trending.length === 0 && indie.length === 0 && (
+                                    <div className="empty-state">
+                                        <div className="icon">🍿</div>
+                                        <p style={{ fontSize: '1.1rem' }}>Search for any movie above to get started!</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </>
                 )}
 
             </div>

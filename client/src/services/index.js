@@ -12,6 +12,7 @@ export const movieService = {
     search: (q) => api.get(`/movies/search?q=${encodeURIComponent(q)}`),
     getById: (id) => api.get(`/movies/${id}`),
     getIndependent: () => api.get('/movies/independent'),
+    getTrending: () => api.get('/movies/trending'),
     upload: (data) => api.post('/movies/upload', data),
     update: (id, data) => api.put(`/movies/${id}`, data),
     delete: (id) => api.delete(`/movies/${id}`),
