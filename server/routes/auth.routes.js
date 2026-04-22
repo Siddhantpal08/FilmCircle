@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getMe, updateProfile } = require('../controllers/authController');
+const { register, login, getMe, updateProfile, deleteAccount } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const { validateBody } = require('../middleware/validateBody');
 
@@ -26,5 +26,8 @@ router.get('/me', protect, getMe);
 
 // PUT /api/auth/profile (protected)
 router.put('/profile', protect, updateProfile);
+
+// DELETE /api/auth/account (protected) — cascade-delete all user data + account
+router.delete('/account', protect, deleteAccount);
 
 module.exports = router;

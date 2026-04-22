@@ -14,9 +14,30 @@ const OPINIONS = [
 ];
 const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller', 'Romance', 'Documentary', 'Animation', 'Other'];
 
-function OpinionForm({ movieId, existingReview, onUpdate }) {
-    const [selected, setSelected] = useState(existingReview?.opinion || null);
-    const [comment, setComment] = useState(existingReview?.comment || '');
+// Read-only card shown once a user has already submitted their opinion
+function SubmittedOpinionCard({ review }) {
+    const op = OPINIONS.find(o => o.key === review.opinion) || OPINIONS[0];
+    return (
+        <div className="submitted-opinion-card" style={{ borderColor: op.color, background: `${op.color}12` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: review.comment ? '0.75rem' : 0 }}>
+                <span style={{ fontSize: '2rem' }}>{op.emoji}</span>
+                <div>
+                    <div style={{ fontWeight: 700, color: op.color, fontSize: '1.05rem' }}>{op.label}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)' }}>Your opinion · cannot be changed</div>
+                </div>
+            </div>
+            {review.comment && (
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--clr-text-muted)', borderTop: `1px solid ${op.color}33`, paddingTop: '0.65rem', lineHeight: 1.6 }}>
+                    "{review.comment}"
+                </p>
+            )}
+        </div>
+    );
+}
+
+function OpinionForm({ movieId, onUpdate }) {
+    const [selected, setSelected] = useState(null);
+    const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -26,24 +47,11 @@ function OpinionForm({ movieId, existingReview, onUpdate }) {
         if (!selected) { setError('Please select an opinion first.'); return; }
         setLoading(true); setError(''); setSuccess('');
         try {
-            if (existingReview?._id) {
-                await reviewService.update(existingReview._id, { opinion: selected, comment });
-                setSuccess('Review updated!');
-            } else {
-                await reviewService.submit({ movieId, opinion: selected, comment });
-                setSuccess('Review submitted!');
-            }
+            await reviewService.submit({ movieId, opinion: selected, comment });
+            setSuccess('Opinion submitted!');
             if (onUpdate) onUpdate();
         } catch (err) {
-            if (err.response?.status === 409 && err.response?.data?.reviewId) {
-                try {
-                    await reviewService.update(err.response.data.reviewId, { opinion: selected, comment });
-                    setSuccess('Review updated!');
-                    if (onUpdate) onUpdate();
-                } catch { setError('Could not update review.'); }
-            } else {
-                setError(err.response?.data?.message || 'Failed to submit review.');
-            }
+            setError(err.response?.data?.message || 'Failed to submit opinion.');
         } finally {
             setLoading(false);
             setTimeout(() => setSuccess(''), 3000);
@@ -88,7 +96,7 @@ function OpinionForm({ movieId, existingReview, onUpdate }) {
                         </svg>
                         Submitting…
                     </>
-                ) : existingReview ? 'Update Opinion' : 'Submit Opinion'}
+                ) : 'Submit Opinion'}
             </button>
             {error && <div className="alert alert-error" style={{ marginTop: '0.75rem' }}>{error}</div>}
             {success && <div className="alert alert-success" style={{ marginTop: '0.75rem' }}>✓ {success}</div>}
@@ -164,13 +172,19 @@ export default function MovieDetail() {
                     {/* Poster */}
                     <div className="poster-col">
                         {isIndie && streaming.length > 0 ? (
-                            <a href={streaming[0].url} target="_blank" rel="noreferrer" style={{ display: 'block' }} title={`Watch ${title}`}>
+                            <a href={streaming[0].url} target="_blank" rel="noreferrer" className="poster-link-wrap" title={`Watch ${title}`}>
                                 <img src={poster} alt={title} className="detail-poster" onError={e => { e.target.src = FALLBACK; }} />
+                                <div className="poster-watch-overlay">▶ Watch Now</div>
                             </a>
                         ) : (
                             <img src={poster} alt={title} className="detail-poster" onError={e => { e.target.src = FALLBACK; }} />
                         )}
                         {isIndie && <span className="badge badge-indie" style={{ marginTop: '0.75rem', display: 'block', textAlign: 'center' }}>🎬 Independent Film</span>}
+                        {isIndie && streaming.length === 0 && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)', textAlign: 'center', marginTop: '0.5rem' }}>
+                                🔗 No watch link provided
+                            </p>
+                        )}
                         {imdbRating && <div className="imdb-badge">⭐ IMDb: {imdbRating}</div>}
                         {isOwner && !editMode && (
                             <button className="btn btn-outline btn-sm" style={{ marginTop: '1rem', width: '100%' }} onClick={() => {
@@ -203,26 +217,35 @@ export default function MovieDetail() {
                                 {actors && <div className="meta-row"><strong>Cast:</strong> {actors}</div>}
                                 {saveMsg && <div className="alert alert-success" style={{ marginTop: '0.5rem' }}>✓ {saveMsg}</div>}
 
+                                {/* Streaming / Watch Section */}
                                 {streaming.length > 0 && (
                                     <div className="streaming-section">
                                         <h3>Watch On</h3>
-                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                                        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                                             {streaming.map((s, i) => (
-                                                <a key={i} href={s.url} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">▶ {s.platform}</a>
+                                                <a key={i} href={s.url} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ gap: '0.4rem' }}>
+                                                    ▶ {s.platform}
+                                                </a>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
+                                {/* Community Opinion */}
                                 <div className="review-section">
                                     <h3>Community Opinion</h3>
                                     {reviewData ? <InfographicChart distribution={reviewData.distribution} total={reviewData.total} percentages={reviewData.percentages} /> : <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.9rem' }}>No opinions yet.</p>}
                                 </div>
 
+                                {/* Your Opinion */}
                                 <div className="review-section">
                                     <h3>Your Opinion</h3>
                                     {isAuthenticated ? (
-                                        <OpinionForm movieId={id} existingReview={myReview} onUpdate={fetchAll} />
+                                        myReview ? (
+                                            <SubmittedOpinionCard review={myReview} />
+                                        ) : (
+                                            <OpinionForm movieId={id} onUpdate={fetchAll} />
+                                        )
                                     ) : (
                                         <p><Link to="/login" style={{ color: 'var(--clr-primary)', fontWeight: 600 }}>Login</Link> to submit your opinion.</p>
                                     )}
@@ -285,7 +308,7 @@ export default function MovieDetail() {
 
             <style>{`
                 .movie-detail-grid { display: grid; grid-template-columns: 280px 1fr; gap: 3rem; padding-top: 1rem; }
-                .detail-poster { width: 100%; border-radius: var(--radius); box-shadow: var(--shadow); }
+                .detail-poster { width: 100%; border-radius: var(--radius); box-shadow: var(--shadow); display: block; }
                 .imdb-badge { margin-top: 0.5rem; background: rgba(247,183,49,0.15); color: var(--clr-accent); padding: 0.3rem 0.75rem; border-radius: var(--radius-sm); font-weight: 600; display: inline-block; }
                 .movie-title { margin-bottom: 0.5rem; }
                 .movie-year { color: var(--clr-text-muted); font-size: 0.7em; }
@@ -299,6 +322,17 @@ export default function MovieDetail() {
                 .opinion-btn { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; padding: 0.75rem; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); background: transparent; color: var(--clr-text-muted); cursor: pointer; transition: all 0.2s; }
                 .opinion-btn:hover { border-color: var(--clr-primary); color: var(--clr-text); }
                 .opinion-active { font-weight: 600; }
+
+                /* Indie poster – watch overlay */
+                .poster-link-wrap { position: relative; display: block; border-radius: var(--radius); overflow: hidden; }
+                .poster-link-wrap .detail-poster { transition: filter 0.25s; }
+                .poster-link-wrap:hover .detail-poster { filter: brightness(0.55); }
+                .poster-watch-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 700; color: #fff; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+                .poster-link-wrap:hover .poster-watch-overlay { opacity: 1; }
+
+                /* Submitted opinion card */
+                .submitted-opinion-card { border: 1.5px solid; border-radius: var(--radius-sm); padding: 1rem 1.25rem; }
+
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @media (max-width: 768px) { .movie-detail-grid { grid-template-columns: 1fr; } .poster-col { max-width: 260px; margin: 0 auto; } }
             `}</style>

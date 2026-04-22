@@ -37,8 +37,13 @@ export function AuthProvider({ children }) {
         setUser(null);
     };
 
+    // Merge partial profile updates into user state immediately (no re-login needed)
+    const updateUser = (data) => {
+        setUser(prev => prev ? { ...prev, ...data } : prev);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

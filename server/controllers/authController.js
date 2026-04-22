@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Review = require('../models/Review');
+const Movie = require('../models/Movie');
+const Post = require('../models/Post');
+const Club = require('../models/Club');
 
 // Helper: sign JWT
 const generateToken = (id) =>
@@ -65,7 +69,6 @@ const login = async (req, res, next) => {
 // @access  Private (requires protect middleware)
 const getMe = async (req, res, next) => {
     try {
-        // req.user is already set by authMiddleware
         res.json({
             id: req.user._id,
             username: req.user.username,
@@ -84,18 +87,83 @@ const getMe = async (req, res, next) => {
 // @access  Private
 const updateProfile = async (req, res, next) => {
     try {
-        const { bio, avatarUrl } = req.body;
+        const { bio, avatarUrl, username } = req.body;
         const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         if (bio !== undefined) user.bio = bio;
         if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
 
+        // Update username if provided and different from current
+        if (username !== undefined && username.trim() !== user.username) {
+            const trimmed = username.trim();
+            if (trimmed.length < 3 || trimmed.length > 30) {
+                return res.status(400).json({ message: 'Username must be 3–30 characters' });
+            }
+            const taken = await User.findOne({ username: trimmed });
+            if (taken) return res.status(409).json({ message: 'Username already taken' });
+            user.username = trimmed;
+        }
+
         await user.save();
-        res.json({ message: 'Profile updated', bio: user.bio, avatarUrl: user.avatarUrl });
+        res.json({
+            message: 'Profile updated',
+            bio: user.bio,
+            avatarUrl: user.avatarUrl,
+            username: user.username,
+        });
     } catch (err) {
         next(err);
     }
 };
 
-module.exports = { register, login, getMe, updateProfile };
+// @route   DELETE /api/auth/account
+// @access  Private
+// Cascade-deletes all content authored by the user before removing the account.
+const deleteAccount = async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Delete all reviews by this user
+        await Review.deleteMany({ userId });
+
+        // 2. Delete all indie movies uploaded by this user
+        await Movie.deleteMany({ uploadedBy: userId, isIndependent: true });
+
+        // 3. Delete all community posts authored by this user
+        await Post.deleteMany({ author: userId });
+
+        // 4. Remove this user's embedded comments from any remaining posts
+        await Post.updateMany(
+            { 'comments.author': userId },
+            { $pull: { comments: { author: userId } } }
+        );
+
+        // 5. Remove this user from all posts' likes arrays
+        await Post.updateMany(
+            { likes: userId },
+            { $pull: { likes: userId } }
+        );
+
+        // 6. Remove this user from all club members arrays
+        //    Also remove club posts authored by this user
+        await Club.updateMany(
+            {},
+            {
+                $pull: {
+                    members: userId,
+                    posts: { author: userId },
+                },
+            }
+        );
+
+        // 7. Delete the user document itself
+        await User.findByIdAndDelete(userId);
+
+        res.json({ message: 'Account and all associated data deleted successfully' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { register, login, getMe, updateProfile, deleteAccount };

@@ -5,6 +5,7 @@ export const authService = {
     login: (data) => api.post('/auth/login', data),
     getMe: () => api.get('/auth/me'),
     updateProfile: (data) => api.put('/auth/profile', data),
+    deleteAccount: () => api.delete('/auth/account'),
 };
 
 export const movieService = {
