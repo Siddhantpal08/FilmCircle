@@ -1,5 +1,6 @@
 require('dotenv').config({ path: '../.env' });
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
@@ -31,8 +32,8 @@ app.use('/api/clubs', clubRoutes);
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
-// Basic Home Route for Backend
-app.get('/', (req, res) => {
+// Basic Home Route for Backend API check
+app.get('/api', (req, res) => {
     res.send(`
         <!DOCTYPE html>
         <html lang="en">
@@ -55,15 +56,19 @@ app.get('/', (req, res) => {
         <body>
             <div class="container">
                 <h1>🎬 Film<span>Circle</span> API</h1>
-                <p>The backend server is running successfully. This API powers the FilmCircle community platform.</p>
-                <div class="status">
-                    <div class="dot"></div>
-                    System Online & Ready
-                </div>
+                <p>The backend server is running successfully.</p>
+                <div class="status"><div class="dot"></div>System Online</div>
             </div>
         </body>
         </html>
     `);
+});
+
+// Serve frontend in production
+app.use(express.static(path.join(__dirname, '../client/dist')));
+app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
 // ── Error Handling ────────────────────────────────────────────────────────────

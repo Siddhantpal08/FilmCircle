@@ -5,6 +5,8 @@ import MovieCard from '../components/movie/MovieCard';
 import Loader from '../components/common/Loader';
 import SkeletonCard from '../components/common/SkeletonCard';
 
+const CATEGORY_ROWS = ['Hollywood', 'Bollywood', 'Science Fiction', 'Action'];
+
 const QUERY_CHIPS = [
     { label: '🎬 Hollywood', q: 'Hollywood' },
     { label: '🎭 Bollywood', q: 'Bollywood' },
@@ -14,10 +16,6 @@ const QUERY_CHIPS = [
     { label: '💥 Action', q: 'Action' },
     { label: '💘 Romance', q: 'Romance' },
     { label: '🕵️ Thriller', q: 'Thriller' },
-    { label: '🎥 Drama', q: 'Drama' },
-    { label: '📽️ Animation', q: 'Animation' },
-    { label: '📚 Documentary', q: 'Documentary' },
-    { label: '🌍 International', q: 'International' },
 ];
 
 function HorizontalScroll({ children }) {
@@ -69,6 +67,7 @@ export default function Home() {
     const [results, setResults] = useState([]);
     const [indie, setIndie] = useState([]);
     const [trending, setTrending] = useState([]);
+    const [categoryRows, setCategoryRows] = useState({});
     const [loading, setLoading] = useState(false);
     const [homeLoading, setHomeLoading] = useState(true);
     const [error, setError] = useState('');
@@ -80,7 +79,9 @@ export default function Home() {
         Promise.allSettled([
             movieService.getIndependent(),
             movieService.getTrending(),
-        ]).then(([indieRes, trendingRes]) => {
+            ...CATEGORY_ROWS.map(cat => movieService.search(cat))
+        ]).then((results) => {
+            const [indieRes, trendingRes, ...catRes] = results;
             if (indieRes.status === 'fulfilled') setIndie(indieRes.value.data);
             if (trendingRes.status === 'fulfilled') setTrending(trendingRes.value.data);
             if (trendingRes.status === 'rejected') {
@@ -88,6 +89,14 @@ export default function Home() {
                 if (status === 503) setTrendingError('OMDB API key not configured — trending movies unavailable.');
                 else setTrendingError('Could not load trending movies.');
             }
+            
+            const cats = {};
+            catRes.forEach((res, index) => {
+                if (res.status === 'fulfilled' && res.value.data?.results) {
+                    cats[CATEGORY_ROWS[index]] = res.value.data.results;
+                }
+            });
+            setCategoryRows(cats);
         }).finally(() => setHomeLoading(false));
     }, []);
 
@@ -114,7 +123,7 @@ export default function Home() {
 
                 {/* Hero (no query) */}
                 {!query && (
-                    <div className="hero section">
+                    <div className="hero section" style={{ paddingBottom: '0' }}>
                         <div className="hero-text">
                             <h1>Where cinephiles <span style={{ color: 'var(--clr-primary)' }}>connect</span>.</h1>
                             <p style={{ fontSize: '1.1rem', marginTop: '0.75rem', maxWidth: '520px' }}>
@@ -127,26 +136,6 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                )}
-
-                {/* Popular Query Chips */}
-                {!query && (
-                    <section className="section" style={{ marginBottom: '1.5rem' }}>
-                        <h3 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--clr-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                            Browse by Category
-                        </h3>
-                        <div className="chip-row">
-                            {QUERY_CHIPS.map(({ label, q }) => (
-                                <button
-                                    key={q}
-                                    className="query-chip"
-                                    onClick={() => navigate(`/?q=${encodeURIComponent(q)}`)}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
-                    </section>
                 )}
 
                 {/* Search Results */}
@@ -207,7 +196,7 @@ export default function Home() {
                             <>
                                 {/* Trending Section — horizontal scroll */}
                                 {trending.length > 0 && (
-                                    <section className="section">
+                                    <section className="section" style={{ marginTop: '2rem' }}>
                                         <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
                                             <h2>🔥 Trending Now</h2>
                                             <span style={{ fontSize: '0.82rem', color: 'var(--clr-text-muted)' }}>Scroll to explore →</span>
@@ -222,8 +211,33 @@ export default function Home() {
                                     </section>
                                 )}
                                 {trendingError && !trending.length && (
-                                    <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>{trendingError}</div>
+                                    <div className="alert alert-error" style={{ marginBottom: '1.5rem', marginTop: '2rem' }}>{trendingError}</div>
                                 )}
+
+                                {/* Category Rows */}
+                                {CATEGORY_ROWS.map(cat => {
+                                    const movies = categoryRows[cat];
+                                    if (!movies || movies.length === 0) return null;
+                                    
+                                    const emoji = QUERY_CHIPS.find(q => q.q === cat)?.label.split(' ')[0] || '🎥';
+                                    const label = cat === 'Science Fiction' ? 'Sci-Fi' : cat;
+
+                                    return (
+                                        <section key={cat} className="section">
+                                            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+                                                <h2>{emoji} {label}</h2>
+                                                <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/?q=${encodeURIComponent(cat)}`)}>View All →</button>
+                                            </div>
+                                            <HorizontalScroll>
+                                                {movies.map(m => (
+                                                    <div key={m.imdbID} className="hscroll-item">
+                                                        <MovieCard movie={m} />
+                                                    </div>
+                                                ))}
+                                            </HorizontalScroll>
+                                        </section>
+                                    );
+                                })}
 
                                 {/* Independent Films Section */}
                                 {indie.length > 0 && (
