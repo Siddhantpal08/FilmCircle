@@ -8,16 +8,22 @@ const GENRE_FILTERS = ['All', 'Drama', 'Horror', 'Sci-Fi', 'Action', 'Independen
 const GENRE_EMOJIS = { Drama: '🎭', Horror: '👻', Thriller: '🕵️', 'Sci-Fi': '🤖', Comedy: '😂', Action: '💥', Romance: '💘', Independent: '🎥', Documentary: '📚', Animation: '🎨', Bollywood: '🎬', International: '🌍', General: '🏛️', All: '✨' };
 
 function ClubCard({ club, onJoin }) {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
+    const navigate = useNavigate();
     const emoji = GENRE_EMOJIS[club.genre] || '🏛️';
+    const currentUserId = user?._id || user?.id;
+    const isJoined = !!currentUserId && club.members?.some(m => m === currentUserId || m._id === currentUserId || m.id === currentUserId);
+
     return (
-        <div className="club-card card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div 
+            className="club-card card" 
+            style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', cursor: 'pointer' }}
+            onClick={() => navigate(`/clubs/${club._id}`)}
+        >
             <div className="flex-between" style={{ alignItems: 'flex-start' }}>
-                <Link to={`/clubs/${club._id}`} style={{ flex: 1, minWidth: 0 }}>
-                    <h3 style={{ color: 'var(--clr-text)', lineHeight: 1.2, fontSize: '1rem' }}>
-                        <span style={{ marginRight: '0.4rem' }}>{emoji}</span>{club.name}
-                    </h3>
-                </Link>
+                <h3 style={{ color: 'var(--clr-text)', lineHeight: 1.2, fontSize: '1rem', flex: 1, minWidth: 0 }}>
+                    <span style={{ marginRight: '0.4rem' }}>{emoji}</span>{club.name}
+                </h3>
                 <span className="badge badge-primary" style={{ flexShrink: 0, marginLeft: '0.5rem' }}>{club.genre || 'General'}</span>
             </div>
             {club.description && (
@@ -27,14 +33,14 @@ function ClubCard({ club, onJoin }) {
             )}
             <div className="flex-between" style={{ marginTop: '0.5rem' }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)' }}>
-                    👥 {club.memberCount} member{club.memberCount !== 1 ? 's' : ''}
+                    👥 {club.memberCount || club.members?.length || 0} member{(club.memberCount || club.members?.length) !== 1 ? 's' : ''}
                 </span>
                 {isAuthenticated && (
                     <button 
-                        className={`btn btn-sm ${club.members?.includes(useAuth().user?._id || useAuth().user?.id) ? 'btn-ghost' : 'btn-outline'}`} 
-                        onClick={() => onJoin(club._id)}
+                        className={`btn btn-sm ${isJoined ? 'btn-ghost' : 'btn-outline'}`} 
+                        onClick={(e) => { e.stopPropagation(); onJoin(club._id); }}
                     >
-                        {club.members?.includes(useAuth().user?._id || useAuth().user?.id) ? '✓ Joined' : 'Join'}
+                        {isJoined ? '✓ Joined' : 'Join'}
                     </button>
                 )}
             </div>
