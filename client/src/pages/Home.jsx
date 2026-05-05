@@ -315,7 +315,7 @@ export default function Home() {
         .hscroll-track::-webkit-scrollbar-track { background: transparent; }
         .hscroll-track::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 2px; }
         .hscroll-item {
-            flex: 0 0 150px;
+            flex: 0 0 160px;
             scroll-snap-align: start;
         }
 
