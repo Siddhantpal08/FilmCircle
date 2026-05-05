@@ -38,10 +38,10 @@ const TRENDING_IDS = [
     'tt15671028', // Mission: Impossible – Dead Reckoning
 ];
 
-// Simple in-memory cache (refresh every 2 hours)
+// In-memory cache — refreshes once per day to minimise OMDB token usage
 let trendingCache = null;
 let trendingCachedAt = 0;
-const CACHE_TTL = 2 * 60 * 60 * 1000;
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 // Log warning at startup if key not configured
 if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
@@ -231,4 +231,25 @@ const getTrendingMovies = async (req, res, next) => {
     }
 };
 
-module.exports = { searchMovies, getIndependentMovies, getMovieById, uploadMovie, updateMovie, deleteMovie, getTrendingMovies };
+// @route   GET /api/movies/suggest?q=partial
+// @access  Public — lightweight autocomplete (returns up to 8 titles)
+const suggestMovies = async (req, res, next) => {
+    try {
+        const { q } = req.query;
+        if (!q || q.trim().length < 2) return res.json([]);
+        const data = await omdbGet({ s: q.trim(), type: 'movie' });
+        const suggestions = (data.Search || []).slice(0, 8).map(m => ({
+            imdbID: m.imdbID,
+            title: m.Title,
+            year: m.Year,
+            poster: m.Poster !== 'N/A' ? m.Poster : null,
+        }));
+        res.json(suggestions);
+    } catch (err) {
+        // Return empty array gracefully — autocomplete failure is non-critical
+        if (err.statusCode === 404 || err.statusCode === 503) return res.json([]);
+        next(err);
+    }
+};
+
+module.exports = { searchMovies, getIndependentMovies, getMovieById, uploadMovie, updateMovie, deleteMovie, getTrendingMovies, suggestMovies };

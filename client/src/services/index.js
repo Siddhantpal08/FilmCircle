@@ -10,6 +10,7 @@ export const authService = {
 
 export const movieService = {
     search: (q) => api.get(`/movies/search?q=${encodeURIComponent(q)}`),
+    suggest: (q) => api.get(`/movies/suggest?q=${encodeURIComponent(q)}`),
     getById: (id) => api.get(`/movies/${id}`),
     getIndependent: () => api.get('/movies/independent'),
     getTrending: () => api.get('/movies/trending'),

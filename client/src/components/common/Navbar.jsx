@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { movieService } from '../../services';
 import './Navbar.css';
+
+const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='60' viewBox='0 0 40 60'%3E%3Crect width='40' height='60' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237c5cfc' font-size='20'%3E🎬%3C/text%3E%3C/svg%3E";
 
 export default function Navbar() {
     const { user, logout, isAuthenticated } = useAuth();
@@ -9,13 +12,76 @@ export default function Navbar() {
     const location = useLocation();
     const [query, setQuery] = useState('');
     const [menuOpen, setMenuOpen] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
+    const [suggestOpen, setSuggestOpen] = useState(false);
+    const [suggestLoading, setSuggestLoading] = useState(false);
+    const [activeSug, setActiveSug] = useState(-1);
+    const debounceRef = useRef(null);
+    const searchRef = useRef(null);
+    const dropdownRef = useRef(null);
+
+    // Debounced autosuggest
+    const fetchSuggestions = useCallback((q) => {
+        clearTimeout(debounceRef.current);
+        if (q.trim().length < 2) { setSuggestions([]); setSuggestOpen(false); return; }
+        debounceRef.current = setTimeout(async () => {
+            setSuggestLoading(true);
+            try {
+                const res = await movieService.suggest(q.trim());
+                setSuggestions(res.data || []);
+                setSuggestOpen((res.data || []).length > 0);
+            } catch {
+                setSuggestions([]);
+            } finally {
+                setSuggestLoading(false);
+            }
+        }, 300);
+    }, []);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handler = (e) => {
+            if (searchRef.current && !searchRef.current.contains(e.target)) {
+                setSuggestOpen(false);
+                setActiveSug(-1);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setQuery(val);
+        setActiveSug(-1);
+        fetchSuggestions(val);
+    };
+
+    const commitSearch = (q) => {
+        if (!q.trim()) return;
+        setSuggestOpen(false);
+        setSuggestions([]);
+        setQuery('');
+        navigate(`/?q=${encodeURIComponent(q.trim())}`);
+    };
 
     const handleSearch = (e) => {
         e.preventDefault();
-        if (query.trim()) {
-            navigate(`/?q=${encodeURIComponent(query.trim())}`);
+        commitSearch(query);
+    };
+
+    const handleKeyDown = (e) => {
+        if (!suggestOpen || suggestions.length === 0) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); setActiveSug(i => Math.min(i + 1, suggestions.length - 1)); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveSug(i => Math.max(i - 1, -1)); }
+        else if (e.key === 'Enter' && activeSug >= 0) {
+            e.preventDefault();
+            const chosen = suggestions[activeSug];
+            setSuggestOpen(false);
+            navigate(`/movie/${chosen.imdbID}`);
             setQuery('');
         }
+        else if (e.key === 'Escape') { setSuggestOpen(false); setActiveSug(-1); }
     };
 
     const handleLogout = () => { logout(); navigate('/'); };
@@ -30,18 +96,57 @@ export default function Navbar() {
                     <span className="logo-text">FilmCircle</span>
                 </Link>
 
-                {/* Search */}
-                <form className="navbar-search" onSubmit={handleSearch}>
-                    <input
-                        id="search-input"
-                        className="search-input"
-                        type="text"
-                        placeholder="Search movies…"
-                        value={query}
-                        onChange={e => setQuery(e.target.value)}
-                    />
-                    <button type="submit" className="search-btn" aria-label="Search">🔍</button>
-                </form>
+                {/* Search with Autosuggest */}
+                <div className="navbar-search-wrap" ref={searchRef}>
+                    <form className="navbar-search" onSubmit={handleSearch}>
+                        <input
+                            id="search-input"
+                            className="search-input"
+                            type="text"
+                            placeholder="Search movies…"
+                            value={query}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
+                            onFocus={() => suggestions.length > 0 && setSuggestOpen(true)}
+                            autoComplete="off"
+                        />
+                        {suggestLoading
+                            ? <span className="search-spinner" />
+                            : <button type="submit" className="search-btn" aria-label="Search">🔍</button>
+                        }
+                    </form>
+
+                    {/* Dropdown */}
+                    {suggestOpen && suggestions.length > 0 && (
+                        <div className="suggest-dropdown" ref={dropdownRef}>
+                            {suggestions.map((s, i) => (
+                                <div
+                                    key={s.imdbID}
+                                    className={`suggest-item ${activeSug === i ? 'suggest-active' : ''}`}
+                                    onMouseDown={() => { navigate(`/movie/${s.imdbID}`); setSuggestOpen(false); setQuery(''); }}
+                                    onMouseEnter={() => setActiveSug(i)}
+                                >
+                                    <img
+                                        src={s.poster || FALLBACK_POSTER}
+                                        alt={s.title}
+                                        className="suggest-poster"
+                                        onError={e => { e.target.src = FALLBACK_POSTER; }}
+                                    />
+                                    <div className="suggest-info">
+                                        <span className="suggest-title">{s.title}</span>
+                                        {s.year && <span className="suggest-year">{s.year}</span>}
+                                    </div>
+                                </div>
+                            ))}
+                            <div
+                                className="suggest-footer"
+                                onMouseDown={() => commitSearch(query)}
+                            >
+                                See all results for "<strong>{query}</strong>" →
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 {/* Nav Links */}
                 <nav className={`navbar-links ${menuOpen ? 'open' : ''}`}>

@@ -168,6 +168,8 @@ export default function MovieDetail() {
     const [error, setError] = useState('');
     const [editMode, setEditMode] = useState(false);
     const [editForm, setEditForm] = useState({});
+    const [editPosterPreview, setEditPosterPreview] = useState('');
+    const editPosterRef = useRef(null);
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
 
@@ -255,8 +257,9 @@ export default function MovieDetail() {
                                     posterUrl: movie.posterUrl || '',
                                     streamingLinks: movie.streamingLinks?.length ? movie.streamingLinks : [{ platform: '', url: '' }],
                                 });
+                                setEditPosterPreview(movie.posterUrl || '');
                                 setEditMode(true);
-                            }}>✏️ Edit Film</button>
+                            }}>Edit Film</button>
                         )}
                     </div>
 
@@ -351,8 +354,54 @@ export default function MovieDetail() {
                                     <textarea className="form-textarea" rows={4} value={editForm.plot} onChange={e => setEditForm(f => ({ ...f, plot: e.target.value }))} />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Poster URL</label>
-                                    <input className="form-input" type="url" value={editForm.posterUrl} onChange={e => setEditForm(f => ({ ...f, posterUrl: e.target.value }))} placeholder="https://…" />
+                                    <label className="form-label">Poster Image</label>
+                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                                        {/* Preview */}
+                                        <div style={{ width: '90px', height: '135px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: '#161622', flexShrink: 0 }}>
+                                            <img
+                                                src={editPosterPreview || FALLBACK}
+                                                alt="Poster preview"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={e => { e.target.src = FALLBACK; }}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '180px' }}>
+                                            <input
+                                                ref={editPosterRef}
+                                                type="file"
+                                                accept="image/*"
+                                                style={{ display: 'none' }}
+                                                onChange={e => {
+                                                    const file = e.target.files[0];
+                                                    if (!file) return;
+                                                    const reader = new FileReader();
+                                                    reader.onload = ev => {
+                                                        setEditPosterPreview(ev.target.result);
+                                                        setEditForm(f => ({ ...f, posterUrl: ev.target.result }));
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn btn-outline btn-sm"
+                                                onClick={() => editPosterRef.current.click()}
+                                            >
+                                                📁 Upload Poster
+                                            </button>
+                                            <span style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)' }}>— or paste URL —</span>
+                                            <input
+                                                className="form-input"
+                                                type="text"
+                                                placeholder="https://…"
+                                                value={editForm.posterUrl?.startsWith('data:') ? '' : (editForm.posterUrl || '')}
+                                                onChange={e => {
+                                                    setEditForm(f => ({ ...f, posterUrl: e.target.value }));
+                                                    setEditPosterPreview(e.target.value);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Streaming Links</label>

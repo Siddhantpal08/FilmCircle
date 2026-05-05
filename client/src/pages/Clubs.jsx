@@ -4,18 +4,34 @@ import { clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
 
+const GENRE_FILTERS = ['All', 'Drama', 'Horror', 'Thriller', 'Sci-Fi', 'Comedy', 'Action', 'Romance', 'Independent', 'Documentary', 'Animation', 'Bollywood', 'International', 'General'];
+const GENRE_EMOJIS = { Drama: '🎭', Horror: '👻', Thriller: '🕵️', 'Sci-Fi': '🤖', Comedy: '😂', Action: '💥', Romance: '💘', Independent: '🎥', Documentary: '📚', Animation: '🎨', Bollywood: '🎬', International: '🌍', General: '🏛️', All: '✨' };
+
 function ClubCard({ club, onJoin }) {
     const { isAuthenticated } = useAuth();
+    const emoji = GENRE_EMOJIS[club.genre] || '🏛️';
     return (
-        <div className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div className="club-card card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div className="flex-between" style={{ alignItems: 'flex-start' }}>
-                <Link to={`/clubs/${club._id}`}><h3 style={{ color: 'var(--clr-text)', lineHeight: 1.2 }}>{club.name}</h3></Link>
-                <span className="badge badge-primary">{club.genre || 'General'}</span>
+                <Link to={`/clubs/${club._id}`} style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ color: 'var(--clr-text)', lineHeight: 1.2, fontSize: '1rem' }}>
+                        <span style={{ marginRight: '0.4rem' }}>{emoji}</span>{club.name}
+                    </h3>
+                </Link>
+                <span className="badge badge-primary" style={{ flexShrink: 0, marginLeft: '0.5rem' }}>{club.genre || 'General'}</span>
             </div>
-            {club.description && <p style={{ fontSize: '0.85rem', WebkitLineClamp: 2, overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical' }}>{club.description}</p>}
+            {club.description && (
+                <p style={{ fontSize: '0.83rem', color: 'var(--clr-text-muted)', WebkitLineClamp: 2, overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', margin: 0 }}>
+                    {club.description}
+                </p>
+            )}
             <div className="flex-between" style={{ marginTop: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)' }}>👥 {club.memberCount} member{club.memberCount !== 1 ? 's' : ''}</span>
-                {isAuthenticated && <button className="btn btn-outline btn-sm" onClick={() => onJoin(club._id)}>Join</button>}
+                <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)' }}>
+                    👥 {club.memberCount} member{club.memberCount !== 1 ? 's' : ''}
+                </span>
+                {isAuthenticated && (
+                    <button className="btn btn-outline btn-sm" onClick={() => onJoin(club._id)}>Join</button>
+                )}
             </div>
         </div>
     );
@@ -31,8 +47,12 @@ export default function Clubs() {
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
+    const [genreFilter, setGenreFilter] = useState('All');
 
-    const load = () => { setLoading(true); clubService.getAll().then(r => setClubs(r.data)).finally(() => setLoading(false)); };
+    const load = () => {
+        setLoading(true);
+        clubService.getAll().then(r => setClubs(r.data)).finally(() => setLoading(false));
+    };
     useEffect(() => { load(); }, []);
 
     const handleJoin = async (id) => {
@@ -51,29 +71,69 @@ export default function Clubs() {
         setCreating(true); setError('');
         try {
             const res = await clubService.create(form);
-            setShowCreate(false); setForm({ name: '', description: '', genre: '' });
+            setShowCreate(false);
+            setForm({ name: '', description: '', genre: '' });
             navigate(`/clubs/${res.data._id}`);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create club');
         } finally { setCreating(false); }
     };
 
-    const filtered = clubs.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || (c.genre || '').toLowerCase().includes(search.toLowerCase()));
+    const filtered = clubs.filter(c => {
+        const matchGenre = genreFilter === 'All' || (c.genre || 'General') === genreFilter;
+        const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || (c.genre || '').toLowerCase().includes(search.toLowerCase());
+        return matchGenre && matchSearch;
+    });
 
     return (
         <main className="page">
             <div className="container">
-                <div className="flex-between" style={{ marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <h1>🏛️ Clubs</h1>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <input className="form-input" style={{ width: '220px' }} placeholder="Search clubs…" value={search} onChange={e => setSearch(e.target.value)} />
-                        {isAuthenticated && <button className="btn btn-primary" onClick={() => setShowCreate(s => !s)}>+ Create Club</button>}
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        <input
+                            className="form-input"
+                            style={{ width: '220px' }}
+                            placeholder="Search clubs…"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                        {isAuthenticated && (
+                            <button className="btn btn-primary" onClick={() => setShowCreate(s => !s)}>
+                                + Create Club
+                            </button>
+                        )}
                     </div>
                 </div>
 
+                {/* Genre Filter Chips */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '2rem' }}>
+                    {GENRE_FILTERS.map(g => (
+                        <button
+                            key={g}
+                            onClick={() => setGenreFilter(g)}
+                            style={{
+                                padding: '0.35rem 0.9rem',
+                                borderRadius: '999px',
+                                border: `1.5px solid ${genreFilter === g ? 'var(--clr-primary)' : 'var(--clr-border)'}`,
+                                background: genreFilter === g ? 'rgba(124,92,252,0.15)' : 'var(--clr-surface-2)',
+                                color: genreFilter === g ? 'var(--clr-primary)' : 'var(--clr-text-muted)',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                whiteSpace: 'nowrap',
+                            }}
+                        >
+                            {GENRE_EMOJIS[g] || '✨'} {g}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Create Club Form */}
                 {showCreate && (
                     <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-                        <h3 style={{ marginBottom: '1rem' }}>New Club</h3>
+                        <h3 style={{ marginBottom: '1rem' }}>Create a New Club</h3>
                         {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
                         <form onSubmit={handleCreate}>
                             <div className="grid-2">
@@ -82,8 +142,14 @@ export default function Clubs() {
                                     <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Sci-Fi Lovers" required />
                                 </div>
                                 <div className="form-group">
-                                    <label className="form-label">Genre/Theme</label>
-                                    <input className="form-input" value={form.genre} onChange={e => setForm(f => ({ ...f, genre: e.target.value }))} placeholder="e.g. Horror, Drama, Indie…" />
+                                    <label className="form-label">Genre / Theme</label>
+                                    <select className="form-select" value={form.genre} onChange={e => setForm(f => ({ ...f, genre: e.target.value }))}>
+                                        <option value="">Select genre…</option>
+                                        {GENRE_FILTERS.filter(g => g !== 'All').map(g => (
+                                            <option key={g} value={g}>{g}</option>
+                                        ))}
+                                        <option value="Other">Other</option>
+                                    </select>
                                 </div>
                             </div>
                             <div className="form-group">
@@ -100,7 +166,10 @@ export default function Clubs() {
 
                 {loading && <Loader />}
                 {!loading && filtered.length === 0 && (
-                    <div className="empty-state"><div className="icon">🏛️</div><p>No clubs found. {isAuthenticated ? 'Create one!' : 'Login to create the first club!'}</p></div>
+                    <div className="empty-state">
+                        <div className="icon">🏛️</div>
+                        <p>No clubs found. {isAuthenticated ? 'Create one above!' : 'Login to create the first club!'}</p>
+                    </div>
                 )}
                 <div className="grid-auto">
                     {filtered.map(c => <ClubCard key={c._id} club={c} onJoin={handleJoin} />)}

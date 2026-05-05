@@ -1,24 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService, movieService } from '../services';
 import Loader from '../components/common/Loader';
 
-const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23131322'/%3E%3Ctext x='50%25' y='46%25' text-anchor='middle' fill='%237c5cfc' font-size='40'%3E🎬%3C/text%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' fill='%237c5cfc' font-size='14'%3ENo Poster%3C/text%3E%3C/svg%3E";
+const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23131322'/%3E%3Ctext x='50%25' y='46%25' text-anchor='middle' fill='%237c5cfc' font-size='40'%3E%F0%9F%8E%AC%3C/text%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' fill='%237c5cfc' font-size='14'%3ENo Poster%3C/text%3E%3C/svg%3E";
 
 export default function Profile() {
     const { user, logout, updateUser } = useAuth();
     const navigate = useNavigate();
+    const avatarFileRef = useRef(null);
     const [uploadedFilms, setUploadedFilms] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Edit profile state
     const [editProfile, setEditProfile] = useState(false);
     const [editForm, setEditForm] = useState({ username: '', bio: '', avatarUrl: '' });
+    const [avatarPreview, setAvatarPreview] = useState('');
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
 
-    // Delete account state
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteInput, setDeleteInput] = useState('');
     const [deleting, setDeleting] = useState(false);
@@ -34,8 +34,21 @@ export default function Profile() {
 
     const openEdit = () => {
         setEditForm({ username: user.username || '', bio: user.bio || '', avatarUrl: user.avatarUrl || '' });
+        setAvatarPreview(user.avatarUrl || '');
         setSaveMsg('');
         setEditProfile(true);
+    };
+
+    const handleAvatarFile = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const b64 = ev.target.result;
+            setAvatarPreview(b64);
+            setEditForm(f => ({ ...f, avatarUrl: b64 }));
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleSaveProfile = async () => {
@@ -45,10 +58,10 @@ export default function Profile() {
             const res = await authService.updateProfile({
                 username: editForm.username.trim(),
                 bio: editForm.bio,
-                avatarUrl: editForm.avatarUrl.trim(),
+                avatarUrl: editForm.avatarUrl,
             });
             updateUser({ username: res.data.username, bio: res.data.bio, avatarUrl: res.data.avatarUrl });
-            setSaveMsg('✓ Profile saved!');
+            setSaveMsg('Profile saved!');
             setTimeout(() => { setSaveMsg(''); setEditProfile(false); }, 1200);
         } catch (err) {
             setSaveMsg(err.response?.data?.message || 'Failed to save profile.');
@@ -84,21 +97,17 @@ export default function Profile() {
         <main className="page">
             <div className="container" style={{ maxWidth: '800px' }}>
 
-                {/* Profile Header */}
                 <div className="card" style={{ padding: '2rem', marginBottom: '2rem' }}>
                     {!editProfile ? (
                         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                            {/* Avatar */}
                             <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid var(--clr-primary)' }}>
                                 {avatarSrc ? (
-                                    <img src={avatarSrc} alt={displayUsername} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+                                    <img src={avatarSrc} alt={displayUsername} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : null}
                                 <div style={{ width: '100%', height: '100%', background: 'var(--clr-primary)', display: avatarSrc ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700, color: '#fff' }}>
                                     {displayUsername?.[0]?.toUpperCase()}
                                 </div>
                             </div>
-
-                            {/* Info */}
                             <div style={{ flex: 1 }}>
                                 <h2 style={{ marginBottom: '0.2rem' }}>{displayUsername}</h2>
                                 <p style={{ fontSize: '0.85rem', color: 'var(--clr-text-muted)', marginBottom: '0.75rem' }}>{user.email}</p>
@@ -106,103 +115,82 @@ export default function Profile() {
                                     {user.bio || <span style={{ color: 'var(--clr-text-muted)', fontStyle: 'italic' }}>No bio yet</span>}
                                 </p>
                             </div>
-
-                            {/* Actions */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 }}>
-                                <button className="btn btn-outline btn-sm" onClick={openEdit}>✏️ Edit Profile</button>
+                                <button className="btn btn-outline btn-sm" onClick={openEdit}>Edit Profile</button>
                                 <button className="btn btn-outline btn-sm" onClick={logout}>Logout</button>
-                                <button className="btn btn-danger btn-sm" onClick={() => { setDeleteInput(''); setShowDeleteConfirm(true); }}>🗑 Delete Account</button>
+                                <button className="btn btn-danger btn-sm" onClick={() => { setDeleteInput(''); setShowDeleteConfirm(true); }}>Delete Account</button>
                             </div>
                         </div>
                     ) : (
-                        /* Edit Mode */
                         <div>
                             <h3 style={{ marginBottom: '1.25rem' }}>Edit Profile</h3>
                             <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                                {/* Avatar preview */}
-                                <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid var(--clr-primary)', position: 'relative' }}>
-                                    {editForm.avatarUrl?.trim() ? (
-                                        <img src={editForm.avatarUrl.trim()} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
-                                    ) : (
-                                        <div style={{ width: '100%', height: '100%', background: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700, color: '#fff' }}>
-                                            {(editForm.username?.[0] || user.username?.[0])?.toUpperCase()}
-                                        </div>
-                                    )}
+
+                                {/* Avatar upload */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                                    <div className="avatar-upload-ring" onClick={() => avatarFileRef.current.click()} title="Click to change avatar">
+                                        {avatarPreview ? (
+                                            <img src={avatarPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', background: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700, color: '#fff' }}>
+                                                {(editForm.username?.[0] || user.username?.[0])?.toUpperCase()}
+                                            </div>
+                                        )}
+                                        <div className="avatar-upload-overlay">📷</div>
+                                    </div>
+                                    <input ref={avatarFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarFile} />
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)' }}>Click to upload</span>
                                 </div>
+
                                 <div style={{ flex: 1, minWidth: '220px' }}>
                                     <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                                         <label className="form-label">Display Name</label>
-                                        <input
-                                            className="form-input"
-                                            value={editForm.username}
-                                            onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))}
-                                            maxLength={30}
-                                            placeholder="Username (3–30 chars)"
-                                        />
+                                        <input className="form-input" value={editForm.username} onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))} maxLength={30} placeholder="Username (3-30 chars)" />
                                     </div>
                                     <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                                        <label className="form-label">Avatar URL</label>
+                                        <label className="form-label">Avatar URL <span style={{ color: 'var(--clr-text-muted)', fontWeight: 400 }}>(or upload above)</span></label>
                                         <input
                                             className="form-input"
-                                            type="url"
-                                            value={editForm.avatarUrl}
-                                            onChange={e => setEditForm(f => ({ ...f, avatarUrl: e.target.value }))}
+                                            type="text"
+                                            value={editForm.avatarUrl.startsWith('data:') ? '' : editForm.avatarUrl}
+                                            onChange={e => { setEditForm(f => ({ ...f, avatarUrl: e.target.value })); setAvatarPreview(e.target.value); }}
                                             placeholder="https://example.com/avatar.jpg"
                                         />
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Bio <span style={{ color: 'var(--clr-text-muted)', fontWeight: 400 }}>(optional)</span></label>
-                                        <textarea
-                                            className="form-textarea"
-                                            rows={2}
-                                            value={editForm.bio}
-                                            onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))}
-                                            maxLength={200}
-                                            placeholder="Tell the circle about yourself…"
-                                        />
+                                        <textarea className="form-textarea" rows={2} value={editForm.bio} onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))} maxLength={200} placeholder="Tell the circle about yourself..." />
                                         <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', textAlign: 'right' }}>{editForm.bio.length}/200</div>
                                     </div>
                                 </div>
                             </div>
                             {saveMsg && (
-                                <div className={`alert ${saveMsg.startsWith('✓') ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '0.75rem' }}>
+                                <div className={`alert ${saveMsg.startsWith('Profile') ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '0.75rem' }}>
                                     {saveMsg}
                                 </div>
                             )}
                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                 <button className="btn btn-outline btn-sm" onClick={() => setEditProfile(false)}>Cancel</button>
-                                <button className="btn btn-primary btn-sm" onClick={handleSaveProfile} disabled={saving}>
-                                    {saving ? 'Saving…' : 'Save Profile'}
-                                </button>
+                                <button className="btn btn-primary btn-sm" onClick={handleSaveProfile} disabled={saving}>{saving ? 'Saving...' : 'Save Profile'}</button>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Delete Account Confirmation Modal */}
+                {/* Delete Account Modal */}
                 {showDeleteConfirm && (
                     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                         <div className="card" style={{ padding: '2rem', maxWidth: '440px', width: '90%' }}>
-                            <h3 style={{ color: '#e84545', marginBottom: '0.75rem' }}>⚠️ Delete Account</h3>
+                            <h3 style={{ color: '#e84545', marginBottom: '0.75rem' }}>Delete Account</h3>
                             <p style={{ fontSize: '0.9rem', color: 'var(--clr-text-muted)', marginBottom: '1rem' }}>
-                                This will permanently delete your account, all your reviews, uploaded films, community posts, and comments. <strong>This cannot be undone.</strong>
+                                This will permanently delete your account, all reviews, uploaded films, and posts. <strong>This cannot be undone.</strong>
                             </p>
                             <label className="form-label">Type <strong>DELETE</strong> to confirm:</label>
-                            <input
-                                className="form-input"
-                                value={deleteInput}
-                                onChange={e => setDeleteInput(e.target.value)}
-                                placeholder="DELETE"
-                                style={{ marginTop: '0.4rem', marginBottom: '1rem' }}
-                            />
+                            <input className="form-input" value={deleteInput} onChange={e => setDeleteInput(e.target.value)} placeholder="DELETE" style={{ marginTop: '0.4rem', marginBottom: '1rem' }} />
                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                 <button className="btn btn-outline btn-sm" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
-                                <button
-                                    className="btn btn-danger btn-sm"
-                                    onClick={handleDeleteAccount}
-                                    disabled={deleteInput !== 'DELETE' || deleting}
-                                >
-                                    {deleting ? 'Deleting…' : 'Delete My Account'}
+                                <button className="btn btn-danger btn-sm" onClick={handleDeleteAccount} disabled={deleteInput !== 'DELETE' || deleting}>
+                                    {deleting ? 'Deleting...' : 'Delete My Account'}
                                 </button>
                             </div>
                         </div>
@@ -212,7 +200,7 @@ export default function Profile() {
                 {/* Uploaded Films */}
                 <section className="section">
                     <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                        <h2>🎬 Your Uploaded Films</h2>
+                        <h2>Your Uploaded Films</h2>
                         <Link to="/upload" className="btn btn-primary btn-sm">+ Upload</Link>
                     </div>
                     {loading && <Loader />}
@@ -238,11 +226,11 @@ export default function Profile() {
                 {/* Joined Clubs */}
                 <section className="section">
                     <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                        <h2>🏛️ Joined Clubs</h2>
+                        <h2>Joined Clubs</h2>
                         <Link to="/clubs" className="btn btn-outline btn-sm">Browse Clubs</Link>
                     </div>
                     {user.joinedClubs?.length === 0 && (
-                        <div className="empty-state"><div className="icon">🏛️</div><p>Not in any clubs yet.</p></div>
+                        <div className="empty-state"><div className="icon">🏛</div><p>Not in any clubs yet.</p></div>
                     )}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                         {(user.joinedClubs || []).map(c => (
@@ -258,6 +246,16 @@ export default function Profile() {
                 .btn-danger { background: #e84545; color: #fff; border: none; }
                 .btn-danger:hover { background: #cf3030; }
                 .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+                .avatar-upload-ring {
+                    width: 88px; height: 88px; border-radius: 50%; overflow: hidden;
+                    border: 2.5px solid var(--clr-primary); position: relative; cursor: pointer; flex-shrink: 0;
+                }
+                .avatar-upload-overlay {
+                    position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 1.4rem; opacity: 0; transition: opacity 0.2s;
+                }
+                .avatar-upload-ring:hover .avatar-upload-overlay { opacity: 1; }
             `}</style>
         </main>
     );
