@@ -5,17 +5,17 @@ import MovieCard from '../components/movie/MovieCard';
 import Loader from '../components/common/Loader';
 import SkeletonCard from '../components/common/SkeletonCard';
 
-const CATEGORY_ROWS = ['Hollywood', 'Bollywood', 'Science Fiction', 'Action'];
+const CATEGORY_ROWS = ['Marvel', 'Batman', 'Star Wars', 'Harry Potter'];
 
 const QUERY_CHIPS = [
-    { label: '🎬 Hollywood', q: 'Hollywood' },
-    { label: '🎭 Bollywood', q: 'Bollywood' },
-    { label: '🤖 Sci-Fi', q: 'Science Fiction' },
-    { label: '👻 Horror', q: 'Horror' },
-    { label: '😂 Comedy', q: 'Comedy' },
-    { label: '💥 Action', q: 'Action' },
-    { label: '💘 Romance', q: 'Romance' },
-    { label: '🕵️ Thriller', q: 'Thriller' },
+    { label: '🦸‍♂️ Marvel', q: 'Marvel' },
+    { label: '🦇 Batman', q: 'Batman' },
+    { label: '✨ Star Wars', q: 'Star Wars' },
+    { label: '🧙‍♂️ Harry Potter', q: 'Harry Potter' },
+    { label: '🏎️ Fast & Furious', q: 'Fast and Furious' },
+    { label: '🦖 Jurassic', q: 'Jurassic' },
+    { label: '🕷️ Spider-Man', q: 'Spider-Man' },
+    { label: '💍 Lord of the Rings', q: 'Lord of the Rings' },
 ];
 
 function HorizontalScroll({ children }) {
@@ -239,8 +239,8 @@ export default function Home() {
                                     const movies = categoryRows[cat];
                                     if (!movies || movies.length === 0) return null;
                                     
-                                    const emoji = QUERY_CHIPS.find(q => q.q === cat)?.label.split(' ')[0] || '🎥';
-                                    const label = cat === 'Science Fiction' ? 'Sci-Fi' : cat;
+                                    const emoji = QUERY_CHIPS.find(q => q.q === cat)?.label.split(' ')[0] || '🍿';
+                                    const label = cat;
 
                                     return (
                                         <section key={cat} className="section">
