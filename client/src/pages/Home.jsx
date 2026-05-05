@@ -214,6 +214,26 @@ export default function Home() {
                                     <div className="alert alert-error" style={{ marginBottom: '1.5rem', marginTop: '2rem' }}>{trendingError}</div>
                                 )}
 
+                                {/* Independent Films Section */}
+                                {indie.length > 0 && (
+                                    <section className="section">
+                                        <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+                                            <h2>🎥 Independent Films</h2>
+                                            <Link to="/upload" className="btn btn-outline btn-sm">Upload Yours →</Link>
+                                        </div>
+                                        <HorizontalScroll>
+                                            {indie.map(m => (
+                                                <div key={m._id} className="hscroll-item">
+                                                    <MovieCard
+                                                        movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }}
+                                                        indie
+                                                    />
+                                                </div>
+                                            ))}
+                                        </HorizontalScroll>
+                                    </section>
+                                )}
+
                                 {/* Category Rows */}
                                 {CATEGORY_ROWS.map(cat => {
                                     const movies = categoryRows[cat];
@@ -238,25 +258,6 @@ export default function Home() {
                                         </section>
                                     );
                                 })}
-
-                                {/* Independent Films Section */}
-                                {indie.length > 0 && (
-                                    <section className="section">
-                                        <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-                                            <h2>🎥 Independent Films</h2>
-                                            <Link to="/upload" className="btn btn-outline btn-sm">Upload Yours →</Link>
-                                        </div>
-                                        <div className="grid-auto">
-                                            {indie.map(m => (
-                                                <MovieCard
-                                                    key={m._id}
-                                                    movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }}
-                                                    indie
-                                                />
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
 
                                 {/* CTA when nothing loaded */}
                                 {trending.length === 0 && indie.length === 0 && (
@@ -314,7 +315,7 @@ export default function Home() {
         .hscroll-track::-webkit-scrollbar-track { background: transparent; }
         .hscroll-track::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 2px; }
         .hscroll-item {
-            flex: 0 0 200px;
+            flex: 0 0 150px;
             scroll-snap-align: start;
         }
 

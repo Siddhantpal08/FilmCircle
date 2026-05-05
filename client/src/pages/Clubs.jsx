@@ -4,7 +4,7 @@ import { clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
 
-const GENRE_FILTERS = ['All', 'Drama', 'Horror', 'Thriller', 'Sci-Fi', 'Comedy', 'Action', 'Romance', 'Independent', 'Documentary', 'Animation', 'Bollywood', 'International', 'General'];
+const GENRE_FILTERS = ['All', 'Drama', 'Horror', 'Sci-Fi', 'Action', 'Independent', 'Bollywood', 'General'];
 const GENRE_EMOJIS = { Drama: '🎭', Horror: '👻', Thriller: '🕵️', 'Sci-Fi': '🤖', Comedy: '😂', Action: '💥', Romance: '💘', Independent: '🎥', Documentary: '📚', Animation: '🎨', Bollywood: '🎬', International: '🌍', General: '🏛️', All: '✨' };
 
 function ClubCard({ club, onJoin }) {
@@ -30,7 +30,12 @@ function ClubCard({ club, onJoin }) {
                     👥 {club.memberCount} member{club.memberCount !== 1 ? 's' : ''}
                 </span>
                 {isAuthenticated && (
-                    <button className="btn btn-outline btn-sm" onClick={() => onJoin(club._id)}>Join</button>
+                    <button 
+                        className={`btn btn-sm ${club.members?.includes(useAuth().user?._id || useAuth().user?.id) ? 'btn-ghost' : 'btn-outline'}`} 
+                        onClick={() => onJoin(club._id)}
+                    >
+                        {club.members?.includes(useAuth().user?._id || useAuth().user?.id) ? '✓ Joined' : 'Join'}
+                    </button>
                 )}
             </div>
         </div>

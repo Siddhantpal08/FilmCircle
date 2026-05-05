@@ -237,7 +237,15 @@ const suggestMovies = async (req, res, next) => {
     try {
         const { q } = req.query;
         if (!q || q.trim().length < 2) return res.json([]);
-        const data = await omdbGet({ s: q.trim(), type: 'movie' });
+        let data = await omdbGet({ s: q.trim(), type: 'movie' });
+        
+        // Typo fallback: if no results and word is long enough, try truncating to first 5 chars
+        if (data.Response === 'False' && q.trim().length > 5) {
+            const fallbackQuery = q.trim().slice(0, 5);
+            const fallbackData = await omdbGet({ s: fallbackQuery, type: 'movie' });
+            if (fallbackData.Response !== 'False') data = fallbackData;
+        }
+
         const suggestions = (data.Search || []).slice(0, 8).map(m => ({
             imdbID: m.imdbID,
             title: m.Title,

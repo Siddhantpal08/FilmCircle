@@ -103,7 +103,14 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId }) {
                     </div>
                 </div>
             ) : (
-                <p className="post-content">{localContent}</p>
+                <div 
+                    className="post-content" 
+                    onClick={() => setShowComments(c => !c)} 
+                    style={{ cursor: 'pointer', padding: '0.5rem 0', margin: '-0.5rem 0 0.25rem 0' }}
+                    title="Click to view comments"
+                >
+                    <p style={{ margin: 0 }}>{localContent}</p>
+                </div>
             )}
 
             <div className="post-actions">
