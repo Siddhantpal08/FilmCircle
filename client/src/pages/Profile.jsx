@@ -209,14 +209,16 @@ export default function Profile() {
                     )}
                     <div className="grid-auto">
                         {uploadedFilms.map(m => (
-                            <div key={m._id} className="card" style={{ overflow: 'hidden' }}>
-                                <Link to={`/movie/${m._id}`}>
-                                    <img src={m.posterUrl || FALLBACK_POSTER} alt={m.title} style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover' }} onError={e => { e.target.src = FALLBACK_POSTER; }} />
+                            <div key={m._id} className="card" style={{ overflow: 'hidden', width: '160px', height: '320px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+                                <Link to={`/movie/${m._id}`} style={{ display: 'block', width: '100%', height: '210px', flexShrink: 0, borderBottom: '1px solid var(--clr-border)' }}>
+                                    <img src={m.posterUrl || FALLBACK_POSTER} alt={m.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.src = FALLBACK_POSTER; }} />
                                 </Link>
-                                <div style={{ padding: '0.75rem' }}>
-                                    <Link to={`/movie/${m._id}`}><h3 style={{ fontSize: '0.9rem', color: 'var(--clr-text)' }}>{m.title}</h3></Link>
-                                    {m.genre && <p style={{ fontSize: '0.78rem', margin: '0.25rem 0 0.5rem' }}>{m.genre}</p>}
-                                    <button className="btn btn-danger btn-sm" style={{ width: '100%' }} onClick={() => handleDeleteFilm(m._id)}>Delete</button>
+                                <div style={{ padding: '0.5rem 0.6rem', display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                    <Link to={`/movie/${m._id}`} style={{ outline: 'none' }}>
+                                        <h3 style={{ fontSize: '0.85rem', color: 'var(--clr-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{m.title}</h3>
+                                    </Link>
+                                    {m.genre && <p style={{ fontSize: '0.75rem', margin: '0.15rem 0 0.4rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--clr-text-muted)' }}>{m.genre}</p>}
+                                    <button className="btn btn-danger btn-sm" style={{ width: '100%', marginTop: 'auto', padding: '0.2rem' }} onClick={() => handleDeleteFilm(m._id)}>Delete</button>
                                 </div>
                             </div>
                         ))}
