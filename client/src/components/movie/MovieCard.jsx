@@ -22,12 +22,13 @@ export default function MovieCard({ movie, indie = false }) {
                 {genre && <p className="movie-card-genre">{genre.split(',')[0].trim()}</p>}
             </div>
             <style>{`
-        .movie-card { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
-        .poster-wrap { width: 100%; aspect-ratio: 2/3; position: relative; background: var(--clr-surface-2); overflow: hidden; flex-shrink: 0; }
-        .movie-poster { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .movie-card { display: flex; flex-direction: column; overflow: hidden; background: var(--clr-surface); border-radius: var(--radius-sm); border: 1px solid var(--clr-border); transition: transform 0.2s, border-color 0.2s; }
+        .poster-wrap { width: 100%; aspect-ratio: 2/3; position: relative; background: var(--clr-surface-2); overflow: hidden; flex-shrink: 0; border-bottom: 1px solid var(--clr-border); }
+        .movie-poster { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform 0.4s ease; }
         .movie-card:hover .movie-poster { transform: scale(1.06); }
-        .indie-badge { position: absolute; top: 0.4rem; left: 0.4rem; background: rgba(46,204,113,0.85); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); }
-        .movie-card-body { padding: 0.75rem; flex: 1; display: flex; flex-direction: column; }
+        .movie-card:hover { border-color: var(--clr-primary); transform: translateY(-4px); }
+        .indie-badge { position: absolute; top: 0.4rem; left: 0.4rem; background: rgba(46,204,113,0.85); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); z-index: 2; }
+        .movie-card-body { padding: 0.75rem; display: flex; flex-direction: column; }
         .movie-card-title { font-size: 0.95rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--clr-text); }
         .movie-card-year, .movie-card-genre { font-size: 0.78rem; color: var(--clr-text-muted); margin: 0; }
       `}</style>

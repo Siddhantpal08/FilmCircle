@@ -33,8 +33,8 @@ export default function ClubDetail() {
     if (!club) return <div className="page container"><p>Club not found.</p></div>;
 
     const currentUserId = user?._id || user?.id;
-    const isMember = club.members?.some(m => m._id === currentUserId || m.id === currentUserId);
-    const isCreator = club.createdBy?._id === currentUserId || club.createdBy?.id === currentUserId;
+    const isMember = !!currentUserId && club.members?.some(m => m._id === currentUserId || m === currentUserId || m.id === currentUserId);
+    const isCreator = !!currentUserId && (club.createdBy?._id === currentUserId || club.createdBy === currentUserId || club.createdBy?.id === currentUserId);
 
     const handleJoin = async () => {
         try {

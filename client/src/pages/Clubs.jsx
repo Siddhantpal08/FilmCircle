@@ -176,7 +176,7 @@ export default function Clubs() {
                         <p>No clubs found. {isAuthenticated ? 'Create one above!' : 'Login to create the first club!'}</p>
                     </div>
                 )}
-                <div className="grid-auto">
+                <div className="grid-clubs">
                     {filtered.map(c => <ClubCard key={c._id} club={c} onJoin={handleJoin} />)}
                 </div>
             </div>

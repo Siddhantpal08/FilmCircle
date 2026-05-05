@@ -62,7 +62,8 @@ p { color: var(--clr-text-muted); }
 .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
 .page { padding: 6rem 0 3rem; min-height: 100vh; }
 .section { margin-bottom: 3rem; }
-.grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1.5rem; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 1.5rem; }
+.grid-clubs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 1.5rem; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .flex { display: flex; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
@@ -189,7 +190,7 @@ p { color: var(--clr-text-muted); }
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .grid-2 { grid-template-columns: 1fr; }
-  .page { padding: 5rem 0 2rem; }
+  .page { padding: 8.5rem 0 2rem; }
 }
 
 /* ── Scrollbar ──────────────────────────────────────────────────── */
