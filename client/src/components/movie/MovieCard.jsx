@@ -47,8 +47,7 @@ export default function MovieCard({ movie, indie = false }) {
                     cursor: pointer;
                     text-decoration: none;
                     transition: transform 0.3s ease;
-                    width: 160px;
-                    flex-shrink: 0;
+                    width: 100%;
                 }
                 .movie-card:hover { transform: scale(1.04); }
 

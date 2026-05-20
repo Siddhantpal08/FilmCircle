@@ -10,8 +10,7 @@ export default function SkeletonCard() {
             </div>
             <style>{`
                 .sk-card {
-                    width: 160px;
-                    flex-shrink: 0;
+                    width: 100%;
                     border-radius: var(--radius);
                     overflow: hidden;
                 }
