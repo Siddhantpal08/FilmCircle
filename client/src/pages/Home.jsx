@@ -84,7 +84,8 @@ export default function Home() {
 
     return (
         <main className="page home-page-gradient">
-            <div className="container home-layout">
+            <div className="container">
+            <div className="home-layout">
                 {/* ── Left Main Content ── */}
                 <div className="home-main">
                     {/* Search Results */}
@@ -299,6 +300,7 @@ export default function Home() {
                     </div>
                 </aside>
             </div>
+            </div>
 
             <style>{`
                 .home-page-gradient {
@@ -308,29 +310,42 @@ export default function Home() {
                 /* ── Two-column layout: main + sidebar ── */
                 .home-layout {
                     display: grid;
-                    grid-template-columns: 1fr 300px;
-                    gap: 2.5rem;
+                    grid-template-columns: minmax(0, 1fr) 280px;
+                    gap: 2rem;
                     align-items: start;
                     padding-top: 1.5rem;
+                    width: 100%;
                 }
                 .home-main {
-                    min-width: 0; /* prevents grid blowout */
+                    /* minmax(0,1fr) above already constrains this, but belt-and-suspenders: */
+                    min-width: 0;
+                    overflow: hidden;
                 }
                 .home-sidebar {
+                    width: 280px;
+                    min-width: 0;
+                    /* sticky so panels stay in view while scrolling main column */
                     position: sticky;
                     top: 90px;
+                    align-self: start;
                     display: flex;
                     flex-direction: column;
-                    gap: 0; /* cards handle their own bottom margin */
                 }
 
-                /* Hide sidebar on smaller screens */
-                @media (max-width: 1023px) {
+                /* Tablet: collapse to single column, hide sidebar */
+                @media (max-width: 1024px) {
                     .home-layout {
                         grid-template-columns: 1fr;
                     }
                     .home-sidebar {
                         display: none;
+                    }
+                }
+                /* Mobile: show sidebar below main if ever made visible */
+                @media (max-width: 767px) {
+                    .home-layout {
+                        display: block;
+                        padding-top: 1rem;
                     }
                 }
 
