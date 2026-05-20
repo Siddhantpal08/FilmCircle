@@ -3,8 +3,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const LABELS = ['Skip', 'Considerable', 'Go For It', 'Excellent'];
-const COLORS = ['#e84545', '#f7b731', '#3498db', '#2ecc71'];
+const LABELS = ['Skip', 'Timepass', 'Go For It', 'Perfection'];
+const COLORS = ['#555555', '#c8c6c5', '#ffb4a9', '#c0392b'];
 const KEYS = ['skip', 'considerable', 'goForIt', 'excellent'];
 
 export default function InfographicChart({ distribution, percentages, total }) {
@@ -22,7 +22,7 @@ export default function InfographicChart({ distribution, percentages, total }) {
         datasets: [{
             data: KEYS.map(k => distribution[k] || 0),
             backgroundColor: COLORS,
-            borderColor: '#13131f',
+            borderColor: '#201f1f',
             borderWidth: 2,
             hoverOffset: 6,
         }],
@@ -64,15 +64,15 @@ export default function InfographicChart({ distribution, percentages, total }) {
         .infographic { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
         .chart-wrap { position: relative; width: 160px; height: 160px; flex-shrink: 0; }
         .chart-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-        .chart-total { display: block; font-size: 1.6rem; font-weight: 700; font-family: var(--ff-heading); color: var(--clr-text); }
-        .chart-label-sub { font-size: 0.7rem; color: var(--clr-text-muted); }
+        .chart-total { display: block; font-size: 1.6rem; font-weight: 700; font-family: var(--ff-heading); color: var(--clr-on-surface); }
+        .chart-label-sub { font-size: 0.7rem; color: var(--clr-secondary); }
         .chart-legend { display: flex; flex-direction: column; gap: 0.5rem; }
         .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .legend-name { color: var(--clr-text); flex: 1; }
-        .legend-pct { font-weight: 700; color: var(--clr-text); }
-        .legend-count { color: var(--clr-text-muted); }
-        .chart-empty { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.5rem; color: var(--clr-text-muted); font-size: 0.9rem; }
+        .legend-name { color: var(--clr-on-surface); flex: 1; }
+        .legend-pct { font-weight: 700; color: var(--clr-on-surface); }
+        .legend-count { color: var(--clr-secondary); }
+        .chart-empty { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.5rem; color: var(--clr-secondary); font-size: 0.9rem; }
         .chart-empty span { font-size: 2rem; }
       `}</style>
         </div>

@@ -5,12 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import InfographicChart from '../components/movie/InfographicChart';
 import Loader from '../components/common/Loader';
 
-const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%23161622'/%3E%3Ctext x='50%25' y='44%25' text-anchor='middle' fill='%234a4a6a' font-size='60'%3E🎬%3C/text%3E%3Ctext x='50%25' y='57%25' text-anchor='middle' fill='%234a4a6a' font-size='16'%3ENo Poster%3C/text%3E%3C/svg%3E";
+const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%23201f1f'/%3E%3Ctext x='50%25' y='44%25' text-anchor='middle' fill='%23c0392b' font-size='60'%3E%F0%9F%8E%AC%3C/text%3E%3Ctext x='50%25' y='57%25' text-anchor='middle' fill='%23a88a85' font-size='16'%3ENo Poster%3C/text%3E%3C/svg%3E";
 const OPINIONS = [
-    { key: 'skip', emoji: '⏭️', label: 'Skip', color: '#e84545' },
-    { key: 'considerable', emoji: '🤔', label: 'Considerable', color: '#f5a623' },
-    { key: 'goForIt', emoji: '✅', label: 'Go For It', color: '#3cb878' },
-    { key: 'excellent', emoji: '⭐', label: 'Excellent', color: '#7c5cfc' },
+    { key: 'skip', emoji: '⏭️', label: 'Skip', color: '#888' },
+    { key: 'considerable', emoji: '🤔', label: 'Timepass', color: '#c8c6c5' },
+    { key: 'goForIt', emoji: '✅', label: 'Go For It', color: '#ffb4a9' },
+    { key: 'excellent', emoji: '⭐', label: 'Perfection', color: '#c0392b' },
 ];
 const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller', 'Romance', 'Documentary', 'Animation', 'Other'];
 const FIVE_MIN = 5 * 60 * 1000;
@@ -44,11 +44,11 @@ function SubmittedOpinionCard({ review }) {
                 <span style={{ fontSize: '2rem' }}>{op.emoji}</span>
                 <div>
                     <div style={{ fontWeight: 700, color: op.color, fontSize: '1.05rem' }}>{op.label}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)' }}>Your opinion · locked</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--clr-secondary)' }}>Your opinion · locked</div>
                 </div>
             </div>
             {review.comment && (
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--clr-text-muted)', borderTop: `1px solid ${op.color}33`, paddingTop: '0.65rem', lineHeight: 1.6 }}>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--clr-secondary)', borderTop: `1px solid ${op.color}33`, paddingTop: '0.65rem', lineHeight: 1.6 }}>
                     "{review.comment}"
                 </p>
             )}
@@ -91,7 +91,7 @@ function OpinionForm({ movieId, existingReview, secsLeft, onUpdate }) {
     return (
         <form onSubmit={handleSubmit}>
             {existingReview && secsLeft > 0 && (
-                <div style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--clr-secondary)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <span style={{ color: '#f5a623', fontWeight: 600 }}>⏱ {mm}:{ss}</span> remaining to change your opinion
                 </div>
             )}
@@ -111,7 +111,7 @@ function OpinionForm({ movieId, existingReview, secsLeft, onUpdate }) {
                 ))}
             </div>
             <div className="form-group" style={{ marginTop: '1rem' }}>
-                <label className="form-label">Add a comment <span style={{ color: 'var(--clr-text-muted)', fontWeight: 400 }}>(optional)</span></label>
+                <label className="form-label">Add a comment <span style={{ color: 'var(--clr-secondary)', fontWeight: 400 }}>(optional)</span></label>
                 <textarea
                     className="form-textarea"
                     rows={3}
@@ -121,7 +121,7 @@ function OpinionForm({ movieId, existingReview, secsLeft, onUpdate }) {
                     onChange={e => setComment(e.target.value)}
                     disabled={loading}
                 />
-                <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', textAlign: 'right' }}>{comment.length}/500</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--clr-secondary)', textAlign: 'right' }}>{comment.length}/500</div>
             </div>
             <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} disabled={loading || !selected}>
                 {loading ? (<><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 0.8s linear infinite' }}><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>Submitting…</>) : existingReview ? 'Update Opinion' : 'Submit Opinion'}
@@ -138,7 +138,7 @@ function ReviewFeed({ reviews }) {
     const opMap = Object.fromEntries(OPINIONS.map(o => [o.key, o]));
     return (
         <div className="review-feed">
-            <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: 'var(--clr-text-muted)' }}>What others said</h4>
+            <h4 style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: 'var(--clr-secondary)' }}>What others said</h4>
             {reviews.map((r, i) => {
                 const op = opMap[r.opinion] || opMap.skip;
                 return (
@@ -146,11 +146,11 @@ function ReviewFeed({ reviews }) {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: r.comment ? '0.3rem' : 0 }}>
                             <span style={{ fontSize: '1.1rem' }}>{op.emoji}</span>
                             <strong style={{ color: op.color, fontSize: '0.85rem' }}>{op.label}</strong>
-                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--clr-text-muted)' }}>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--clr-secondary)' }}>
                                 {r.username || 'User'}
                             </span>
                         </div>
-                        {r.comment && <p style={{ margin: 0, fontSize: '0.83rem', color: 'var(--clr-text-muted)', lineHeight: 1.5 }}>"{r.comment}"</p>}
+                        {r.comment && <p style={{ margin: 0, fontSize: '0.83rem', color: 'var(--clr-secondary)', lineHeight: 1.5 }}>"{r.comment}"</p>}
                     </div>
                 );
             })}
@@ -241,7 +241,7 @@ export default function MovieDetail() {
                         )}
                         {isIndie && <span className="badge badge-indie" style={{ marginTop: '0.75rem', display: 'block', textAlign: 'center' }}>🎬 Independent Film</span>}
                         {isIndie && streaming.length === 0 && (
-                            <p style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)', textAlign: 'center', marginTop: '0.5rem' }}>
+                            <p style={{ fontSize: '0.8rem', color: 'var(--clr-secondary)', textAlign: 'center', marginTop: '0.5rem' }}>
                                 🔗 No watch link provided
                             </p>
                         )}
@@ -301,7 +301,7 @@ export default function MovieDetail() {
                                             <ReviewFeed reviews={reviewData.reviews} />
                                         </>
                                     ) : (
-                                        <p style={{ color: 'var(--clr-text-muted)', fontSize: '0.9rem' }}>No opinions yet. Be the first!</p>
+                                        <p style={{ color: 'var(--clr-secondary)', fontSize: '0.9rem' }}>No opinions yet. Be the first!</p>
                                     )}
                                 </div>
 
@@ -389,7 +389,7 @@ export default function MovieDetail() {
                                             >
                                                 📁 Upload Poster
                                             </button>
-                                            <span style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)' }}>— or paste URL —</span>
+                                            <span style={{ fontSize: '0.78rem', color: 'var(--clr-secondary)' }}>— or paste URL —</span>
                                             <input
                                                 className="form-input"
                                                 type="text"
@@ -426,26 +426,27 @@ export default function MovieDetail() {
 
             <style>{`
                 .movie-detail-grid { display: grid; grid-template-columns: 280px 1fr; gap: 3rem; padding-top: 1rem; }
-                .detail-poster { width: 100%; border-radius: var(--radius); box-shadow: var(--shadow); display: block; }
-                .imdb-badge { margin-top: 0.5rem; background: rgba(247,183,49,0.15); color: var(--clr-accent); padding: 0.3rem 0.75rem; border-radius: var(--radius-sm); font-weight: 600; display: inline-block; }
-                .movie-title { margin-bottom: 0.5rem; }
-                .movie-year { color: var(--clr-text-muted); font-size: 0.7em; }
+                .detail-poster { width: 100%; border-radius: var(--radius); box-shadow: 0 0 40px rgba(0,0,0,0.6); display: block; }
+                .imdb-badge { margin-top: 0.5rem; background: rgba(247,183,49,0.1); color: #f7b731; border: 1px solid rgba(247,183,49,0.25); padding: 0.3rem 0.75rem; border-radius: var(--radius-sm); font-weight: 600; display: inline-block; font-size: 0.875rem; }
+                .badge-indie { background: rgba(0,114,150,0.15); color: var(--clr-tertiary); border: 1px solid rgba(0,114,150,0.3); font-size: 0.75rem; padding: 0.3rem 0.75rem; border-radius: var(--radius-full); font-weight: 700; letter-spacing: 0.05em; }
+                .movie-title { margin-bottom: 0.5rem; font-size: clamp(1.5rem, 3vw, 2.5rem); }
+                .movie-year { color: var(--clr-secondary); font-size: 0.7em; }
                 .genre-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
-                .movie-plot { color: var(--clr-text-muted); line-height: 1.7; margin-bottom: 1rem; }
-                .meta-row { font-size: 0.9rem; color: var(--clr-text-muted); margin-bottom: 0.4rem; }
-                .meta-row strong { color: var(--clr-text); }
-                .streaming-section, .review-section { margin-top: 1.5rem; }
-                .streaming-section h3, .review-section h3 { margin-bottom: 0.75rem; }
+                .movie-plot { color: var(--clr-secondary); line-height: 1.7; margin-bottom: 1rem; font-size: 0.95rem; }
+                .meta-row { font-size: 0.875rem; color: var(--clr-secondary); margin-bottom: 0.4rem; }
+                .meta-row strong { color: var(--clr-on-surface); }
+                .streaming-section, .review-section { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(89,65,61,0.2); }
+                .streaming-section h3, .review-section h3 { margin-bottom: 0.75rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--clr-on-surface-variant); font-weight: 700; }
                 .review-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.75rem; }
-                .opinion-btn { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; padding: 0.75rem; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); background: transparent; color: var(--clr-text-muted); cursor: pointer; transition: all 0.2s; }
-                .opinion-btn:hover { border-color: var(--clr-primary); color: var(--clr-text); }
-                .opinion-active { font-weight: 600; }
+                .opinion-btn { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0.85rem; border: 1.5px solid rgba(89,65,61,0.3); border-radius: var(--radius-sm); background: var(--clr-surface-container); color: var(--clr-secondary); cursor: pointer; transition: all 0.2s; font-family: inherit; }
+                .opinion-btn:hover { border-color: var(--clr-primary-container); color: var(--clr-on-surface); background: rgba(192,57,43,0.06); transform: translateY(-2px); }
+                .opinion-active { font-weight: 700; }
 
                 /* Indie poster overlay */
                 .poster-link-wrap { position: relative; display: block; border-radius: var(--radius); overflow: hidden; }
-                .poster-link-wrap .detail-poster { transition: filter 0.25s; }
-                .poster-link-wrap:hover .detail-poster { filter: brightness(0.55); }
-                .poster-watch-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 700; color: #fff; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+                .poster-link-wrap .detail-poster { transition: filter 0.3s; }
+                .poster-link-wrap:hover .detail-poster { filter: brightness(0.5); }
+                .poster-watch-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 700; color: #fff; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
                 .poster-link-wrap:hover .poster-watch-overlay { opacity: 1; }
 
                 /* Locked opinion card */
@@ -453,7 +454,7 @@ export default function MovieDetail() {
 
                 /* Community review feed */
                 .review-feed { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
-                .review-feed-item { border-left: 3px solid; padding: 0.55rem 0.9rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; background: var(--clr-surface-2); }
+                .review-feed-item { border-left: 3px solid; padding: 0.55rem 0.9rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; background: var(--clr-surface-high); }
 
                 @keyframes spin { to { transform: rotate(360deg); } }
                 @media (max-width: 768px) { .movie-detail-grid { grid-template-columns: 1fr; } .poster-col { max-width: 260px; margin: 0 auto; } }

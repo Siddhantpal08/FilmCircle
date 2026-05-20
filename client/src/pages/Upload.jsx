@@ -61,7 +61,7 @@ export default function Upload() {
         <main className="page">
             <div className="container" style={{ maxWidth: '680px' }}>
                 <h1 style={{ marginBottom: '0.5rem' }}>🎥 Upload Your Film</h1>
-                <p style={{ marginBottom: '2rem', color: 'var(--clr-text-muted)' }}>Share your independent project with the FilmCircle community.</p>
+                <p style={{ marginBottom: '2rem', color: 'var(--clr-secondary)' }}>Share your independent project with the FilmCircle community.</p>
 
                 {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
                 {success && <div className="alert alert-success" style={{ marginBottom: '1rem' }}>✓ {success}</div>}

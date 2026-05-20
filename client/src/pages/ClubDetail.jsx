@@ -137,8 +137,8 @@ export default function ClubDetail() {
                                 <div>
                                     <span className="badge badge-primary" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>{club.genre || 'General'}</span>
                                     <h1 style={{ margin: 0 }}>{club.name}</h1>
-                                    {club.description && <p style={{ marginTop: '0.5rem', color: 'var(--clr-text-muted)' }}>{club.description}</p>}
-                                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--clr-text-muted)' }}>
+                                    {club.description && <p style={{ marginTop: '0.5rem', color: 'var(--clr-secondary)' }}>{club.description}</p>}
+                                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--clr-secondary)' }}>
                                         👥 {club.members?.length} members · Created by <strong>{club.createdBy?.username}</strong>
                                     </div>
                                 </div>
@@ -183,16 +183,16 @@ export default function ClubDetail() {
                     return (
                         <div key={p._id || p.createdAt} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#fff', fontSize: '0.8rem' }}>
+                                <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--clr-primary-container)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'var(--clr-on-primary-container)', fontSize: '0.8rem' }}>
                                     {p.author?.username?.[0]?.toUpperCase()}
                                 </div>
                                 <strong style={{ fontSize: '0.9rem' }}>{p.author?.username}</strong>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', marginLeft: 'auto' }}>{new Date(p.createdAt).toLocaleDateString()}</span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--clr-secondary)', marginLeft: 'auto' }}>{new Date(p.createdAt).toLocaleDateString()}</span>
                                 {canDeletePost && (
                                     <button className="btn btn-ghost btn-sm" style={{ color: 'var(--clr-error)' }} onClick={() => handleDeletePost(p._id)}>🗑</button>
                                 )}
                             </div>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--clr-text)', margin: 0 }}>{p.content}</p>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--clr-on-surface)', margin: 0 }}>{p.content}</p>
                         </div>
                     );
                 })}

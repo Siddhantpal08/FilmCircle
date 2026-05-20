@@ -9,15 +9,14 @@ export default function Loader({ fullPage = false }) {
     return <div className="loader-ring" style={{ margin: '2rem auto' }} />;
 }
 
-// Add this to index.css or inline — using inline style for portability
 const style = document.createElement('style');
 style.textContent = `
 .loader-ring {
   width: 44px; height: 44px;
-  border: 3px solid var(--clr-border);
-  border-top-color: var(--clr-primary);
+  border: 3px solid rgba(89, 65, 61, 0.3);
+  border-top-color: var(--clr-primary-container);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 `;

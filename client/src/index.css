@@ -264,6 +264,15 @@ p  { color: var(--clr-secondary); }
 .form-input::placeholder, .form-textarea::placeholder {
   color: rgba(168,138,133,0.4);
 }
+/* Override browser autofill styles */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--clr-on-surface);
+  -webkit-box-shadow: 0 0 0px 1000px #0a0a0a inset;
+  caret-color: var(--clr-on-surface);
+  transition: background-color 5000s ease-in-out 0s;
+}
 .form-textarea { resize: vertical; min-height: 100px; }
 .form-error { color: var(--clr-error); font-size: 0.82rem; }
 
