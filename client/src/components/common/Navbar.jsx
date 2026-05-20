@@ -164,6 +164,7 @@ export default function Navbar() {
                     <Link to="/community" className={isActive('/community') ? 'nav-link active' : 'nav-link'}>Community</Link>
                     <Link to="/clubs" className={isActive('/clubs') ? 'nav-link active' : 'nav-link'}>Clubs</Link>
                     {isAuthenticated && <Link to="/upload" className={isActive('/upload') ? 'nav-link active' : 'nav-link'}>Upload</Link>}
+                    {isAuthenticated && <Link to="/bookmarks" className={isActive('/bookmarks') ? 'nav-link active' : 'nav-link'}>Bookmarks</Link>}
                     <div className="nav-divider" />
                     {isAuthenticated ? (
                         <>

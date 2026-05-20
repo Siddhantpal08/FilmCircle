@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { movieService, bookmarkService } from '../services';
+import { movieService } from '../services';
 import MovieCard from '../components/movie/MovieCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 
@@ -31,7 +31,6 @@ export default function Home() {
     const [error, setError] = useState('');
     const [trendingError, setTrendingError] = useState('');
 
-    const [bookmarks, setBookmarks] = useState([]);
     const [interestingMovies, setInterestingMovies] = useState([]);
 
     // Fetch indie + trending on mount
@@ -60,9 +59,8 @@ export default function Home() {
         }).finally(() => setHomeLoading(false));
     }, []);
 
-    // Load local storage items
+    // Load Most Interesting from localStorage
     useEffect(() => {
-        setBookmarks(bookmarkService.getAll());
         const interestingMap = JSON.parse(localStorage.getItem('filmcircle_interesting') || '{}');
         setInterestingMovies(Object.values(interestingMap));
     }, [query]);
@@ -87,7 +85,7 @@ export default function Home() {
     return (
         <main className="page home-page-gradient">
             <div className="container home-layout">
-                {/* Left Main Content */}
+                {/* ── Left Main Content ── */}
                 <div className="home-main">
                     {/* Search Results */}
                     {query && (
@@ -144,34 +142,6 @@ export default function Home() {
                                 </section>
                             ) : (
                                 <>
-                                    {/* My Bookmarks Section */}
-                                    {bookmarks.length > 0 && (
-                                        <section className="section">
-                                            <div className="section-header">
-                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>My Bookmarks</h2>
-                                            </div>
-                                            <div className="grid-movies-6x2">
-                                                {bookmarks.slice(0, 12).map(m => (
-                                                    <MovieCard key={m.imdbID || m._id} movie={m} indie={m.isIndependent} />
-                                                ))}
-                                            </div>
-                                        </section>
-                                    )}
-
-                                    {/* Most Interesting Section */}
-                                    {interestingMovies.length > 0 && (
-                                        <section className="section">
-                                            <div className="section-header">
-                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>Most Interesting</h2>
-                                            </div>
-                                            <div className="grid-movies-6x2">
-                                                {interestingMovies.slice(0, 12).map(m => (
-                                                    <MovieCard key={m.imdbID || m._id} movie={m} indie={m.isIndependent} />
-                                                ))}
-                                            </div>
-                                        </section>
-                                    )}
-
                                     {/* Trending Section */}
                                     {trending.length > 0 && (
                                         <section className="section">
@@ -231,7 +201,7 @@ export default function Home() {
                                         );
                                     })}
 
-                                    {trending.length === 0 && indie.length === 0 && bookmarks.length === 0 && interestingMovies.length === 0 && (
+                                    {trending.length === 0 && indie.length === 0 && (
                                         <div className="empty-state">
                                             <div className="icon">🍿</div>
                                             <p style={{ fontSize: '1.1rem' }}>Search for any movie above to get started!</p>
@@ -243,8 +213,40 @@ export default function Home() {
                     )}
                 </div>
 
-                {/* Right Sidebar */}
+                {/* ── Right Sidebar ── */}
                 <aside className="home-sidebar">
+                    {/* Most Interesting Widget */}
+                    {interestingMovies.length > 0 && (
+                        <div className="home-sidebar-card">
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
+                                <span style={{ color: 'var(--clr-primary-container)' }}>⭐</span> Most Interesting
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                {interestingMovies.slice(0, 5).map((m, i) => (
+                                    <div key={m.imdbID || m._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                                        onClick={() => window.location.href = `/movie/${m.imdbID || m._id}`}>
+                                        <img
+                                            src={m.Poster || m.posterUrl}
+                                            alt={m.Title || m.title}
+                                            style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0, border: '1px solid rgba(89,65,61,0.3)' }}
+                                            onError={e => { e.target.style.background = 'var(--clr-surface-high)'; e.target.src = ''; }}
+                                        />
+                                        <div style={{ minWidth: 0 }}>
+                                            <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: 'var(--clr-on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {m.Title || m.title}
+                                            </p>
+                                            <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>{m.Year || m.year || ''}</p>
+                                        </div>
+                                        {i < Math.min(interestingMovies.length - 1, 4) && (
+                                            <div style={{ position: 'absolute' }} />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Trending Discussions */}
                     <div className="home-sidebar-card">
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
                             <span style={{ color: 'var(--clr-primary-container)' }}>↑</span> Trending Discussions
@@ -262,6 +264,7 @@ export default function Home() {
                         </ul>
                     </div>
 
+                    {/* Active Clubs */}
                     <div className="home-sidebar-card">
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
                             <span style={{ color: 'var(--clr-primary-container)' }}>👥</span> Active Clubs
@@ -271,17 +274,18 @@ export default function Home() {
                             return (
                                 <div key={club} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <div style={{ 
-                                            width: 44, 
-                                            height: 44, 
-                                            borderRadius: 8, 
+                                        <div style={{
+                                            width: 44,
+                                            height: 44,
+                                            borderRadius: 8,
                                             backgroundImage: `url(/banners/${genres[idx]}.png)`,
                                             backgroundSize: 'cover',
                                             backgroundPosition: 'center',
-                                            border: '1px solid rgba(192,57,43,0.3)', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            justifyContent: 'center' 
+                                            border: '1px solid rgba(192,57,43,0.3)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            background: 'var(--clr-surface-high)',
                                         }} />
                                         <div>
                                             <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--clr-on-surface)' }}>{club}</p>
@@ -300,26 +304,33 @@ export default function Home() {
                 .home-page-gradient {
                     background: radial-gradient(circle at 50% 0%, rgba(192, 57, 43, 0.08) 0%, rgba(15, 15, 15, 0) 70%), var(--clr-bg);
                 }
+
+                /* ── Two-column layout: main + sidebar ── */
                 .home-layout {
-                    display: flex;
+                    display: grid;
+                    grid-template-columns: 1fr 300px;
                     gap: 2.5rem;
-                    align-items: flex-start;
+                    align-items: start;
                     padding-top: 1.5rem;
                 }
                 .home-main {
-                    flex: 1;
-                    min-width: 0;
+                    min-width: 0; /* prevents grid blowout */
                 }
                 .home-sidebar {
-                    width: 320px;
-                    flex-shrink: 0;
                     position: sticky;
                     top: 90px;
-                    display: none;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0; /* cards handle their own bottom margin */
                 }
-                @media (min-width: 1024px) {
+
+                /* Hide sidebar on smaller screens */
+                @media (max-width: 1023px) {
+                    .home-layout {
+                        grid-template-columns: 1fr;
+                    }
                     .home-sidebar {
-                        display: block;
+                        display: none;
                     }
                 }
 
@@ -332,7 +343,14 @@ export default function Home() {
                 }
 
                 /* Section header */
-                .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem; }
+                .section-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 1.25rem;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                }
 
                 /* Query Chips */
                 .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
@@ -352,22 +370,17 @@ export default function Home() {
                 .query-chip:hover { border-color: var(--clr-primary-container); color: var(--clr-primary); background: rgba(192,57,43,0.08); transform: translateY(-1px); }
                 .query-chip-active { border-color: var(--clr-primary-container) !important; color: var(--clr-primary) !important; background: rgba(192,57,43,0.12) !important; }
 
-                /* Grid Movies 6x2 */
+                /* 6×2 movie grid */
                 .grid-movies-6x2 {
                     display: grid;
                     grid-template-columns: repeat(6, 1fr);
                     gap: 1.25rem;
                     margin-bottom: 2.5rem;
                 }
-                @media (max-width: 1200px) {
-                    .grid-movies-6x2 { grid-template-columns: repeat(4, 1fr); }
-                }
-                @media (max-width: 768px) {
-                    .grid-movies-6x2 { grid-template-columns: repeat(3, 1fr); }
-                }
-                @media (max-width: 480px) {
-                    .grid-movies-6x2 { grid-template-columns: repeat(2, 1fr); }
-                }
+                @media (max-width: 1400px) { .grid-movies-6x2 { grid-template-columns: repeat(5, 1fr); } }
+                @media (max-width: 1100px) { .grid-movies-6x2 { grid-template-columns: repeat(4, 1fr); } }
+                @media (max-width: 768px)  { .grid-movies-6x2 { grid-template-columns: repeat(3, 1fr); } }
+                @media (max-width: 480px)  { .grid-movies-6x2 { grid-template-columns: repeat(2, 1fr); } }
             `}</style>
         </main>
     );

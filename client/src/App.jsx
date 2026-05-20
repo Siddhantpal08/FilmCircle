@@ -10,6 +10,7 @@ import Clubs from './pages/Clubs';
 import ClubDetail from './pages/ClubDetail';
 import Upload from './pages/Upload';
 import Profile from './pages/Profile';
+import Bookmarks from './pages/Bookmarks';
 import Loader from './components/common/Loader';
 
 function ProtectedRoute({ children }) {
@@ -35,6 +36,7 @@ function AppRoutes() {
                 <Route path="/clubs/:id" element={<ClubDetail />} />
                 <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
                 <Route path="*" element={
                     <div className="page flex-center flex-col" style={{ textAlign: 'center', gap: '1rem' }}>
                         <h1>404</h1>
