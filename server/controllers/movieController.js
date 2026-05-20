@@ -74,8 +74,27 @@ const searchMovies = async (req, res, next) => {
         if (!q || q.trim() === '') {
             return res.status(400).json({ message: 'Search query cannot be empty' });
         }
-        const data = await omdbGet({ s: q.trim() });
-        res.json({ results: data.Search || [], totalResults: data.totalResults });
+        // OMDB returns max 10 per page; fetch 2 pages to get up to 12 results for a 6×2 grid
+        const [page1, page2] = await Promise.allSettled([
+            omdbGet({ s: q.trim(), page: 1 }),
+            omdbGet({ s: q.trim(), page: 2 }),
+        ]);
+        const results1 = page1.status === 'fulfilled' ? (page1.value.Search || []) : [];
+        const results2 = page2.status === 'fulfilled' ? (page2.value.Search || []) : [];
+        const totalResults = page1.status === 'fulfilled' ? page1.value.totalResults : '0';
+
+        // Merge & deduplicate by imdbID, then cap at 12
+        const seen = new Set();
+        const merged = [];
+        for (const m of [...results1, ...results2]) {
+            if (!seen.has(m.imdbID)) {
+                seen.add(m.imdbID);
+                merged.push(m);
+            }
+            if (merged.length >= 12) break;
+        }
+
+        res.json({ results: merged, totalResults });
     } catch (err) {
         if (err.statusCode === 404) {
             return res.status(200).json({ results: [], totalResults: '0' });
