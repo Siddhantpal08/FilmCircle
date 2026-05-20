@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f0f0f;
+            color: #e3e2e2;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab {
+            border-bottom: 2px solid #c0392b;
+            color: #ffb4a9;
+        }
+        .review-card-hover:hover {
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#ffb4a9",
+                      "on-primary-container": "#ffe5e1",
+                      "inverse-primary": "#b02d21",
+                      "on-error-container": "#ffdad6",
+                      "on-secondary-fixed": "#3c0704",
+                      "on-primary-fixed": "#410000",
+                      "surface-tint": "#ffb4a9",
+                      "secondary": "#ffb4a9",
+                      "secondary-container": "#79342b",
+                      "surface-dim": "#121414",
+                      "surface-container-high": "#292a2a",
+                      "on-secondary-fixed-variant": "#763229",
+                      "tertiary-container": "#007296",
+                      "primary-fixed": "#ffdad5",
+                      "surface-variant": "#343535",
+                      "secondary-fixed-dim": "#ffb4a9",
+                      "tertiary-fixed": "#c0e8ff",
+                      "on-tertiary-container": "#d3eeff",
+                      "on-secondary": "#591c15",
+                      "on-surface-variant": "#e1bfb9",
+                      "outline": "#a88a85",
+                      "on-tertiary-fixed": "#001e2b",
+                      "surface-bright": "#383939",
+                      "primary-container": "#c0392b",
+                      "error-container": "#93000a",
+                      "on-tertiary": "#003548",
+                      "inverse-surface": "#e3e2e2",
+                      "surface-container": "#1f2020",
+                      "surface": "#121414",
+                      "secondary-fixed": "#ffdad5",
+                      "on-primary": "#690001",
+                      "inverse-on-surface": "#303031",
+                      "error": "#ffb4ab",
+                      "surface-container-highest": "#343535",
+                      "on-secondary-container": "#fe9f91",
+                      "surface-container-low": "#1b1c1c",
+                      "surface-container-lowest": "#0d0e0f",
+                      "background": "#121414",
+                      "on-error": "#690005",
+                      "on-surface": "#e3e2e2",
+                      "outline-variant": "#59413d",
+                      "primary-fixed-dim": "#ffb4a9",
+                      "on-primary-fixed-variant": "#8e130c",
+                      "tertiary": "#80d0f8",
+                      "on-tertiary-fixed-variant": "#004d66",
+                      "on-background": "#e3e2e2",
+                      "tertiary-fixed-dim": "#80d0f8"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "section-gap": "80px",
+                      "gutter": "24px",
+                      "container-margin-desktop": "64px",
+                      "base-unit": "8px",
+                      "container-margin-mobile": "20px"
+              },
+              "fontFamily": {
+                      "body-base": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "metadata": ["Inter"],
+                      "display-lg-mobile": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "metadata": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-surface">
+<!-- TopNavBar -->
+<nav class="bg-surface border-b border-outline-variant/30 sticky top-0 z-50">
+<div class="flex justify-between items-center w-full h-16 px-gutter max-w-7xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="font-headline-md text-headline-md font-black text-on-surface">FilmCircle</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-label-caps text-label-caps" href="#">Community</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-200 font-label-caps text-label-caps" href="#">Clubs</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary-container text-on-primary-container font-label-caps text-label-caps px-4 py-2 rounded-lg active:scale-95 opacity-90 transition-all">Sign Up</button>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-gutter py-12">
+<!-- Profile Header Section -->
+<section class="flex flex-col md:flex-row gap-8 items-start md:items-center mb-12">
+<div class="relative group">
+<div class="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-primary-container shadow-2xl">
+<img alt="Aryan Mehta" class="w-full h-full object-cover" data-alt="A professional portrait of a South Asian man in his late 20s with a clean-shaven face and thoughtful expression. He is photographed in a cinematic style with low-key studio lighting that creates high contrast and deep shadows, emphasizing the moody charcoal aesthetic of the platform. The background is a blurred dark interior, lending a premium and exclusive atmosphere to the profile image." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUVWqtY_c6zce1MYK9TGPehoQEjMJzDPR2kLXB5lbP1t_t1gZaM8yRJ-UU_WUdJDbGDF6FMjABW1Q9n3PweWIRmYcD1OmJiy2SQWEX73sjjPrsaWxtF3qW3ct6fkCXXOVXrhi1Zg9uUsxr-tn8Qf283xg4L4_cvjPmAeawr2F6d3-qP0P4yzjVcg0eeKE1shYtSDYtyPgAe5IZc4Z_8LP3fbzNJ59OeIOAYkQJkMufiKY6-DtpcEQhQfT6oEKWB5jMmuXoIeRp8r8"/>
+</div>
+</div>
+<div class="flex-1 space-y-4">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">Aryan Mehta</h1>
+<p class="text-on-surface-variant font-body-base text-body-base">@aryanm</p>
+</div>
+<button class="border border-outline text-on-surface px-6 py-2 rounded-lg hover:bg-surface-variant transition-colors font-label-caps text-label-caps">
+                        Edit Profile
+                    </button>
+</div>
+<div class="flex gap-8 border-y border-outline-variant/20 py-4">
+<div class="text-center md:text-left">
+<span class="block font-headline-sm text-headline-sm text-on-surface">124</span>
+<span class="text-on-surface-variant font-label-caps text-label-caps">Reviews</span>
+</div>
+<div class="text-center md:text-left">
+<span class="block font-headline-sm text-headline-sm text-on-surface">12</span>
+<span class="text-on-surface-variant font-label-caps text-label-caps">Collections</span>
+</div>
+<div class="text-center md:text-left">
+<span class="block font-headline-sm text-headline-sm text-on-surface">45</span>
+<span class="text-on-surface-variant font-label-caps text-label-caps">Interested</span>
+</div>
+</div>
+<p class="text-on-surface font-body-base text-body-base max-w-2xl leading-relaxed">
+                    Cinephile. Collector of classic 70s noir. Obsessed with lighting design and non-linear narratives. Probably rewatching 'In the Mood for Love' right now.
+                </p>
+</div>
+</section>
+<!-- Tabs Navigation -->
+<div class="flex border-b border-outline-variant/20 mb-8 overflow-x-auto">
+<button class="px-8 py-4 font-label-caps text-label-caps active-tab whitespace-nowrap">Reviews</button>
+<button class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Collections</button>
+<button class="px-8 py-4 font-label-caps text-label-caps text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Interested In</button>
+</div>
+<!-- Filter Pills -->
+<div class="flex flex-wrap gap-3 mb-10">
+<button class="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-full font-label-caps text-[10px]">All</button>
+<button class="bg-surface-container-high text-on-surface px-4 py-1.5 rounded-full font-label-caps text-[10px] hover:bg-outline-variant transition-colors">Perfection</button>
+<button class="bg-surface-container-high text-on-surface px-4 py-1.5 rounded-full font-label-caps text-[10px] hover:bg-outline-variant transition-colors">Go For It</button>
+<button class="bg-surface-container-high text-on-surface px-4 py-1.5 rounded-full font-label-caps text-[10px] hover:bg-outline-variant transition-colors">Timepass</button>
+<button class="bg-surface-container-high text-on-surface px-4 py-1.5 rounded-full font-label-caps text-[10px] hover:bg-outline-variant transition-colors">Skip</button>
+</div>
+<!-- Reviews Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Review Card 1 -->
+<div class="bg-surface-container border border-outline-variant/30 rounded-xl p-4 flex gap-4 review-card-hover cursor-pointer group">
+<div class="w-24 md:w-32 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden">
+<img alt="Dune" class="w-full h-full object-cover" data-alt="A vintage cinematic movie poster for a neon-drenched noir thriller. The scene features a solitary figure walking down a wet city street at night, illuminated by glowing red and blue neon signs. The overall visual style is grainy and atmospheric, reflecting the high-contrast dark aesthetic of a modern film critique platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHYzhpvRzUrfF2CGJrYbo3DxJD7RD5KOyfpFYecy1tfjKdZX207jFNVwZvsmWJEP-rj9mXMfKFy8yr8J2RDiJZnfAfg6a_fLsstYQlkmjH-VnWQ145vpkdIzPNAjMmDfuVfFXgLQtk6QOaQHXjEjWgBXM9GmnN0Ekm0cr2uMiDTx_yEShVt7uhJ2gwveWMjkr04Z4MSVmVd6vYX5H2vCOuG0QtWjDyZEsbGiMsnY3RFslzdONVG00W81P9YIGQmwYAyWObLA8Rrtc"/>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Oppenheimer</h3>
+<p class="text-on-surface-variant font-metadata text-metadata">2023</p>
+</div>
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded font-label-caps text-[10px]">Perfection</span>
+</div>
+<p class="text-on-surface-variant font-body-base text-body-base line-clamp-3">
+                            A visceral masterclass in tension and sound design. Nolan handles the dual timelines with surgical precision. The Trinity test sequence is quite possibly the most...
+                        </p>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant mt-4">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="font-metadata text-metadata">2.4k</span>
+<span class="material-symbols-outlined text-[18px] ml-4">chat_bubble</span>
+<span class="font-metadata text-metadata">182</span>
+</div>
+</div>
+</div>
+<!-- Review Card 2 -->
+<div class="bg-surface-container border border-outline-variant/30 rounded-xl p-4 flex gap-4 review-card-hover cursor-pointer group">
+<div class="w-24 md:w-32 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden">
+<img alt="Blade Runner 2049" class="w-full h-full object-cover" data-alt="A dramatic movie poster showing a close-up of a futuristic cityscape under a heavy rain. The lighting is cinematic with deep charcoal tones and bright sparks of electrical blue. The mood is melancholic and high-concept, aligning with the platform's focus on premium editorial cinema and moody aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfK6_zTeu3aNF9a2FuC-1vxtF8G9x3gzNT6mVkirWuBVIaSkY7jmtLLoSgeV8DaoCUZ4KRR4oXVuhB57_krVwnVsJ13WY9bjymP94oBFyt7Sp7QbtZd5WS77OWxLv_RLlzr5lmzWGkdOof60zVWbnB2RDc6gOunUBrjeJUKFk5oBgqsI-3gapmsVefs0aflrPvs1ZMAaCpGZEvVaGgAGANsfUMqH0cJyuINB6IK9ancDtruqc9TvJR7WJTRto-Yvffgd3nXj-nWmg"/>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Blade Runner 2049</h3>
+<p class="text-on-surface-variant font-metadata text-metadata">2017</p>
+</div>
+<span class="bg-surface-container-highest text-on-surface px-3 py-1 rounded font-label-caps text-[10px]">Go For It</span>
+</div>
+<p class="text-on-surface-variant font-body-base text-body-base line-clamp-3">
+                            Visually unparalleled. Deakins creates a world that feels both vast and suffocating. While the pacing might test some, the existential payoff is worth every minute.
+                        </p>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant mt-4">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="font-metadata text-metadata">1.8k</span>
+<span class="material-symbols-outlined text-[18px] ml-4">chat_bubble</span>
+<span class="font-metadata text-metadata">94</span>
+</div>
+</div>
+</div>
+<!-- Review Card 3 -->
+<div class="bg-surface-container border border-outline-variant/30 rounded-xl p-4 flex gap-4 review-card-hover cursor-pointer group">
+<div class="w-24 md:w-32 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden">
+<img alt="Lady Bird" class="w-full h-full object-cover" data-alt="A minimalist film poster for a modern indie drama. A simple silhouette of a bird against a stark white and crimson red background. The design is clean and bold, emphasizing the minimalist and modern movement of the design system with a limited but powerful color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIO8gQz9jfb5WXur4J3cAbP8b5ESWzBTGXG937_Swl1QTXPkgXyOJVdinFPD2DFMcf0xloQjctMsvsQSjpyEBT45E2M8nzLXP6RcAoTT1iOV1FDk4yheVLZfW3U-6qeICscNGMyeHl1_sQ4Hi66v5Py4REyHl86wLAR_SdPRrD1IJXoporgXo2vQ-AFPwrAj9eJ753p9WPiIyYzrGf5ukjL3xywkLD8nlFk70v_XQqgsjRmL__dQ4hhmj75iYRROonNapaLhTLPIU"/>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Lady Bird</h3>
+<p class="text-on-surface-variant font-metadata text-metadata">2017</p>
+</div>
+<span class="bg-surface-container-highest text-on-surface px-3 py-1 rounded font-label-caps text-[10px]">Go For It</span>
+</div>
+<p class="text-on-surface-variant font-body-base text-body-base line-clamp-3">
+                            Gerwig captures the ache of adolescence with such specificity it hurts. Saoirse Ronan is a force of nature. It's funny, it's cruel, it's perfect.
+                        </p>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant mt-4">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="font-metadata text-metadata">3.1k</span>
+<span class="material-symbols-outlined text-[18px] ml-4">chat_bubble</span>
+<span class="font-metadata text-metadata">210</span>
+</div>
+</div>
+</div>
+<!-- Review Card 4 -->
+<div class="bg-surface-container border border-outline-variant/30 rounded-xl p-4 flex gap-4 review-card-hover cursor-pointer group">
+<div class="w-24 md:w-32 aspect-[2/3] flex-shrink-0 rounded-lg overflow-hidden">
+<img alt="Drive" class="w-full h-full object-cover" data-alt="A highly stylized film still featuring a high-speed car chase under the glow of golden hour. The image has a rich, cinematic grain and deep shadows, reflecting a high-end film enthusiast aesthetic. The composition is dynamic and focused on motion and texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDR1L4Za0jplIxVSIZP0OAx3exJWHC6BS40eCNzVYZRUAK7TcTy_E_O-aWeGNuWE3k86e3AInfSIJfcm3O8GjuRbQLbzRklC2Vf00VVSz4SyQp_klpVwxD3etQ2PWA7rq-ELBQWKCle-Yyu7ReGOKAKm2GTsPUefTIddfluy2d9GXJmVCfuMmbNjw99sh8bXTb_JqSij13omIEQE7A6eeSH4Awa_9Zq6HgltXJ95xcILPbShGo5iOKVFCi5lBH12WGkmb2fJKS2Roo"/>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Drive</h3>
+<p class="text-on-surface-variant font-metadata text-metadata">2011</p>
+</div>
+<span class="bg-primary-container text-on-primary-container px-3 py-1 rounded font-label-caps text-[10px]">Perfection</span>
+</div>
+<p class="text-on-surface-variant font-body-base text-body-base line-clamp-3">
+                            A neon-soaked fever dream. Refn proves that less is more when it comes to dialogue. The soundtrack and cinematography carry the emotional weight of a thousand pages.
+                        </p>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant mt-4">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="font-metadata text-metadata">5.2k</span>
+<span class="material-symbols-outlined text-[18px] ml-4">chat_bubble</span>
+<span class="font-metadata text-metadata">442</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-gutter flex flex-col md:flex-row justify-between items-center gap-4 bg-surface-container-lowest border-t border-outline-variant/20">
+<div class="flex flex-col md:items-start items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">FilmCircle</span>
+<p class="font-metadata text-metadata text-on-surface-variant">© 2024 FilmCircle. The Criterion of Cinema.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Legal</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Help</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-200" href="#">Social Media</a>
+</div>
+</footer>
+<script>
+        // Simple Micro-interaction for filter pills
+        const filterButtons = document.querySelectorAll('.filter-pill-container button');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => {
+                    b.classList.remove('bg-primary-container', 'text-on-primary-container');
+                    b.classList.add('bg-surface-container-high', 'text-on-surface');
+                });
+                btn.classList.add('bg-primary-container', 'text-on-primary-container');
+                btn.classList.remove('bg-surface-container-high', 'text-on-surface');
+            });
+        });
+    </script>
+</body></html>

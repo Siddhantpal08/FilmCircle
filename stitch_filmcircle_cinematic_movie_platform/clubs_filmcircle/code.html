@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FilmCircle | Clubs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        /* Global Hide Scrollbar */
+        * {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        
+        body {
+            background-color: #0f0f0f;
+            color: #e5e2e1;
+            font-family: 'Hanken Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .cinematic-glow {
+            box-shadow: 0 0 20px rgba(192, 57, 43, 0.15);
+        }
+
+        .card-hover:hover {
+            border-color: #c0392b;
+            transform: translateY(-2px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "background": "#131313",
+                      "secondary-fixed-dim": "#c8c6c5",
+                      "on-surface-variant": "#e1bfb9",
+                      "on-tertiary-fixed-variant": "#004d66",
+                      "on-primary-fixed": "#410000",
+                      "inverse-primary": "#b02d21",
+                      "on-secondary-fixed-variant": "#474746",
+                      "surface-container-low": "#1c1b1b",
+                      "error-container": "#93000a",
+                      "primary-container": "#c0392b",
+                      "surface-container-highest": "#353534",
+                      "tertiary-fixed": "#c0e8ff",
+                      "error": "#ffb4ab",
+                      "on-tertiary": "#003548",
+                      "outline": "#a88a85",
+                      "on-tertiary-fixed": "#001e2b",
+                      "tertiary-fixed-dim": "#80d0f8",
+                      "on-tertiary-container": "#d3eeff",
+                      "on-secondary": "#313030",
+                      "outline-variant": "#59413d",
+                      "surface-container": "#201f1f",
+                      "secondary-container": "#474746",
+                      "on-secondary-container": "#b7b5b4",
+                      "secondary": "#c8c6c5",
+                      "inverse-surface": "#e5e2e1",
+                      "primary-fixed-dim": "#ffb4a9",
+                      "on-primary-container": "#ffe5e1",
+                      "surface-variant": "#353534",
+                      "surface": "#131313",
+                      "surface-container-high": "#2a2a2a",
+                      "inverse-on-surface": "#313030",
+                      "tertiary": "#80d0f8",
+                      "on-background": "#e5e2e1",
+                      "surface-tint": "#ffb4a9",
+                      "surface-container-lowest": "#0e0e0e",
+                      "on-surface": "#e5e2e1",
+                      "on-error": "#690005",
+                      "on-primary": "#690001",
+                      "tertiary-container": "#007296",
+                      "on-primary-fixed-variant": "#8e130c",
+                      "primary-fixed": "#ffdad5",
+                      "surface-bright": "#3a3939",
+                      "primary": "#ffb4a9",
+                      "surface-dim": "#131313",
+                      "on-secondary-fixed": "#1c1b1b",
+                      "on-error-container": "#ffdad6",
+                      "secondary-fixed": "#e5e2e1"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "base": "8px",
+                      "section-gap": "80px",
+                      "margin-desktop": "64px"
+              },
+              "fontFamily": {
+                      "headline-md": ["Hanken Grotesk"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "body-md": ["Hanken Grotesk"],
+                      "headline-sm": ["Hanken Grotesk"],
+                      "display-lg-mobile": ["Hanken Grotesk"],
+                      "body-lg": ["Hanken Grotesk"],
+                      "label-md": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "headline-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-sm": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background">
+<!-- TopAppBar -->
+<nav class="fixed top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 px-margin-desktop py-4">
+<div class="flex justify-between items-center max-w-container-max mx-auto">
+<div class="flex items-center gap-12">
+<span class="font-headline-sm text-headline-sm font-bold tracking-tighter text-on-surface">FilmCircle</span>
+<div class="hidden md:flex gap-8">
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-on-surface transition-colors" href="#">Community</a>
+<a class="font-label-md text-label-md text-on-surface relative after:content-[''] after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-primary-container after:rounded-full" href="#">Clubs</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary-fixed-dim text-[20px]">search</span>
+<input class="bg-surface-container-high border-none rounded-lg pl-10 pr-4 py-2 text-sm w-64 focus:ring-1 focus:ring-primary-container transition-all" placeholder="Search clubs..." type="text"/>
+</div>
+<button class="bg-primary-container text-on-primary-container font-label-md text-label-md px-6 py-2 rounded-lg hover:opacity-80 transition-opacity active:scale-95">Sign Up</button>
+</div>
+</div>
+</nav>
+<main class="pt-32 pb-section-gap max-w-container-max mx-auto px-margin-desktop">
+<!-- Header Section -->
+<header class="flex justify-between items-end mb-section-gap">
+<div>
+<h1 class="font-display-lg text-display-lg mb-2">Clubs</h1>
+<p class="font-body-lg text-body-lg text-secondary-fixed-dim max-w-xl">Join niche circles of cinephiles or create your own exclusive community to discuss cinema, host watch parties, and share curated lists.</p>
+</div>
+<button class="bg-primary-container text-on-primary-container font-headline-sm text-headline-sm px-8 py-4 rounded-lg flex items-center gap-3 hover:opacity-90 transition-all cinematic-glow">
+<span class="material-symbols-outlined">add_circle</span>
+                Create Club
+            </button>
+</header>
+<!-- Your Clubs (Horizontal Scroll) -->
+<section class="mb-section-gap">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline-md text-headline-md">Your Clubs</h2>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/30 hover:border-primary-container transition-colors" id="scrollLeft">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/30 hover:border-primary-container transition-colors" id="scrollRight">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex gap-6 overflow-x-auto pb-4 -mx-2 px-2" id="yourClubsScroll">
+<!-- Club Card 1 -->
+<div class="flex-none w-72 bg-surface-container-low p-5 border border-outline-variant/10 rounded-xl card-hover transition-all cursor-pointer">
+<div class="w-12 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary-container">camera_roll</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1">A24 Devotees</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim mb-4">Active now: 12 members</p>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-2/3"></div>
+</div>
+</div>
+<!-- Club Card 2 -->
+<div class="flex-none w-72 bg-surface-container-low p-5 border border-outline-variant/10 rounded-xl card-hover transition-all cursor-pointer">
+<div class="w-12 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary-container">theaters</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1">Neo-Noir Nights</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim mb-4">3 unread discussions</p>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-1/4"></div>
+</div>
+</div>
+<!-- Club Card 3 -->
+<div class="flex-none w-72 bg-surface-container-low p-5 border border-outline-variant/10 rounded-xl card-hover transition-all cursor-pointer">
+<div class="w-12 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary-container">palette</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1">Technicolor Era</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim mb-4">Daily Watch Party at 8PM</p>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-full"></div>
+</div>
+</div>
+<!-- Club Card 4 -->
+<div class="flex-none w-72 bg-surface-container-low p-5 border border-outline-variant/10 rounded-xl card-hover transition-all cursor-pointer">
+<div class="w-12 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary-container">star</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1">Academy Junkies</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim mb-4">2 new announcements</p>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-1/2"></div>
+</div>
+</div>
+<!-- Club Card 5 -->
+<div class="flex-none w-72 bg-surface-container-low p-5 border border-outline-variant/10 rounded-xl card-hover transition-all cursor-pointer">
+<div class="w-12 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary-container">history</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm mb-1">Silent Masters</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim mb-4">New post in Trivia</p>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-0"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Preset Clubs (Grid) -->
+<section>
+<h2 class="font-headline-md text-headline-md mb-8">Preset Clubs</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Preset Card 1 -->
+<div class="group relative overflow-hidden bg-surface-container-low rounded-xl border border-outline-variant/10 hover:border-primary-container transition-all">
+<div class="aspect-video w-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A cinematic wide shot of a futuristic neon-drenched city at night, with rain reflecting bright crimson and blue lights on the asphalt. The mood is moody and high-contrast, echoing a cyberpunk aesthetic with sharp shadows and a premium dark cinematic feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqGfNn1t9iHOeD28lL9IBHx92IBLxBwqy5wNiZ8Hn_oEeRZeOgCwEIDygN2ngFL-YaiVHTSGvr_OyhugN80_pSOsSPXxTej0fDprbTlupIHkjME6k2wnO558vbWwILLHGoFok3467RCrKMGqh4rusVPD0yhepFtZbG7oar3AehBjaVhCCgKdWCQVFQSoTG85gDPIqlH60DbN023XDDIhnYrJgNmFzU_R3SZjtcXYPPTX3lSZ5oNmVNMBEepwS3lSxFk2e96XdStzc"/>
+</div>
+<div class="p-8">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary-container text-4xl">rocket_launch</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm">Sci-Fi Frontiers</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim uppercase tracking-widest">12.4k Members</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-secondary-fixed-dim mb-8">From vintage Heinlein adaptations to modern high-concept blockbusters. Discuss world-building and special effects.</p>
+<button class="w-full border border-outline-variant/30 hover:bg-primary-container hover:border-primary-container text-on-surface py-3 rounded-lg font-label-md text-label-md transition-all">Join Club</button>
+</div>
+</div>
+<!-- Preset Card 2 -->
+<div class="group relative overflow-hidden bg-surface-container-low rounded-xl border border-outline-variant/10 hover:border-primary-container transition-all">
+<div class="aspect-video w-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A vintage black and white film aesthetic image of a classical theater stage with heavy velvet curtains partially drawn. High-contrast lighting creates dramatic shadows across the floorboards, evoking the prestigious atmosphere of classic Hollywood cinema and dramatic arts." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAm06NCgZOgEYqSSKLlJWrCeZB_1x7u--zQDb_WbfPcppdSM7GImkEmL_le-fVq0M7sk3KvADVVlSh4tOBvGxba-1IfXvzwdMt5n_KTf0vABs_FfS5EdHP2sVWozpgNjLSzAAd_A6wlI0z1XEnFt7S_uKC5fWUn69gNz1uEtT2ohQT2lEvwKjIzCGZ343SyMkqDl1H7C3tPlKmopS2v-cunGAv3JUPPu9P2jvbzatDhrehsE-Ezy7ISNhqA2KiuxHxQvKE6kWiOgtY"/>
+</div>
+<div class="p-8">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary-container text-4xl">sentiment_very_satisfied</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm">Criterion Collection</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim uppercase tracking-widest">8.2k Members</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-secondary-fixed-dim mb-8">A space for the true archivists. Deep dives into world cinema, director commentaries, and rare restorative finds.</p>
+<button class="w-full border border-outline-variant/30 hover:bg-primary-container hover:border-primary-container text-on-surface py-3 rounded-lg font-label-md text-label-md transition-all">Join Club</button>
+</div>
+</div>
+<!-- Preset Card 3 -->
+<div class="group relative overflow-hidden bg-surface-container-low rounded-xl border border-outline-variant/10 hover:border-primary-container transition-all">
+<div class="aspect-video w-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="An artistic high-contrast close-up of a vintage film projector lens with light dust particles dancing in the intense beam of light. The background is a deep, void-like black, highlighting the mechanical beauty of the lens and the warm glow of the projection bulb in a minimalist, premium style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmOOJPxIZUfuS1wMwC5Jgj0yURTO-9IYcCQ3tWivF1ZkMIwqLgw0t9La1lQzGFbLhdpQsSUS1gl1o1EdapnMnWiJbAxzkNnyHWlnRROEMoxTEaSIHT7zP1gyD8qlgBueaDQvOgOFmuTPtYaCYfTw1-wsoooQ128_xv-u74eaZPqgj0mlv5fX1jezAo_0B67V_WnplC0DKnQbOah6Q2hWvMmURXyNwfhGEqacuA-lZhxyjqiV0rNiX-ijZdA0u-MK3HlCyBqPXWqvw"/>
+</div>
+<div class="p-8">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary-container text-4xl">skull</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm">Midnight Horrors</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim uppercase tracking-widest">15.9k Members</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-secondary-fixed-dim mb-8">For those who thrive in the dark. Slasher, psychological thriller, and folk horror lovers unite here after dark.</p>
+<button class="w-full border border-outline-variant/30 hover:bg-primary-container hover:border-primary-container text-on-surface py-3 rounded-lg font-label-md text-label-md transition-all">Join Club</button>
+</div>
+</div>
+<!-- Preset Card 4 -->
+<div class="group relative overflow-hidden bg-surface-container-low rounded-xl border border-outline-variant/10 hover:border-primary-container transition-all">
+<div class="aspect-video w-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A breathtaking sunset over a cinematic mountain range, with the silhouettes of trees in the foreground. The sky is a gradient of deep orange and crimson, creating a peaceful yet epic mood reminiscent of a grand adventure film's landscape cinematography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLKwS0j-peGVkrOHaUmfXtUNvA7QY5bA_lStmDkC64seTPtaxGtGMUO4pncuUNib4mIVSwyjCTIi5A6MvYCi-h70Uxh4gM4SUfcBCgbnVs2-zqxYMAHzgIYoEZ72P4nXSWvvV6_V4_GMIjVo6Tw1p5vhc3lyco-aBM6SuU_IEXS5gNyn_RGwYrWSIjVmBjANfCI9jAvigwWvDgwqw0vPgqD9pjlGCUmLPBp8_oCCRWTwkhhXDoxIcyop4Px51Yopd6MKAR51zWMwM"/>
+</div>
+<div class="p-8">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary-container text-4xl">landscape</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm">Epic Cinematography</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim uppercase tracking-widest">22.1k Members</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-secondary-fixed-dim mb-8">Appreciating the lens. Discussion focuses on lighting, framing, and the technical mastery of the world's best DPs.</p>
+<button class="w-full border border-outline-variant/30 hover:bg-primary-container hover:border-primary-container text-on-surface py-3 rounded-lg font-label-md text-label-md transition-all">Join Club</button>
+</div>
+</div>
+<!-- Preset Card 5 -->
+<div class="group relative overflow-hidden bg-surface-container-low rounded-xl border border-outline-variant/10 hover:border-primary-container transition-all">
+<div class="aspect-video w-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A minimalist and elegant shot of an old typewriter with a blank page, set against a dark, moody wooden desk. A single spotlight illuminates the keys and the paper, highlighting the texture and creating a focused atmosphere of creative storytelling and scriptwriting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmYUXSRo6l8wDWcGsEdp-s-4UwHtRJlcysp8yvGuLQjqIlSmLoISmbgzQMMxw2w8wMBOvZ9RS2CuYBhMqSumxYyGwMqxu4_y22ydzlJLl5lEEPSq-xdE3ffbk9h88bkD4WzSOlrw5aEeGv6NwXNXA0_N_9lR1aXAtmD9C9QQ8z4uaDC__otx16MRTszdqqDO7Fn8jHlA06CcxYuYOJPIKQFJ0lt2XncyF_Bcn9DafHQQyuum7FMrSz7bl0U3sW0wSGgBqrkZ6YESY"/>
+</div>
+<div class="p-8">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary-container text-4xl">edit_note</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm">The Screenplay Lab</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim uppercase tracking-widest">5.7k Members</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-secondary-fixed-dim mb-8">An analytical group dedicated to structure, dialogue, and character arcs. Perfect for aspiring writers and critics alike.</p>
+<button class="w-full border border-outline-variant/30 hover:bg-primary-container hover:border-primary-container text-on-surface py-3 rounded-lg font-label-md text-label-md transition-all">Join Club</button>
+</div>
+</div>
+<!-- Preset Card 6 -->
+<div class="group relative overflow-hidden bg-surface-container-low rounded-xl border border-outline-variant/10 hover:border-primary-container transition-all">
+<div class="aspect-video w-full overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="A dramatic aerial view of a vintage European city at dusk with cobblestone streets and flickering gas lamps. The atmosphere is filled with mystery and historical charm, styled with a high-contrast editorial look and a deep, rich color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZyncB2FyVLRBEFvNiYm5OZ2B9fgB5G1MMWZr1_pePRwQtXlMstVVvhZOTk7af52i3wZpaWD9KRa4Bkeqafvk4LsiefMr23k6ktvFHV0ucUu515dlp4oiaAqmZXcekwW3HkKE5uI7OYGCCVyK4QQrQQf8EpaMHOZTRTkGhRWFJCYnhRULOir3ybuNCemsaK8e1HvjHU1pVGMY6CRV5au2oSrxZ4dYOvIarnWm4XeXN3_ooSIpYIsTIk1O3NlrNV27ztExp-quylp8"/>
+</div>
+<div class="p-8">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary-container text-4xl">public</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm">Euro-Cinema Circle</h3>
+<p class="font-label-md text-label-md text-secondary-fixed-dim uppercase tracking-widest">9.3k Members</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-secondary-fixed-dim mb-8">Exploring the avant-garde movements across the continent. French New Wave, Italian Neorealism, and more.</p>
+<button class="w-full border border-outline-variant/30 hover:bg-primary-container hover:border-primary-container text-on-surface py-3 rounded-lg font-label-md text-label-md transition-all">Join Club</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest py-section-gap px-margin-desktop">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">FilmCircle</span>
+<div class="flex gap-8">
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Privacy</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Terms</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Cookie Policy</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Support</a>
+</div>
+<p class="font-label-md text-label-md text-secondary-fixed-dim opacity-60">© 2024 FilmCircle. The cinematic social network.</p>
+</div>
+</footer>
+<script>
+        // Horizontal scroll interaction
+        const scrollContainer = document.getElementById('yourClubsScroll');
+        const scrollLeftBtn = document.getElementById('scrollLeft');
+        const scrollRightBtn = document.getElementById('scrollRight');
+
+        scrollLeftBtn.addEventListener('click', () => {
+            scrollContainer.scrollBy({ left: -300, behavior: 'smooth' });
+        });
+
+        scrollRightBtn.addEventListener('click', () => {
+            scrollContainer.scrollBy({ left: 300, behavior: 'smooth' });
+        });
+
+        // Add subtle hover effect logic for buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = 'scale(0.95)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

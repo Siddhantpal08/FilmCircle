@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: #e5e2e1;
+            font-family: 'Hanken Grotesk', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Custom Scrollbar Hide */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            background: rgba(19, 19, 19, 0.8);
+        }
+        .hero-gradient {
+            background: linear-gradient(0deg, #0F0F0F 0%, rgba(15, 15, 15, 0.4) 50%, rgba(15, 15, 15, 0) 100%);
+        }
+        .score-ring {
+            transition: stroke-dashoffset 1s ease-out;
+        }
+        .tab-active {
+            border-bottom: 2px solid #ffb4a9;
+            color: #ffb4a9;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ffb4a9",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed-dim": "#61de8a",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "on-secondary-fixed-variant": "#005228",
+                        "inverse-primary": "#b02d21",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#ffb4a9",
+                        "surface-container-low": "#1c1b1b",
+                        "surface": "#131313",
+                        "surface-variant": "#353534",
+                        "on-tertiary": "#003548",
+                        "secondary-fixed": "#7efba4",
+                        "on-primary": "#690001",
+                        "surface-container": "#201f1f",
+                        "on-background": "#e5e2e1",
+                        "surface-bright": "#3a3939",
+                        "secondary": "#61de8a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "outline-variant": "#59413d",
+                        "on-primary-fixed": "#410000",
+                        "primary-fixed": "#ffdad5",
+                        "on-tertiary-fixed": "#001e2b",
+                        "on-error": "#690005",
+                        "background": "#131313",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-container": "#007296",
+                        "error-container": "#93000a",
+                        "on-secondary": "#00391a",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary-fixed": "#00210c",
+                        "outline": "#a88a85",
+                        "tertiary-fixed": "#c0e8ff",
+                        "on-surface": "#e5e2e1",
+                        "tertiary-fixed-dim": "#80d0f8",
+                        "on-primary-fixed-variant": "#8e130c",
+                        "secondary-container": "#18a659",
+                        "on-tertiary-fixed-variant": "#004d66",
+                        "primary-container": "#c0392b",
+                        "on-secondary-container": "#003115",
+                        "on-primary-container": "#ffe5e1",
+                        "surface-container-high": "#2a2a2a",
+                        "tertiary": "#80d0f8",
+                        "on-surface-variant": "#e1bfb9",
+                        "on-tertiary-container": "#d3eeff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-mobile": "20px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background selection:bg-primary-container selection:text-white">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-surface-variant flex justify-between items-center px-margin-desktop py-4 w-full">
+<div class="font-display-lg text-primary tracking-tighter text-[32px]">FilmCircle</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant font-body-md text-body-md hover:scale-105 transition-transform duration-200 hover:text-primary" href="#">Community</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:scale-105 transition-transform duration-200 hover:text-primary" href="#">Clubs</a>
+</nav>
+<div class="flex items-center gap-6">
+<div class="relative group hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="bg-surface-container-high border-none rounded-full py-2 pl-10 pr-4 text-body-md focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Search films..." type="text"/>
+</div>
+<button class="bg-primary-container text-on-primary-container font-label-md px-6 py-2 rounded-lg hover:scale-105 transition-transform">Sign Up</button>
+</div>
+</header>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative h-[870px] w-full overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A moody, high-contrast cinematic shot of a lone figure standing in a rain-slicked neon-lit alleyway at night. The atmosphere is heavy with mystery and drama, featuring deep blacks and sharp highlights of crimson and cool teal. The visual style is premium and editorial, echoing a modern boutique cinema aesthetic with sharp focus and rich textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBF__LhXwSs-bAUEh2dBQwfgQCo97oiMOtCzpdEYDrq5nzEHfmdoJc5iOVFnkU6R83AMMlzlMVOGdcF9U-ULt0RUclB5gCz4vO5WL7OWjHJztJ7Lfh1dvpu-btEU6rP3ECqHrBtOr63n-_5gtW7KEF0_oBuo48WZw8Lh7ps5_DQ0ZOiAgDo_VxCW_F6WwG5jiVuFbydK2vLb05QXDT6uFJ08u_DNTLeJhVCsh9NFtgRXAhRRSOy_75EYCAbVPV1IPLraMxWJqxKxt0"/>
+<div class="absolute inset-0 hero-gradient"></div>
+<div class="absolute bottom-0 left-0 px-margin-desktop pb-20 max-w-4xl">
+<div class="inline-block bg-[#27AE60] text-white px-3 py-1 font-label-sm text-label-sm tracking-widest mb-6 rounded-sm uppercase">Indie</div>
+<h1 class="font-display-lg text-display-lg text-white mb-2">The Silent Rhythm</h1>
+<p class="font-headline-md text-headline-md text-primary mb-8 opacity-90">Directed by Elena Vance</p>
+<div class="flex items-center gap-6">
+<button class="bg-[#C0392B] text-white px-10 py-4 font-label-md text-label-md rounded-[4px] hover:brightness-110 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                        WATCH FILM
+                    </button>
+<button class="border border-white/30 text-white px-10 py-4 font-label-md text-label-md rounded-[4px] hover:bg-white/10 transition-all">
+                        MY LIST
+                    </button>
+</div>
+</div>
+</section>
+<!-- Insights Bento Grid -->
+<section class="px-margin-desktop py-24 max-w-container-max mx-auto grid grid-cols-12 gap-gutter">
+<!-- Circle Score Visual -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container rounded-xl p-10 flex flex-col items-center justify-center border border-surface-variant group">
+<div class="relative w-48 h-48 mb-6">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary score-ring" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="66.35" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display-lg text-[48px] text-white leading-none">88</span>
+<span class="font-label-sm text-primary tracking-widest uppercase mt-1">Circle Score</span>
+</div>
+</div>
+<p class="text-center font-body-md text-on-surface-variant opacity-80">Based on 1.2k cinephile reviews</p>
+</div>
+<!-- AI Summary -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container rounded-xl p-10 border border-surface-variant">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="font-headline-lg text-headline-lg text-white">The Vibe Check</h3>
+</div>
+<div class="space-y-6">
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed italic">
+                        "Main character energy without the drama. High-key aesthetic, low-key pacing. It’s basically a 90-minute mood board that actually makes you feel something."
+                    </p>
+<div class="flex flex-wrap gap-3">
+<span class="bg-surface-container-highest px-4 py-2 rounded-full font-label-md text-primary">#CoreCore</span>
+<span class="bg-surface-container-highest px-4 py-2 rounded-full font-label-md text-primary">#LiminalSpace</span>
+<span class="bg-surface-container-highest px-4 py-2 rounded-full font-label-md text-primary">#QuietLuxury</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Review Tabs Section -->
+<section class="px-margin-desktop py-12 max-w-container-max mx-auto">
+<div class="flex border-b border-surface-variant mb-12 overflow-x-auto hide-scrollbar">
+<button class="px-8 py-4 font-label-md text-label-md tab-active transition-all whitespace-nowrap">Perfection</button>
+<button class="px-8 py-4 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all whitespace-nowrap">Go For It</button>
+<button class="px-8 py-4 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all whitespace-nowrap">Timepass</button>
+<button class="px-8 py-4 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all whitespace-nowrap">Skip</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Review Card -->
+<div class="bg-surface-container p-8 rounded-lg border border-surface-variant hover:scale-[1.02] transition-all duration-300">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">M</div>
+<span class="font-label-md text-white">Marcus.vfx</span>
+</div>
+<span class="font-label-sm text-primary uppercase tracking-tighter">Perfection</span>
+</div>
+<p class="font-body-md text-on-surface-variant line-clamp-4 mb-6">
+                        The cinematography in the third act is genuinely groundbreaking. Vance uses silence as a physical presence. The color grading leans into those deep, rich crimson tones that we've been craving.
+                    </p>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="text-label-sm">242</span>
+<span class="material-symbols-outlined text-[18px] ml-auto">share</span>
+</div>
+</div>
+<div class="bg-surface-container p-8 rounded-lg border border-surface-variant hover:scale-[1.02] transition-all duration-300">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold">S</div>
+<span class="font-label-md text-white">Sloane_B</span>
+</div>
+<span class="font-label-sm text-primary uppercase tracking-tighter">Perfection</span>
+</div>
+<p class="font-body-md text-on-surface-variant line-clamp-4 mb-6">
+                        I've watched this three times now and I find something new in every frame. The sound design is immersive—watch this with headphones or a serious home theater setup.
+                    </p>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="text-label-sm">189</span>
+<span class="material-symbols-outlined text-[18px] ml-auto">share</span>
+</div>
+</div>
+<div class="bg-surface-container p-8 rounded-lg border border-surface-variant hover:scale-[1.02] transition-all duration-300">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary-container font-bold">K</div>
+<span class="font-label-md text-white">Kai_Indie</span>
+</div>
+<span class="font-label-sm text-primary uppercase tracking-tighter">Perfection</span>
+</div>
+<p class="font-body-md text-on-surface-variant line-clamp-4 mb-6">
+                        Finally, a film that doesn't treat its audience like they have a five-second attention span. It's slow, deliberate, and visually stunning. Truly indie at its finest.
+                    </p>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">favorite</span>
+<span class="text-label-sm">156</span>
+<span class="material-symbols-outlined text-[18px] ml-auto">share</span>
+</div>
+</div>
+</div>
+</section>
+<!-- About Creator Section -->
+<section class="bg-surface-container-lowest py-24 mt-24">
+<div class="px-margin-desktop max-w-container-max mx-auto flex flex-col md:flex-row items-center gap-16">
+<div class="relative group">
+<div class="absolute -inset-4 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<img class="w-64 h-64 rounded-full object-cover grayscale hover:grayscale-0 transition-all duration-500 relative border-2 border-primary/30" data-alt="A sophisticated portrait of a female film director in her late 30s, with sharp features and a creative, focused expression. She is in a dimly lit studio environment with soft rim lighting that highlights her silhouette. The color palette is muted and professional, using deep charcoals and warm skin tones to create a premium, artistic feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfhxJR5ODpYiflYMuTGPNVVIrS6wMOmGavIZUYKneomlgW5Seq9dYo364VyyWOm8i_GIE4Sd7vvNFuRI1Vj7WMyNKPn8UcJBywN2QHY1JvQZsXR4be7yIRsY6SCu4UmLlEMh8kKltZMjoRVsSDcNdv8lIjnayaH8txH6LnW9A3nHdtzj6OQVHcPuUDXZWbbrRl-8JqgvjoY8BMKTqBcGPQePamNMkxU-6eJe21NFUG0Ne5miQLWmzmjKJmztEB0gVw0z1Px3WWMlU"/>
+</div>
+<div class="flex-1">
+<h2 class="font-headline-lg text-display-lg-mobile text-white mb-4">Elena Vance</h2>
+<p class="font-label-md text-primary tracking-[0.2em] uppercase mb-8">Director • Writer • Visual Artist</p>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed mb-10">
+                        Elena Vance is a visionary filmmaker known for her minimalist approach to storytelling. Her work often explores themes of urban isolation and the intersection of technology and human emotion. "The Silent Rhythm" marks her third feature film, cementing her place as a leading voice in modern indie cinema.
+                    </p>
+<a class="inline-flex items-center gap-2 font-label-md text-primary hover:gap-4 transition-all" href="#">
+                        VIEW PROFILE
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 border-t border-surface-variant bg-surface-container-lowest flex flex-col md:flex-row justify-between items-center px-margin-desktop max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md text-on-surface mb-6 md:mb-0">FilmCircle</div>
+<div class="flex flex-wrap justify-center gap-8 mb-8 md:mb-0">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Press</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-80">© 2024 FilmCircle. All rights reserved.</p>
+</footer>
+<script>
+        // Micro-interactions for tabs
+        const tabs = document.querySelectorAll('[role="tab"], button.px-8');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('tab-active');
+                    t.classList.add('text-on-surface-variant');
+                });
+                tab.classList.add('tab-active');
+                tab.classList.remove('text-on-surface-variant');
+            });
+        });
+
+        // Simple parallax for hero image
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const heroImage = document.querySelector('section img');
+            if(heroImage) {
+                heroImage.style.transform = `translateY(${scrolled * 0.4}px)`;
+            }
+        });
+    </script>
+</body></html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FilmCircle | Independent Films</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ffb4a9",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed-dim": "#61de8a",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "on-secondary-fixed-variant": "#005228",
+                        "inverse-primary": "#b02d21",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#ffb4a9",
+                        "surface-container-low": "#1c1b1b",
+                        "surface": "#131313",
+                        "surface-variant": "#353534",
+                        "on-tertiary": "#003548",
+                        "secondary-fixed": "#7efba4",
+                        "on-primary": "#690001",
+                        "surface-container": "#201f1f",
+                        "on-background": "#e5e2e1",
+                        "surface-bright": "#3a3939",
+                        "secondary": "#61de8a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "outline-variant": "#59413d",
+                        "on-primary-fixed": "#410000",
+                        "primary-fixed": "#ffdad5",
+                        "on-tertiary-fixed": "#001e2b",
+                        "on-error": "#690005",
+                        "background": "#131313",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-container": "#007296",
+                        "error-container": "#93000a",
+                        "on-secondary": "#00391a",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary-fixed": "#00210c",
+                        "outline": "#a88a85",
+                        "tertiary-fixed": "#c0e8ff",
+                        "on-surface": "#e5e2e1",
+                        "tertiary-fixed-dim": "#80d0f8",
+                        "on-primary-fixed-variant": "#8e130c",
+                        "secondary-container": "#18a659",
+                        "on-tertiary-fixed-variant": "#004d66",
+                        "primary-container": "#c0392b",
+                        "on-secondary-container": "#003115",
+                        "on-primary-container": "#ffe5e1",
+                        "surface-container-high": "#2a2a2a",
+                        "tertiary": "#80d0f8",
+                        "on-surface-variant": "#e1bfb9",
+                        "on-tertiary-container": "#d3eeff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-mobile": "20px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #131313;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .cinema-gradient {
+            background: linear-gradient(to top, rgba(19, 19, 19, 1) 0%, rgba(19, 19, 19, 0) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-background selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-surface-variant flex justify-between items-center px-5 py-4 w-full transition-all duration-300 ease-in-out">
+<div class="font-display-lg-mobile text-[28px] leading-tight text-primary tracking-tighter">FilmCircle</div>
+<div class="flex items-center gap-4">
+<button class="hover:scale-105 transition-transform duration-200 text-on-surface-variant">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="md:hidden text-on-surface-variant">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<main class="pt-24 pb-12 px-5 max-w-container-max mx-auto">
+<!-- Hero Header -->
+<header class="flex flex-col gap-6 mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-on-background max-w-[12ch]">Independent Films</h1>
+<div>
+<button class="bg-primary-container text-on-primary-container font-label-md text-label-md px-8 py-4 rounded-lg flex items-center gap-2 hover:brightness-110 transition-all duration-300 active:scale-95 shadow-lg shadow-primary-container/20">
+                    Upload Your Film <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</header>
+<!-- Filters (Contextual addition for premium feel) -->
+<section class="mb-10 overflow-x-auto no-scrollbar flex gap-3 pb-2">
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container-high rounded-full font-label-sm text-label-sm text-primary border border-primary/20">All Works</button>
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Narrative</button>
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Experimental</button>
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Documentary</button>
+<button class="whitespace-nowrap px-4 py-2 bg-surface-container rounded-full font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">Short Form</button>
+</section>
+<!-- 2-Column Grid -->
+<section class="grid grid-cols-2 gap-x-4 gap-y-10">
+<!-- Film Card 1 -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-surface-container-highest">
+<img alt="Cinematic neon night" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="A cinematic night scene in a futuristic city with heavy rain and vibrant neon reflections on the pavement. The color palette is dominated by deep blacks and electric teals with sharp primary crimson highlights. The mood is moody, atmospheric, and reminiscent of a high-end noir thriller film poster." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7VzOrir-0jypAV6WUIr3ZL_BsF3Ow2oCAkh3RzgsLziD9ALAYjIBVtwbTJPNqFg3p1cVrkxzOTI-fdgvGKYzAx_LNAeIvOQBvp18n04Z9KRmCXI4NUiQ85VWBnSIoRDVIq0nc4Z6zbaUMomqGHn01N--lCvkuDyJBIuttZY1HyuwF-wOBOfcaDDrwot3Q2z_rEz5HjxjbxmBjIznVtATptg8TYn0HVgl5IB3Pzd0Xw6v-O34uHzQYBzAi_wbnJJzCjcTSSYL1h8k"/>
+<div class="absolute top-2 left-2 bg-[#27AE60] text-white font-label-sm text-label-sm px-2 py-1 rounded-sm shadow-md">
+                        INDIE
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-white">play_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface group-hover:text-primary transition-colors">Shadows of Neon</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Director: Elena Vance</p>
+</div>
+</div>
+<!-- Film Card 2 -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-surface-container-highest">
+<img alt="Silent landscape" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="A minimalist black and white landscape of a single withered tree in a vast snowy field under a heavy grey sky. The composition is highly symmetrical and evokes a sense of quiet solitude and artistic drama. The aesthetic is extremely clean and high-contrast, fitting for an independent artistic film debut." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8XPhajneRRmoO57CiYOGbFjcf-MEfu5xqY5DrE-i_jLBd4aCOuvQDclewR26_oR2YsjSQqF4HeeD6P38BaSjMqmsts8DjMLTTb31dfjv139uPoe8JzdpejzcTnwXTdxMu4lnocLgM8lWlzC34gQ_vv_Gm5BU5_YUnzyK5BjmET6MXEEZFP1Mf3wFzbP7RuegtIN3jTr8zegLxKPvdqrrYkD6GfuPqYSzxEEfKSAPlVtDVqXMjPxW4jiWFpOco_AqwITwVCvBLPSo"/>
+<div class="absolute top-2 left-2 bg-[#27AE60] text-white font-label-sm text-label-sm px-2 py-1 rounded-sm shadow-md">
+                        INDIE
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-white">play_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface group-hover:text-primary transition-colors">The Last Silence</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Director: Marcus Thorne</p>
+</div>
+</div>
+<!-- Film Card 3 -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-surface-container-highest">
+<img alt="Abstract color burst" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="An experimental close-up shot of colored inks swirling in water, creating intricate patterns of deep crimson, ink black, and soft grey. The lighting is focused and dramatic, highlighting the fluid textures and organic movements. The overall feel is avant-garde and visually arresting, capturing the essence of independent cinema." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdkCDsc_eCKour_x43N2RUACD1XOHUuu0LqTVv3uS6pdFQ3hmcHjh7trEe4QjI-cR9t7SONywL7_hV1Ui0GZGNSDfTqJ4hEdc9JGS-OtsjCuT70xnQczc0TYZwAd5HUbJgsKq6n6_CpJa34EHolWO-GNtNgqLbdGBCplFPeOrVlBspnk-8tifMe0vU3p37vyV455vFwDdL_zkQBrF7g4CmghCQoXbG-N1VU3bQPm9HtQOKz6gzVpReoeNnsfffRY3e52TG1Ltuc8I"/>
+<div class="absolute top-2 left-2 bg-[#27AE60] text-white font-label-sm text-label-sm px-2 py-1 rounded-sm shadow-md">
+                        INDIE
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-white">play_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface group-hover:text-primary transition-colors">Visceral Drift</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Director: Sarah K.</p>
+</div>
+</div>
+<!-- Film Card 4 -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-surface-container-highest">
+<img alt="Vintage theater interior" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="A wide-angle shot of an empty, opulent vintage cinema with red velvet seats and ornate gold detailing under dim, warm spotlights. The perspective looks toward the glowing white screen, creating a powerful sense of anticipation and nostalgia. The color palette is rich with deep reds and dark shadows, embodying a premium boutique cinema atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3rry0apM13IELKZ8GKNxqAG16I3enB8Dbvn8vj0WrcpEKdHVfWAhs5kGzqPy2_bkabkE0e-Da7fEbDzvDD9WhYdbiN_0h1xixTKvo0qjkPMM1wau2sVMVcg-Lf9I6UFAGjcblMw3tb18ougodaAUtu0iiQujTmjkry7ssvmjw8ELlZKJd6KAbd5FcgiVLcnGwvBh5VvyoyHODQjR1znU9ah0ydunzohE8ShKd8bwWUJ-kmMkCy2_UlheTUp8fiCF3PyZM47wj4rA"/>
+<div class="absolute top-2 left-2 bg-[#27AE60] text-white font-label-sm text-label-sm px-2 py-1 rounded-sm shadow-md">
+                        INDIE
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-white">play_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface group-hover:text-primary transition-colors">Echoes of Gold</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Director: Julian Rossi</p>
+</div>
+</div>
+<!-- Film Card 5 -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-surface-container-highest">
+<img alt="City street dusk" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="A moody street photography shot at dusk in a crowded metropolitan city, with long shadows and brilliant highlights from car tail-lights. The focus is soft, creating a dreamlike quality. The palette consists of deep charcoal and glowing amber. The mood is urban, contemplative, and cinematic, perfect for a modern indie film poster." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdxLDWnbO8YkQma6jYHMs2bwatwt8vTyThu2tNphxsm3wVqbLolIbXvSPrOXmVICspBafxRMfB8PrfwcDw1aUNMVFjARwFPrxyDZ37gJwQFWg6ONjzXGqVmpefeADWHsOBIK7KGVr1fZ7KCSYEwJXJpLc0gDEvj7rPjKvjoC2hyExEJPupe-hBOx8cFGi1SAxbawABxKdB7ZQ2WFar7asU1GMeCH7JcpnXH2RznejJnjICA1_iJY5x2CeNz6ge-FchY7NIfPRka0k"/>
+<div class="absolute top-2 left-2 bg-[#27AE60] text-white font-label-sm text-label-sm px-2 py-1 rounded-sm shadow-md">
+                        INDIE
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-white">play_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface group-hover:text-primary transition-colors">Urban Pulse</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Director: Theo Wu</p>
+</div>
+</div>
+<!-- Film Card 6 -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-surface-container-highest">
+<img alt="Film reel close up" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-80 group-hover:opacity-100" data-alt="An artistic close-up of an old 35mm film reel with delicate dust motes floating in a single beam of harsh light. The image has a heavy grain and deep contrast, emphasizing the mechanical and physical nature of traditional cinema. The tones are sepia-influenced blacks and bright whites, reflecting a profound love for the art of filmmaking." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBluTp3V83LG02POxPmv1NSplrK_JhVE3tMaxVGuzjPYbb_4V4BPHFRDydmwR1fXHZKguVjGVkpuD42ypMvPwKrxmHCYsK3zatgNNrj-bJFTvwWc0gevM9IsESG15IwC42PIysuXpo3lsZGBSo2Kk_yOAMPUS9nf8kCJOIvn6Vm-Yggp-G3WyXk8RlpOdF7BoQQ78mAfj-7UY3JgGnLwPA6bInXfd_2-xBmSV9-yGGTMKEN7Zul6R0Odzv5U74v7nn8r6ukeAgJlgs"/>
+<div class="absolute top-2 left-2 bg-[#27AE60] text-white font-label-sm text-label-sm px-2 py-1 rounded-sm shadow-md">
+                        INDIE
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-white">play_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface group-hover:text-primary transition-colors">Celluloid Soul</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Director: Anna Bell</p>
+</div>
+</div>
+</section>
+<!-- Load More Button -->
+<div class="mt-20 flex justify-center">
+<button class="border border-surface-variant text-on-surface-variant font-label-md text-label-md px-10 py-3 rounded hover:bg-surface-container transition-colors">
+                Explore More
+            </button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 border-t border-surface-variant bg-surface-container-lowest flex flex-col items-center px-5 gap-8">
+<div class="font-headline-md text-headline-md text-on-surface opacity-90">FilmCircle</div>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Terms</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Privacy</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Press</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors opacity-80 hover:opacity-100" href="#">Contact</a>
+</div>
+<p class="text-on-surface-variant font-label-sm text-label-sm opacity-50">© 2024 FilmCircle. All rights reserved.</p>
+</footer>
+<!-- Simple Atmospheric Interaction -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.group');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+
+            // Smooth header fade on scroll
+            window.addEventListener('scroll', () => {
+                const header = document.querySelector('header');
+                const scrollPos = window.scrollY;
+                if(header) {
+                    header.style.opacity = Math.max(0, 1 - scrollPos / 400);
+                    header.style.transform = `translateY(${scrollPos * 0.1}px)`;
+                }
+            });
+        });
+    </script>
+</body></html>

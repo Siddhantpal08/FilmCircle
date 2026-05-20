@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Community | FilmCircle</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Hanken+Grotesk', sans-serif;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .crimson-dot::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background-color: #c0392b;
+            border-radius: 50%;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131313",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-surface-variant": "#e1bfb9",
+                        "on-tertiary-fixed-variant": "#004d66",
+                        "on-primary-fixed": "#410000",
+                        "inverse-primary": "#b02d21",
+                        "on-secondary-fixed-variant": "#474746",
+                        "surface-container-low": "#1c1b1b",
+                        "error-container": "#93000a",
+                        "primary-container": "#c0392b",
+                        "surface-container-highest": "#353534",
+                        "tertiary-fixed": "#c0e8ff",
+                        "error": "#ffb4ab",
+                        "on-tertiary": "#003548",
+                        "outline": "#a88a85",
+                        "on-tertiary-fixed": "#001e2b",
+                        "tertiary-fixed-dim": "#80d0f8",
+                        "on-tertiary-container": "#d3eeff",
+                        "on-secondary": "#313030",
+                        "outline-variant": "#59413d",
+                        "surface-container": "#201f1f",
+                        "secondary-container": "#474746",
+                        "on-secondary-container": "#b7b5b4",
+                        "secondary": "#c8c6c5",
+                        "inverse-surface": "#e5e2e1",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "on-primary-container": "#ffe5e1",
+                        "surface-variant": "#353534",
+                        "surface": "#131313",
+                        "surface-container-high": "#2a2a2a",
+                        "inverse-on-surface": "#313030",
+                        "tertiary": "#80d0f8",
+                        "on-background": "#e5e2e1",
+                        "surface-tint": "#ffb4a9",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-surface": "#e5e2e1",
+                        "on-error": "#690005",
+                        "on-primary": "#690001",
+                        "tertiary-container": "#007296",
+                        "on-primary-fixed-variant": "#8e130c",
+                        "primary-fixed": "#ffdad5",
+                        "surface-bright": "#3a3939",
+                        "primary": "#ffb4a9",
+                        "surface-dim": "#131313",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#e5e2e1"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "container-max": "1440px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "section-gap": "80px",
+                        "margin-desktop": "64px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-sm": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-sm": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased">
+<!-- Top Navigation Shell -->
+<header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 flex justify-between items-center w-full px-margin-mobile py-4">
+<div class="font-headline-sm text-headline-sm font-bold tracking-tighter text-on-surface">FilmCircle</div>
+<nav class="flex gap-6 items-center">
+<a class="font-label-md text-label-md text-on-surface relative crimson-dot transition-colors" href="#">Community</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-on-surface transition-colors" href="#">Clubs</a>
+</nav>
+<button class="bg-primary-container text-on-primary-container font-label-md text-label-md px-4 py-2 rounded transition-transform active:scale-95">Sign Up</button>
+</header>
+<main class="max-w-xl mx-auto px-margin-mobile py-8 space-y-10">
+<!-- Header -->
+<section>
+<h1 class="font-headline-md text-headline-md text-on-surface">Community</h1>
+</section>
+<!-- Post Creation Box -->
+<section class="bg-surface-container-low rounded-lg p-4 border border-outline-variant/10">
+<div class="flex gap-4">
+<img alt="User Profile" class="w-10 h-10 rounded-full object-cover" data-alt="A professional close-up headshot of a person with friendly features, softly lit by a warm side light in a dark, atmospheric room. The background is deeply shadowed and minimalist, consistent with a high-end cinematic aesthetic. The overall image has a premium, moody feel with deep blacks and subtle crimson highlights in the ambient glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCL9vdDbeixxtPPDOgWbps_iEF6WbOEBfiGLwb-JZHOo3-173h8-3EE-dBZzRvt_G_muA0m5pWmFh8DleZW30RX-60hUnzWuTGAs2dmb6BzMhE8W95XIafW2IJBdrxNoVPJz4HazNEMUoVhabVe4ztPIVNJ53rcPsJMxqUlO_GUL-IvdDYzqVAxIuB_nTa4jHZ4ocK57fDZOeTgnJ8NuJqDRcsosnQ53c3zgh3ak6O2L4HMIUrn0PoawpJ_LYR3a1YgZXwTM_AO4U0"/>
+<div class="flex-1">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-on-surface font-body-md text-body-md placeholder:text-secondary-fixed-dim resize-none min-h-[80px]" placeholder="What's your take on the latest premiere?"></textarea>
+<div class="flex justify-between items-center mt-4 pt-4 border-t border-outline-variant/20">
+<div class="flex gap-4 text-secondary-fixed-dim">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary-container transition-colors">movie</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary-container transition-colors">image</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary-container transition-colors">poll</span>
+</div>
+<button class="bg-primary-container text-on-primary-container font-label-md text-label-md px-6 py-2 rounded font-bold hover:opacity-80 transition-opacity">Post</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Feed Section -->
+<section class="space-y-8">
+<!-- Post Card 1 -->
+<article class="space-y-4">
+<div class="flex gap-4">
+<img alt="Sarah's Avatar" class="w-10 h-10 rounded-full object-cover" data-alt="A cinematic portrait of a young woman with a thoughtful expression, set in a dimly lit studio environment. The lighting is high-contrast, utilizing cold blue rim light and warm crimson key light to create a dramatic, editorial mood. The background is a clean, dark gray, maintaining a minimalist and exclusive atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDofvAB7uHYPTjX53aqkKGokbWop-GliPY28ZumR_sT1cvh2ZrAdaajsER0C-qyjksWmaG7yjE3WVDuEgTaA05jd84wgbZDNQnGUm6n_8HpqOcud3qXoY8OeNnYtVV6K2YGdO7S581nqB7PUOZ1UIKrFFONJYl-0UBYwPZSkTxWx8F2kZXLpxHHUFgooBRazf-c8tok2Gd8XLMWGAKeGQlmfZseSZNySDHA8Wnpxxit7AzIaoTacdZ0qJWf1-vK-z6dnNa6CiZ_Ees"/>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-md text-label-md text-on-surface">Sarah J.</span>
+<span class="font-label-md text-label-md text-secondary-fixed-dim">@cinephile_sj</span>
+<span class="text-outline-variant text-[10px]">•</span>
+<span class="font-label-md text-label-md text-secondary-fixed-dim">2h</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-3 leading-relaxed">
+                            The cinematography in 'Nocturnal Echoes' is absolutely breathtaking. That long take in the rainy alleyway felt like a moving painting. Has anyone else noticed the color shift from cyan to crimson as the character's psyche fractures?
+                        </p>
+<div class="inline-flex items-center gap-2 bg-surface-container-high px-3 py-1 rounded text-[12px] uppercase font-bold tracking-widest text-primary-container mb-4">
+<span class="material-symbols-outlined text-[14px]">movie</span>
+                            Nocturnal Echoes (2024)
+                        </div>
+<!-- Action Row -->
+<div class="flex justify-between max-w-[280px] text-secondary-fixed-dim">
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="text-[12px]">12</span>
+</button>
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">repeat</span>
+<span class="text-[12px]">4</span>
+</button>
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined text-[20px] group-active:text-primary-container">favorite</span>
+<span class="text-[12px]">84</span>
+</button>
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+</div>
+<!-- Nested Replies (Collapsed Style) -->
+<div class="mt-6 ml-2 pl-4 border-l-2 border-outline-variant/20 space-y-4">
+<div class="flex items-center gap-2 cursor-pointer group">
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center">
+<img class="w-full h-full rounded-full object-cover" data-alt="Close up of a man with spectacles in a dark suit, lit by dramatic theater-style lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8NimqtmTv0dY5EDHotkawreTsNFfiv1w7m6g1Z8tq76pdU-DSN0WOgJMWKiNSW5qrHyPTnhBZkGzQkHwFiB67BUTemVYDIssc6nAfc9AE9X84tAQavLRq1f8xpy3fKJG8mXRahbpCF3UJnJzHJ9psz7chC0x5Z5wnIRgpo508XQcDkllW7cfSDPY_39pgh3_go95U2Wh8DQ7YGtBrVcdgRCfcpwRYIwDyCT_CzYLS-eTatzIyHArysS2hZkP2uNSgvFvt59i_2Z4"/>
+</div>
+<span class="font-label-md text-label-md text-secondary-fixed-dim group-hover:text-primary-container transition-colors">View 3 replies</span>
+</div>
+</div>
+</div>
+</div>
+</article>
+<!-- Post Card 2 -->
+<article class="space-y-4 border-t border-outline-variant/10 pt-8">
+<div class="flex gap-4">
+<img alt="Mark's Avatar" class="w-10 h-10 rounded-full object-cover" data-alt="A portrait of a male film director on set, wearing a dark cap and headphones. The lighting is low-key, capturing the intense atmosphere of a nighttime shoot with blurred film lights in the background. The aesthetic is monochromatic with a singular point of crimson light reflecting in his eyes, emphasizing a professional yet artistic mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHUc567X1-lKpRlmYqGzcOSmJqMYt4D70p8Fb0qAtp-c2JArR0Fg-uctZCcrYMtBoRshX943G8iftAlvAMbeKSdAY_J6501nl_akh4ckPLFQhvAVOmGuW4BCvXoXF4tMWwsNvzrME5SUDWcHKbMgNCeHncuFjfANukD13xk_86V3UtOvY17HVahW2paLXxjHmj50IknodvBlJ-KSkxep37EL0TFj2tybV0RHx1PGtiVXX-syCl573lAA_r3k7vPFq006Ji3gfaseA"/>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-md text-label-md text-on-surface">Mark Frame</span>
+<span class="font-label-md text-label-md text-secondary-fixed-dim">@m_frame</span>
+<span class="text-outline-variant text-[10px]">•</span>
+<span class="font-label-md text-label-md text-secondary-fixed-dim">5h</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mb-3 leading-relaxed">
+                            Just finished a deep-dive analysis of the sound design in classic noir. It's incredible how much silence is used to build tension compared to modern blockbusters. Who are your top 3 sound designers?
+                        </p>
+<!-- Action Row -->
+<div class="flex justify-between max-w-[280px] text-secondary-fixed-dim">
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="text-[12px]">28</span>
+</button>
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">repeat</span>
+<span class="text-[12px]">9</span>
+</button>
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+<span class="text-[12px]">156</span>
+</button>
+<button class="flex items-center gap-2 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+</div>
+<!-- Single Nested Reply (Expanded for demo) -->
+<div class="mt-6 ml-2 pl-4 border-l-2 border-outline-variant/20 space-y-4">
+<div class="flex gap-3">
+<img alt="Reply Avatar" class="w-8 h-8 rounded-full object-cover" data-alt="A minimalist side profile of a creative professional in a dark studio. Soft, diffused lighting highlights her features against a deep black background. The color palette is strictly high-contrast black and white, evoking a sense of prestige and exclusive access to a world of cinema." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgVQgyPwW6ig49afgOa3qYcE3vWuWqNAqkZGL72rnCoHv39f9lWNz6Lg8JY3R0qWMbDUPKIvfmxDBI51GS_MQMAzwf5i2YWP1NkZzhkTlbXNBhI_i7DGQq9XKpHpPVOp3TT82tBmMn-zIqNJVXoWZLYR5BzNMaW9N70khGNKGS3z6-8vbqfvFlOXnzxJ6Mb18DwYRs3ctjDGR3Lr7W1FBYSw2pZfG0vyRJKNQDzzjRW6xPg_93aktCAEmY0CMgo_DS8kCebOQyoX0"/>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-md text-label-md text-on-surface">Elena V.</span>
+<span class="text-secondary-fixed-dim text-[10px]">1h</span>
+</div>
+<p class="font-body-md text-body-md text-secondary-fixed-dim text-sm">
+                                        Walter Murch is the undisputed king. The silence in The Godfather is a character of its own.
+                                    </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="bg-background border-t border-outline-variant/10 mt-section-gap">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-8 max-w-container-max mx-auto gap-6">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">FilmCircle</div>
+<p class="font-label-md text-label-md text-secondary-fixed-dim">© 2024 FilmCircle. The cinematic social network.</p>
+<div class="flex gap-4">
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Privacy</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Terms</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Support</a>
+</div>
+</div>
+</footer>
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface/90 backdrop-blur-xl border-t border-outline-variant/10 px-margin-mobile py-3 flex justify-around items-center z-50">
+<a class="flex flex-col items-center gap-1 text-secondary-fixed-dim" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-label-md uppercase tracking-widest">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary-container" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">forum</span>
+<span class="text-[10px] font-label-md uppercase tracking-widest">Community</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-secondary-fixed-dim" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-label-md uppercase tracking-widest">Search</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-secondary-fixed-dim" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-label-md uppercase tracking-widest">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple Interaction for Post Area
+        const textarea = document.querySelector('textarea');
+        textarea.addEventListener('focus', () => {
+            textarea.closest('section').classList.add('border-primary-container/30');
+        });
+        textarea.addEventListener('blur', () => {
+            textarea.closest('section').classList.remove('border-primary-container/30');
+        });
+
+        // Toggle like color
+        document.querySelectorAll('.group').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const icon = this.querySelector('.material-symbols-outlined');
+                if (icon && icon.textContent === 'favorite') {
+                    const isFilled = icon.style.fontVariationSettings.includes("'FILL' 1");
+                    icon.style.fontVariationSettings = isFilled ? "'FILL' 0" : "'FILL' 1";
+                    this.classList.toggle('text-primary-container');
+                }
+            });
+        });
+    </script>
+</body></html>

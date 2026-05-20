@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#0f0f0f",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-surface-variant": "#e1bfb9",
+                    "on-tertiary-fixed-variant": "#004d66",
+                    "on-primary-fixed": "#410000",
+                    "inverse-primary": "#b02d21",
+                    "on-secondary-fixed-variant": "#474746",
+                    "surface-container-low": "#1c1b1b",
+                    "error-container": "#93000a",
+                    "primary-container": "#c0392b",
+                    "surface-container-highest": "#353534",
+                    "tertiary-fixed": "#c0e8ff",
+                    "error": "#ffb4ab",
+                    "on-tertiary": "#003548",
+                    "outline": "#a88a85",
+                    "on-tertiary-fixed": "#001e2b",
+                    "tertiary-fixed-dim": "#80d0f8",
+                    "on-tertiary-container": "#d3eeff",
+                    "on-secondary": "#313030",
+                    "outline-variant": "#59413d",
+                    "surface-container": "#201f1f",
+                    "secondary-container": "#474746",
+                    "on-secondary-container": "#b7b5b4",
+                    "secondary": "#c8c6c5",
+                    "inverse-surface": "#e5e2e1",
+                    "primary-fixed-dim": "#ffb4a9",
+                    "on-primary-container": "#ffe5e1",
+                    "surface-variant": "#353534",
+                    "surface": "#0f0f0f",
+                    "surface-container-high": "#1a1a1a",
+                    "inverse-on-surface": "#313030",
+                    "tertiary": "#80d0f8",
+                    "on-background": "#e5e2e1",
+                    "surface-tint": "#ffb4a9",
+                    "surface-container-lowest": "#0e0e0e",
+                    "on-surface": "#e5e2e1",
+                    "on-error": "#690005",
+                    "on-primary": "#690001",
+                    "tertiary-container": "#007296",
+                    "on-primary-fixed-variant": "#8e130c",
+                    "primary-fixed": "#ffdad5",
+                    "surface-bright": "#3a3939",
+                    "primary": "#ffb4a9",
+                    "surface-dim": "#0f0f0f",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "on-error-container": "#ffdad6",
+                    "secondary-fixed": "#e5e2e1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "container-max": "1440px",
+                    "gutter": "24px",
+                    "base": "8px",
+                    "section-gap": "80px",
+                    "margin-desktop": "64px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-sm": ["Hanken Grotesk"],
+                    "display-lg-mobile": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "headline-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "headline-sm": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            background-color: #0f0f0f;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .cinematic-shadow {
+            box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.7);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface bg-background">
+<!-- TopAppBar -->
+<header class="fixed top-0 z-50 w-full bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+<div class="flex justify-between items-center w-full px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-12">
+<span class="font-headline-sm text-headline-sm font-bold tracking-tighter text-on-surface">FilmCircle</span>
+<nav class="hidden md:flex gap-8">
+<a class="font-label-md text-label-md text-on-surface relative after:content-[''] after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-primary-container after:rounded-full" href="#">Community</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-on-surface transition-colors" href="#">Clubs</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary-fixed-dim">search</span>
+<input class="bg-surface-container-high border-none rounded-lg pl-10 pr-4 py-2 w-64 focus:ring-1 focus:ring-primary-container text-body-md" placeholder="Search films, people..." type="text"/>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-lg font-label-md text-label-md hover:opacity-80 transition-opacity active:scale-95 transition-transform">Sign Up</button>
+</div>
+</div>
+</header>
+<!-- Main Content Grid -->
+<main class="max-w-container-max mx-auto pt-24 px-margin-desktop flex gap-gutter min-h-screen">
+<!-- Left Column: Community Feed -->
+<div class="flex-1 max-w-[800px] mb-section-gap">
+<div class="mb-8">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2">Community</h1>
+<p class="text-secondary-fixed-dim font-body-md">Connect with the cinema elite.</p>
+</div>
+<!-- Post Creation Box -->
+<div class="bg-surface-container-high rounded-xl p-6 mb-10 cinematic-shadow border border-outline-variant/10">
+<div class="flex gap-4">
+<img alt="Avatar" class="w-12 h-12 rounded-full object-cover" data-alt="A sharp, close-up portrait of a professional man with a friendly expression. The lighting is cinematic with deep shadows and soft highlights, matching a premium dark theme aesthetic. The background is a blurred studio setting with warm amber tones against a cool black atmosphere. High-end editorial photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH77VUC6_wB3TL7Fa6jTbh1-Vf0ipWNFSFK75o0tMw9KFykW9wFGI7eRqcZnqE-qo4wnUA96K0NQ3mZFNhr4IumByf7vvd8uoxo5nDFBK3cHJ9YfLwkWUKTL4uGg3B-foljnu-6TfmqsbMEw01LssUaOCY6MrLBv3pPVSJJjRomvoMCQX_BSkBNsPLP9_wwWYiM2MtoH-j6TNbiltgeTmhYXECH1U7mj6NR71YD3HFKiCicpNtAVcmlXpvCk_33bcTCbzNpcOpwEg"/>
+<div class="flex-1">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-on-surface text-body-lg resize-none min-h-[60px] placeholder:text-secondary-fixed-dim/40" placeholder="What are you watching?"></textarea>
+<div class="flex justify-between items-center mt-4 pt-4 border-t border-outline-variant/20">
+<div class="flex gap-4 text-secondary-fixed-dim">
+<button class="hover:text-primary-container transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</button>
+<button class="hover:text-primary-container transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[20px]">movie</span>
+</button>
+<button class="hover:text-primary-container transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[20px]">poll</span>
+</button>
+</div>
+<button class="bg-primary-container text-on-primary-container px-8 py-2 rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-95 transition-all">Post</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Feed Post 1 -->
+<div class="bg-surface-container-high rounded-xl p-6 mb-6 border border-outline-variant/10">
+<div class="flex gap-4">
+<img alt="User" class="w-10 h-10 rounded-full object-cover" data-alt="High-contrast editorial portrait of a woman looking thoughtfully into the distance. Dramatic side-lighting creates deep shadows and elegant highlights on her features. The mood is sophisticated and mysterious, set against a dark, textured background. Premium cinematic color grading with subtle crimson undertones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-u7mEVG1XtKxBpskp-vfHZGGZAKxvxLthXtw29aieEQcXc4DUhmzEF_mv6sYQgA8QVRw2YSywqb2_NizpMX1I4G9YxefuATLfig5xYUXIqE7uQU9zZ4husCwG9iAw2Yw5aeBaAZ3VMp6tCj7KrKlynZQ5sGCtABYrQTYBTaxEKWLgtUOQFbVq5slmKM2i56kys7gkMhfq07gZw5MCYnjtnZZcLhyEs_D7_dYkkw5FtHsH0qjzsE5xuOwk5UojLRWnYDlL7rinD38"/>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface">Elena Vane</h3>
+<p class="text-[12px] text-secondary-fixed-dim">2h ago</p>
+</div>
+<span class="material-symbols-outlined text-secondary-fixed-dim cursor-pointer">more_horiz</span>
+</div>
+<p class="mt-4 text-body-md text-on-surface leading-relaxed">
+                            Just finished a re-watch of "Dune: Part Two". The sound design alone is a masterpiece. Villeneuve really knows how to make you feel the scale of the world. What's everyone's favorite visual sequence?
+                        </p>
+<div class="flex flex-wrap gap-2 mt-4">
+<span class="bg-secondary-container/30 text-primary-container font-label-md text-[11px] px-3 py-1 rounded-full border border-primary-container/20 uppercase tracking-wider">Dune: Part Two</span>
+<span class="bg-secondary-container/30 text-primary-container font-label-md text-[11px] px-3 py-1 rounded-full border border-primary-container/20 uppercase tracking-wider">Sci-Fi</span>
+</div>
+<!-- Action Row -->
+<div class="flex gap-8 mt-6 pt-4 border-t border-outline-variant/10">
+<button class="flex items-center gap-2 text-secondary-fixed-dim hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined text-[20px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="text-label-md">1.2k</span>
+</button>
+<button class="flex items-center gap-2 text-secondary-fixed-dim hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="text-label-md">48</span>
+</button>
+<button class="flex items-center gap-2 text-secondary-fixed-dim hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="text-label-md">12</span>
+</button>
+</div>
+<!-- One-level Deep Reply (Indented) -->
+<div class="mt-6 pl-4 border-l-2 border-outline-variant/20">
+<div class="flex gap-3">
+<img alt="Reply User" class="w-8 h-8 rounded-full object-cover" data-alt="Close-up profile of a man with sharp features, illuminated by cool blue and warm red rim lights. Minimalist and high-contrast, capturing a modern tech-noir aesthetic. The background is pitch black, emphasizing the subject's silhouette and intense expression. Professional cinema photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByOeAKbH5CFXSGM8cznWvWRC9QZA4PQEe7NzIgxkiTClrCNDfcq2j34giv52UciBGyF5uOspJ6NOpr3OG6J4FOooumJ9dgeCLjeyQ7j8_BAOh4RIWrKa6fYJhFwVC6q8ffI1QMM3HoktqyB72rRV0c6LmWLMMWztnl8AagOwA45hqkJolgumdNZNOmXOqVCMB_a99tZrQRrRfgxA3US_L38fzfqPmdrFURT4Ds4ldtVkAIyoDuFCFnX7uS2RD5RDVgdHdM-7poZZI"/>
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-label-md text-[13px] text-on-surface">Julian Black</h4>
+<span class="text-[11px] text-secondary-fixed-dim">1h ago</span>
+</div>
+<p class="text-body-md text-on-surface/80 mt-1">The water of life sequence was breathtaking. The high-contrast black and white photography for the Giedi Prime scenes was also an inspired choice.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Feed Post 2 -->
+<div class="bg-surface-container-high rounded-xl p-6 mb-6 border border-outline-variant/10">
+<div class="flex gap-4">
+<img alt="User" class="w-10 h-10 rounded-full object-cover" data-alt="Dramatic black and white headshot of a person with a creative flair. Soft, diffused lighting highlights one side of the face while the other remains in deep, velvety shadow. The composition is tight and artistic, perfect for an exclusive social club profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDptssRpUQkWFGy08eHir0stQfNAqCvzYb6iKhFURoQ946KPsZaVdg-SZ1g9vsjjvIzKfQ47NeSK3H6uit6zghnZi9PwwycdNGCD7uvoRbBNtTM82Ba4PVH1waWuoMOek_xx3-fNXEdRAI4-Ucx14u4bhFb29HIlYcg5mN3_OnHT3ha8KBdd0VxDkV7Br8MyMxq_kmlu4pehSCtT8ZQ-tp3Kr6IDD9ZXnclaMbUTNz0fxMvy5OUUTfjLEZcbGnDkYyEnZitDL6ZHqU"/>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-label-md text-label-md text-on-surface">Marcus Thorne</h3>
+<p class="text-[12px] text-secondary-fixed-dim">4h ago</p>
+</div>
+<span class="material-symbols-outlined text-secondary-fixed-dim cursor-pointer">more_horiz</span>
+</div>
+<p class="mt-4 text-body-md text-on-surface leading-relaxed">
+                            Found a rare 35mm print of "The Red Shoes" (1948). The technicolor is absolutely vibrant even after all these years. Film preservation is so critical.
+                        </p>
+<div class="flex flex-wrap gap-2 mt-4">
+<span class="bg-secondary-container/30 text-primary-container font-label-md text-[11px] px-3 py-1 rounded-full border border-primary-container/20 uppercase tracking-wider">The Red Shoes</span>
+<span class="bg-secondary-container/30 text-primary-container font-label-md text-[11px] px-3 py-1 rounded-full border border-primary-container/20 uppercase tracking-wider">Classic Cinema</span>
+</div>
+<div class="flex gap-8 mt-6 pt-4 border-t border-outline-variant/10">
+<button class="flex items-center gap-2 text-secondary-fixed-dim hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+<span class="text-label-md">842</span>
+</button>
+<button class="flex items-center gap-2 text-secondary-fixed-dim hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="text-label-md">24</span>
+</button>
+<button class="flex items-center gap-2 text-secondary-fixed-dim hover:text-primary-container transition-colors group">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="text-label-md">5</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Sidebar -->
+<aside class="w-[340px] hidden lg:block py-4 space-y-8">
+<!-- Trending Discussions -->
+<div class="bg-surface-container-high rounded-xl p-6 border border-outline-variant/10 cinematic-shadow">
+<h2 class="font-headline-sm text-[20px] mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">trending_up</span>
+                    Trending Discussions
+                </h2>
+<ul class="space-y-5">
+<li class="group cursor-pointer">
+<div class="flex justify-between items-center">
+<span class="text-label-md text-on-surface group-hover:text-primary-container transition-colors">Poor Things</span>
+<span class="text-[12px] text-secondary-fixed-dim">2.4k posts</span>
+</div>
+<div class="w-full bg-secondary-container/20 h-[1px] mt-4"></div>
+</li>
+<li class="group cursor-pointer">
+<div class="flex justify-between items-center">
+<span class="text-label-md text-on-surface group-hover:text-primary-container transition-colors">Oppenheimer</span>
+<span class="text-[12px] text-secondary-fixed-dim">1.8k posts</span>
+</div>
+<div class="w-full bg-secondary-container/20 h-[1px] mt-4"></div>
+</li>
+<li class="group cursor-pointer">
+<div class="flex justify-between items-center">
+<span class="text-label-md text-on-surface group-hover:text-primary-container transition-colors">A24 Season</span>
+<span class="text-[12px] text-secondary-fixed-dim">950 posts</span>
+</div>
+<div class="w-full bg-secondary-container/20 h-[1px] mt-4"></div>
+</li>
+<li class="group cursor-pointer">
+<div class="flex justify-between items-center">
+<span class="text-label-md text-on-surface group-hover:text-primary-container transition-colors">Cannes Film Festival</span>
+<span class="text-[12px] text-secondary-fixed-dim">820 posts</span>
+</div>
+<div class="w-full bg-secondary-container/20 h-[1px] mt-4"></div>
+</li>
+<li class="group cursor-pointer">
+<div class="flex justify-between items-center">
+<span class="text-label-md text-on-surface group-hover:text-primary-container transition-colors">Kubrick Retrospective</span>
+<span class="text-[12px] text-secondary-fixed-dim">540 posts</span>
+</div>
+</li>
+</ul>
+</div>
+<!-- Active Clubs -->
+<div class="bg-surface-container-high rounded-xl p-6 border border-outline-variant/10 cinematic-shadow">
+<h2 class="font-headline-sm text-[20px] mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container">groups</span>
+                    Active Clubs
+                </h2>
+<div class="space-y-6">
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center border border-primary-container/30">
+<span class="material-symbols-outlined text-primary-container text-[20px]">camera_roll</span>
+</div>
+<div>
+<h4 class="text-label-md text-on-surface">35mm Society</h4>
+<p class="text-[11px] text-secondary-fixed-dim">12.5k members</p>
+</div>
+</div>
+<button class="text-primary-container font-label-md text-[12px] hover:underline underline-offset-4">Join</button>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center border border-primary-container/30">
+<span class="material-symbols-outlined text-primary-container text-[20px]">psychology</span>
+</div>
+<div>
+<h4 class="text-label-md text-on-surface">Lynchian Dreams</h4>
+<p class="text-[11px] text-secondary-fixed-dim">8.2k members</p>
+</div>
+</div>
+<button class="text-primary-container font-label-md text-[12px] hover:underline underline-offset-4">Join</button>
+</div>
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center border border-primary-container/30">
+<span class="material-symbols-outlined text-primary-container text-[20px]">local_movies</span>
+</div>
+<div>
+<h4 class="text-label-md text-on-surface">Neo-Noir Collective</h4>
+<p class="text-[11px] text-secondary-fixed-dim">15k members</p>
+</div>
+</div>
+<button class="text-primary-container font-label-md text-[12px] hover:underline underline-offset-4">Join</button>
+</div>
+</div>
+</div>
+<!-- Mini Footer -->
+<footer class="px-2">
+<div class="flex flex-wrap gap-4 text-secondary-fixed-dim text-[12px]">
+<a class="hover:text-primary-container transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary-container transition-colors" href="#">Terms</a>
+<a class="hover:text-primary-container transition-colors" href="#">Support</a>
+<a class="hover:text-primary-container transition-colors" href="#">Cookie Policy</a>
+</div>
+<p class="text-[11px] text-secondary-fixed-dim/50 mt-4 uppercase tracking-widest">© 2024 FilmCircle. The cinematic social network.</p>
+</footer>
+</aside>
+</main>
+<script>
+        // Simple micro-interactions
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => {
+                el.style.transform = 'scale(0.97)';
+            });
+            el.addEventListener('mouseup', () => {
+                el.style.transform = 'scale(1)';
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transform = 'scale(1)';
+            });
+        });
+
+        // Hover effect for sidebar items
+        const sidebarItems = document.querySelectorAll('.group');
+        sidebarItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                const border = item.querySelector('.bg-secondary-container\\/20');
+                if (border) border.style.backgroundColor = 'rgba(192, 57, 43, 0.4)';
+            });
+            item.addEventListener('mouseleave', () => {
+                const border = item.querySelector('.bg-secondary-container\\/20');
+                if (border) border.style.backgroundColor = 'rgba(71, 71, 70, 0.2)';
+            });
+        });
+    </script>
+</body></html>

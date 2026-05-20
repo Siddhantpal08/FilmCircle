@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FilmCircle Clubs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0f0f0f;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scrollbar-width: none;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .cinematic-gradient {
+            background: linear-gradient(180deg, rgba(15,15,15,0) 0%, rgba(15,15,15,0.9) 100%);
+        }
+        .active-dot::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background-color: #c0392b;
+            border-radius: 50%;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "background": "#131313",
+                      "secondary-fixed-dim": "#c8c6c5",
+                      "on-surface-variant": "#e1bfb9",
+                      "on-tertiary-fixed-variant": "#004d66",
+                      "on-primary-fixed": "#410000",
+                      "inverse-primary": "#b02d21",
+                      "on-secondary-fixed-variant": "#474746",
+                      "surface-container-low": "#1c1b1b",
+                      "error-container": "#93000a",
+                      "primary-container": "#c0392b",
+                      "surface-container-highest": "#353534",
+                      "tertiary-fixed": "#c0e8ff",
+                      "error": "#ffb4ab",
+                      "on-tertiary": "#003548",
+                      "outline": "#a88a85",
+                      "on-tertiary-fixed": "#001e2b",
+                      "tertiary-fixed-dim": "#80d0f8",
+                      "on-tertiary-container": "#d3eeff",
+                      "on-secondary": "#313030",
+                      "outline-variant": "#59413d",
+                      "surface-container": "#201f1f",
+                      "secondary-container": "#474746",
+                      "on-secondary-container": "#b7b5b4",
+                      "secondary": "#c8c6c5",
+                      "inverse-surface": "#e5e2e1",
+                      "primary-fixed-dim": "#ffb4a9",
+                      "on-primary-container": "#ffe5e1",
+                      "surface-variant": "#353534",
+                      "surface": "#131313",
+                      "surface-container-high": "#2a2a2a",
+                      "inverse-on-surface": "#313030",
+                      "tertiary": "#80d0f8",
+                      "on-background": "#e5e2e1",
+                      "surface-tint": "#ffb4a9",
+                      "surface-container-lowest": "#0e0e0e",
+                      "on-surface": "#e5e2e1",
+                      "on-error": "#690005",
+                      "on-primary": "#690001",
+                      "tertiary-container": "#007296",
+                      "on-primary-fixed-variant": "#8e130c",
+                      "primary-fixed": "#ffdad5",
+                      "surface-bright": "#3a3939",
+                      "primary": "#ffb4a9",
+                      "surface-dim": "#131313",
+                      "on-secondary-fixed": "#1c1b1b",
+                      "on-error-container": "#ffdad6",
+                      "secondary-fixed": "#e5e2e1"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "container-max": "1440px",
+                      "gutter": "24px",
+                      "base": "8px",
+                      "section-gap": "80px",
+                      "margin-desktop": "64px"
+              },
+              "fontFamily": {
+                      "headline-md": ["Hanken Grotesk"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "body-md": ["Hanken Grotesk"],
+                      "headline-sm": ["Hanken Grotesk"],
+                      "display-lg-mobile": ["Hanken Grotesk"],
+                      "body-lg": ["Hanken Grotesk"],
+                      "label-md": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "headline-md": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-sm": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+<div class="flex justify-between items-center w-full px-margin-mobile py-4 max-w-container-max mx-auto">
+<span class="font-headline-sm text-headline-sm font-bold tracking-tighter text-on-surface">FilmCircle</span>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-8">
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-on-surface transition-colors" href="#">Community</a>
+<a class="font-label-md text-label-md text-on-surface relative after:content-[''] after:absolute after:-bottom-2 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-primary-container after:rounded-full" href="#">Clubs</a>
+</nav>
+<span class="material-symbols-outlined text-on-surface cursor-pointer">search</span>
+<span class="material-symbols-outlined text-on-surface cursor-pointer" data-weight="fill">account_circle</span>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-12 px-margin-mobile">
+<!-- Header Section -->
+<section class="flex justify-between items-end mb-10">
+<div>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-on-surface mb-1">Clubs</h1>
+<p class="font-label-md text-label-md text-secondary-fixed-dim">Join your cinematic tribe</p>
+</div>
+<button class="bg-primary-container text-on-primary-container px-4 py-2.5 rounded-lg font-label-md text-label-md flex items-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                Create Club
+            </button>
+</section>
+<!-- Your Clubs Section -->
+<section class="mb-12">
+<h2 class="font-headline-sm text-headline-sm mb-6 flex items-center gap-2">
+                Your Clubs
+                <span class="text-primary-container text-body-md font-normal">(3)</span>
+</h2>
+<div class="flex gap-4 overflow-x-auto pb-4 -mx-margin-mobile px-margin-mobile" style="scrollbar-width: none;">
+<!-- Your Club Card 1 -->
+<div class="flex-shrink-0 w-64 aspect-[16/10] bg-surface-container-high rounded-xl relative overflow-hidden group">
+<img class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" data-alt="A moody, high-contrast photograph of a vintage film projector in a dimly lit, professional screening room. The aesthetic is ultra-minimalist with deep shadows and sharp, focused highlights in a cinematic crimson and black palette. The mood is sophisticated and exclusive, representing a high-end film circle." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCS8Go9aFuO2bdcleMjvETQxz6Gr7vy1lKeg6WAZwSsQo8O2WeGNmUIyn1d23NwOYA3oSougzwq9_NtcD1x2pYclsv30fZI6EJTywNLOStf4BJxiSjUmV2Dv5XWjhLrazXxQ3YVGfob2jg3LIjM0816ePekyRRcDA5P6z4s7EH-0udIYv-FNhsq8XSII_lhiHvtJUtsctRqDvp8ZT2ROw11LTCZiqluJZelXJPx12JOLsFVmLRS200eQ3Bl7TL8GlWGirKAfLy_dvU"/>
+<div class="absolute inset-0 cinematic-gradient"></div>
+<div class="absolute bottom-4 left-4">
+<span class="text-[10px] uppercase tracking-widest bg-primary-container/20 text-primary-container px-2 py-0.5 rounded mb-2 inline-block">Active Now</span>
+<h3 class="font-headline-sm text-[18px] text-on-surface">Neo-Noir Junkies</h3>
+<p class="font-label-md text-[12px] text-secondary-fixed-dim">12 Members</p>
+</div>
+</div>
+<!-- Your Club Card 2 -->
+<div class="flex-shrink-0 w-64 aspect-[16/10] bg-surface-container-high rounded-xl relative overflow-hidden group">
+<img class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" data-alt="A striking silhouette of a film director sitting in a classic chair on a darkened set, illuminated by a single intense spotlight from the side. The scene is rendered in extreme high-contrast black and white with a subtle crimson tint. The atmosphere is quiet, prestigious, and highly focused on the art of filmmaking." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHL-1P7pTcL5KqP3caAJCAct1dv4-G1-a4oYzeQZAiE6of52S4e8MMtEUy8bmYAXvchxOXSWWTZgy-DOJIeATp6Kt1JXIDNpk7xcRhmUYAba8Hhu7A1LzetRGULbjrKGv_EqLNo9Y9n37sleMxL0a4GNjka7_YxXdytkZQzATERphAaosT6WSEwok26oLb6mzFA-PqzI0ukPie8JYpcK-VBYMw4yjEl6M4P6enS3eZK3-LTkVu6M75G2vMRqwGfvMv-6gqf4iuuQg"/>
+<div class="absolute inset-0 cinematic-gradient"></div>
+<div class="absolute bottom-4 left-4">
+<h3 class="font-headline-sm text-[18px] text-on-surface">Directing 101</h3>
+<p class="font-label-md text-[12px] text-secondary-fixed-dim">42 Members</p>
+</div>
+</div>
+<!-- Your Club Card 3 -->
+<div class="flex-shrink-0 w-64 aspect-[16/10] bg-surface-container-high rounded-xl relative overflow-hidden group">
+<img class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" data-alt="An artistic, high-contrast close-up of a stack of vintage 35mm film reels on a dark textured surface. The lighting is editorial and moody, with deep blacks and rich crimson undertones. The visual style is premium and minimalist, evoking the exclusive feel of a private cinema archive." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ501FGvG0MUWnbDtzfaS-GIPsY-2cFSJDm5zlm7gnjf4SyCd0MY0dT9O2jgkI9r43ruIAVFkmaausXeLYyvW_5R8PNqjqZ915nkZ4uS3EEDG5U7KFK5mx7DnKUwbxOCxOtHVXqkScNNC5cFJFPAtBNYY3bIBGKa4LZ95q4gKOZXSfdSGpegPFNJmNo5y3mqr8rHecLsnpiAXKnVQA4M2EdZnRUpzjAhZoin7rV50S00X-bzGuoT5IpjAoJsUjlzhPLU7KgnbuEjw"/>
+<div class="absolute inset-0 cinematic-gradient"></div>
+<div class="absolute bottom-4 left-4">
+<h3 class="font-headline-sm text-[18px] text-on-surface">Archive Hunters</h3>
+<p class="font-label-md text-[12px] text-secondary-fixed-dim">8 Members</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Preset Clubs Section -->
+<section>
+<h2 class="font-headline-sm text-headline-sm mb-6">Explore Preset Clubs</h2>
+<div class="grid grid-cols-2 gap-4">
+<!-- Preset Card 1 -->
+<div class="bg-surface-container-high p-4 rounded-xl border border-outline-variant/10 flex flex-col gap-4">
+<div class="w-full aspect-square rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A minimalist cinematic poster style image featuring a sleek, modern camera lens in extreme close-up. The reflection in the lens shows a vibrant crimson light trail. The background is a flat, deep black. The overall mood is high-tech, precise, and premium." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkjtfd6laPXJOjFIWVd57OgANGzZxjx-LWl0J_g5eX3K68YHjc2FXDoMTZjSPKOFNQO1PdWZE13fuO8PCsibqHIOWU6U2hU3ZNbGODy-SABaI5viHvHB5bwsciJZEU-AAZkA9eCW8y3f3m3A46tt7-zUcKcf5ubbTG7y8xuveUuA_ZR-0iyETYkpA8dUOzXBOVrHbdFyoZj5GN_46H_Oakiikx3Yyh2LwUxQvcHx7t01Q4iVZNheavq2bWNUSAEpuG1llyE-Zyg4s"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-[16px] text-on-surface leading-tight">Modern Classics</h4>
+<p class="font-label-md text-[12px] text-secondary-fixed-dim mt-1">Daily discussions</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-primary-container font-bold text-label-md">92% Match</span>
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+<!-- Preset Card 2 -->
+<div class="bg-surface-container-high p-4 rounded-xl border border-outline-variant/10 flex flex-col gap-4">
+<div class="w-full aspect-square rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A dramatic wide shot of a solitary figure standing in front of a massive, glowing white movie screen in an otherwise pitch-black theater. The silhouette is sharp and defined. The color palette is strictly high-contrast monochrome with a single crimson light source from the floor. The mood is one of awe and cinematic scale." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDn0KTZYUjYcUCgjTFi0kLmkptqGCImMGs1hfoBNZR4PfnT7X3RELA5SUnZLMEXj6s59xT2vWQRVdNQq7dST2R6_bDCkqNJ_NltcS_LT5Gu9XMQBX3Dnl0MZAFosO1kzqW9Rutoy0f7F47_cPB_uLWpdxTwOWELghoie4f9aPQvhFKNtoB2cQxQF-YqBpXEv9HXlDhP6r2uv5nqmZBZAqjWZRPReLimT8SKzhVMOAojBTSh9_1KXQ55OnWUXkycQn9Amn_MfXklyTU"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-[16px] text-on-surface leading-tight">Avant-Garde</h4>
+<p class="font-label-md text-[12px] text-secondary-fixed-dim mt-1">Weekly screenings</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-primary-container font-bold text-label-md">88% Match</span>
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+<!-- Preset Card 3 -->
+<div class="bg-surface-container-high p-4 rounded-xl border border-outline-variant/10 flex flex-col gap-4">
+<div class="w-full aspect-square rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="An editorial close-up of a clapperboard sitting on a velvet-covered surface in a dark room. The clapperboard is sleek and black with sharp white text. The lighting is warm and dramatic, highlighting the texture of the velvet. A single red light beam crosses the frame, adding a sense of action and precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9xU6EavRBVhyTr6gJvKiVbnoTdSBPw0ATagHc8JKqT3sgr3Pc-bhe8UNHnJyQNoyWZx0UfCDTSIuhoDKpzEPr51sEvs9rn27L1-m6XjElaEn43BjRamw5g_uzJ9dPzSat32E_XbCXzQz6vrdii-awowLNeQC1Ky4NHR3NN8g-LBhDawhMtEbwbhgVVFnwdrdqoBofRCpx_2PsZg_MiHvf6-xjg5h_HgbY2-lCJqkqatYut5ST22VKX3Mt_XYbl1I3WRTlZ0qPO4Y"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-[16px] text-on-surface leading-tight">Tech &amp; Gear</h4>
+<p class="font-label-md text-[12px] text-secondary-fixed-dim mt-1">Latest equipment</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-primary-container font-bold text-label-md">75% Match</span>
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+<!-- Preset Card 4 -->
+<div class="bg-surface-container-high p-4 rounded-xl border border-outline-variant/10 flex flex-col gap-4">
+<div class="w-full aspect-square rounded-lg overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A stylized, minimalist representation of a film script with handwritten notes in crimson ink. The pages are stacked neatly on a dark wooden desk under a soft, low-key light. The aesthetic is literary, moody, and exclusive, focusing on the intimate process of storytelling in cinema." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMo_mS6zC7-InskTG5uvZMrznf60eDGDB4JDc2Wbg-wjfdLf02bJP-uMUzyaWrzPasasrTzQCrABRD-4EkUwPQtPDAGc2BmZYz1GNjWK8uvelDRN8Mtu2JcB9XYN7x2SmBIC0RuXIM0jD8q05NEAKd41GTRLfGDCjmtm5_VaHShKFrn9iqu-mSig_LLQb_VASXf3dxSGOkPMmr5VHzjxf8G0Q7HUEhWtgBIlLmYIUS4mQy-jfppcnY3jT92gx6VIr5XVmZitlhT5M"/>
+</div>
+<div>
+<h4 class="font-headline-sm text-[16px] text-on-surface leading-tight">Screenwriters</h4>
+<p class="font-label-md text-[12px] text-secondary-fixed-dim mt-1">Script reviews</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="text-primary-container font-bold text-label-md">64% Match</span>
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">arrow_forward_ios</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest py-10 px-margin-mobile border-t border-outline-variant/10">
+<div class="max-w-container-max mx-auto flex flex-col gap-6 items-center">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">FilmCircle</span>
+<div class="flex flex-wrap justify-center gap-6">
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Privacy</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Terms</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Cookie Policy</a>
+<a class="font-label-md text-label-md text-secondary-fixed-dim hover:text-primary-container transition-colors" href="#">Support</a>
+</div>
+<p class="font-label-md text-label-md text-secondary-fixed-dim text-center">© 2024 FilmCircle. The cinematic social network.</p>
+</div>
+</footer>
+<!-- Mobile Navigation Shell (Bottom Bar) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-lg border-t border-outline-variant/10 px-8 py-4 flex justify-between items-center">
+<a class="flex flex-col items-center gap-1 text-secondary-fixed-dim" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] uppercase font-bold tracking-widest">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface relative" href="#">
+<span class="material-symbols-outlined" data-weight="fill">group</span>
+<span class="text-[10px] uppercase font-bold tracking-widest">Clubs</span>
+<div class="absolute -bottom-4 w-1 h-1 bg-primary-container rounded-full"></div>
+</a>
+<a class="flex flex-col items-center gap-1 text-secondary-fixed-dim" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] uppercase font-bold tracking-widest">Explore</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-secondary-fixed-dim" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[10px] uppercase font-bold tracking-widest">Alerts</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for cards
+        document.querySelectorAll('.preset-card').forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.style.transform = 'scale(0.98)';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+
+        // Horizontal scroll momentum effect
+        const scrollContainer = document.querySelector('.overflow-x-auto');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        scrollContainer.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - scrollContainer.offsetLeft;
+            scrollLeft = scrollContainer.scrollLeft;
+        });
+        scrollContainer.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+        scrollContainer.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+        scrollContainer.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - scrollContainer.offsetLeft;
+            const walk = (x - startX) * 2;
+            scrollContainer.scrollLeft = scrollLeft - walk;
+        });
+    </script>
+</body></html>

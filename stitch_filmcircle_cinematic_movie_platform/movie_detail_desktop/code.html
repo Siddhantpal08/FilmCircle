@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: #e5e2e1;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .crimson-glow:hover {
+            box-shadow: 0 0 30px 5px rgba(192, 57, 43, 0.2);
+        }
+        .poster-scale:hover {
+            transform: scale(1.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#353534",
+                        "secondary": "#c6c6c7",
+                        "outline": "#a88a85",
+                        "on-primary-fixed-variant": "#8e130c",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "secondary-fixed": "#e2e2e2",
+                        "on-primary": "#690001",
+                        "on-surface": "#e5e2e1",
+                        "on-tertiary-fixed": "#001e2b",
+                        "surface-container-high": "#2a2a2a",
+                        "on-tertiary-fixed-variant": "#004d66",
+                        "primary-fixed": "#ffdad5",
+                        "error-container": "#93000a",
+                        "on-background": "#e5e2e1",
+                        "on-tertiary": "#003548",
+                        "surface-container": "#201f1f",
+                        "on-primary-container": "#ffe5e1",
+                        "inverse-primary": "#b02d21",
+                        "tertiary-container": "#007296",
+                        "on-error": "#690005",
+                        "surface-tint": "#ffb4a9",
+                        "on-secondary": "#2f3131",
+                        "on-surface-variant": "#e1bfb9",
+                        "primary": "#ffb4a9",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-secondary-fixed-variant": "#454747",
+                        "surface": "#131313",
+                        "tertiary": "#80d0f8",
+                        "tertiary-fixed": "#c0e8ff",
+                        "surface-variant": "#353534",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "surface-dim": "#131313",
+                        "surface-container-low": "#1c1b1b",
+                        "inverse-surface": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "outline-variant": "#59413d",
+                        "on-primary-fixed": "#410000",
+                        "error": "#ffb4ab",
+                        "primary-container": "#c0392b",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "tertiary-fixed-dim": "#80d0f8",
+                        "on-secondary-container": "#b4b5b5",
+                        "on-error-container": "#ffdad6",
+                        "secondary-container": "#454747",
+                        "background": "#131313",
+                        "on-tertiary-container": "#d3eeff",
+                        "surface-bright": "#3a3939"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "48px",
+                        "stack-md": "24px",
+                        "unit": "8px",
+                        "margin-desktop": "64px",
+                        "container-max": "1440px",
+                        "stack-sm": "12px",
+                        "margin-mobile": "20px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "metadata": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "title-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "metadata": ["14px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "800"}],
+                        "title-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-surface-container-lowest/80 backdrop-blur-xl">
+<nav class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<span class="font-display-lg text-display-lg-mobile text-primary tracking-tighter">FilmCircle</span>
+<div class="hidden md:flex gap-6">
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300" href="#">Community</a>
+<a class="text-on-surface-variant font-medium hover:text-primary transition-colors duration-300" href="#">Clubs</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1" href="#">Discover</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<input class="bg-surface-container-low border-outline-variant/30 rounded-full py-2 px-10 text-body-md focus:border-primary-container focus:ring-0 w-64" placeholder="Search films..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">search</span>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-title-sm hover:scale-95 transition-transform">Sign Up</button>
+</div>
+</nav>
+</header>
+<main class="min-h-screen pb-20">
+<!-- Hero Section -->
+<section class="relative w-full h-[870px] overflow-hidden">
+<div class="absolute inset-0">
+<img class="w-full h-full object-cover filter blur-md opacity-30" data-alt="A wide cinematic landscape shot of a futuristic neon city at dusk, drenched in moody crimson and deep blue lighting. The atmosphere is thick with fog and steam, evoking a prestige neo-noir independent film aesthetic. High contrast and soft focus edges create a sense of mystery and immense depth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGVOL1zWvN2X4KBD1U6xt8YuLlDJCthvITZ99-pqaYlS8vERVzdmVv0oczmLqd2AAndBd9uDacHl-88xANMKLPGY_GPqE-3U9xjCRIXr3AA7hCzKAIzcfjsNSrWUfyO1iDLxMhWno4I2JNm5H3kFxsKSwELlijp21gs5DJfK1lp2l9O-nBMYW8O1FMXlW9iMvfaYu1m5rQm5FnJTibTQ7WxDH24ZVBJH_THREDImaDyBx8iepJnrPWP2kjn7qQYnuIuytMI6IsJ55_"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
+</div>
+<div class="relative z-10 max-w-container-max mx-auto px-margin-desktop h-full flex items-end pb-24">
+<div class="flex flex-col md:flex-row gap-12 items-end">
+<!-- Film Card (Poster) -->
+<div class="hidden md:block w-72 shrink-0 poster-scale transition-transform duration-500 rounded-lg overflow-hidden shadow-2xl border border-white/10">
+<img class="aspect-[2/3] w-full object-cover" data-alt="A striking minimalist movie poster with a vertical composition. The central figure is a silhouette against a stark crimson circular sun, creating a powerful monochromatic noir effect. The texture is grainy and artistic, reminiscent of high-end independent cinema distribution houses." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzbP1iIrknK7s0Sksd6683d5FD7rDySYQS5hFCnOi7qNyoXCbnrgjsiN2zxFsfmLLr27pSwEjsKEVYsF53Noq9pv2U_KFVl4HvKc1-s3rr4dW0nod-LViQoRmJDR5vtJYBuP1IjYMQ5yOB-_hYf0BSyKeu9pdKG3GVOuxcuWcL25ZTfSvS5YCih5_dCE6sO43CTRDicyraqHuaoh42BzURg-SzKGmBbYY4vDN_4MpTGXoED7Ane8vXq9yICpQgCZPeDyhW7pLvAJgs"/>
+</div>
+<!-- Film Info -->
+<div class="flex-1 space-y-6">
+<div class="space-y-2">
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-widest">A FILM BY ELARA VANCE</span>
+<h1 class="font-display-lg text-display-lg text-on-surface leading-tight">Neon Requiem</h1>
+<div class="flex gap-4 text-secondary font-metadata text-metadata">
+<span>2024</span>
+<span>•</span>
+<span>Sci-Fi Noir</span>
+<span>•</span>
+<span>2h 14m</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-4">
+<button class="bg-primary-container text-on-primary-container px-8 py-4 rounded-full font-title-sm flex items-center gap-2 crimson-glow transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                                Watch Trailer
+                            </button>
+<button class="border border-primary-container text-primary-container px-8 py-4 rounded-full font-title-sm flex items-center gap-2 hover:bg-primary-container/10 transition-all">
+<span class="material-symbols-outlined">bookmark</span>
+                                Mark as Interested
+                                <span class="text-secondary/60 ml-2">2.4k</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Content Grid -->
+<section class="max-w-container-max mx-auto px-margin-desktop grid grid-cols-12 gap-12 -mt-12 relative z-20">
+<!-- Left Column: Details -->
+<div class="col-span-12 lg:col-span-8 space-y-12">
+<!-- Platform Links -->
+<div class="glass-panel p-6 rounded-lg flex items-center justify-between">
+<span class="font-title-sm">Available On</span>
+<div class="flex gap-6">
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">tv</span>
+</div>
+<span class="font-metadata">Netflix</span>
+</div>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">shopping_bag</span>
+</div>
+<span class="font-metadata">Prime Video</span>
+</div>
+<div class="flex items-center gap-2 group cursor-pointer">
+<div class="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center group-hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-white">stream</span>
+</div>
+<span class="font-metadata">JioHotstar</span>
+</div>
+</div>
+</div>
+<!-- AI Summary -->
+<div class="bg-surface-container-low p-8 rounded-lg border-l-4 border-primary-container">
+<h3 class="font-label-caps text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span> AI VIBE CHECK
+                    </h3>
+<p class="font-body-md italic text-on-surface-variant text-lg">
+                        "bro it's a vibe but skip the last 30 mins fr. the cinematography is literally peak but the pacing falls off a cliff once they leave the city. definitely worth it for the visuals though."
+                    </p>
+</div>
+<!-- Cast & Crew -->
+<div class="space-y-6">
+<h2 class="font-headline-md">Cast &amp; Crew</h2>
+<div class="flex gap-8 overflow-x-auto pb-4 scroll-hide">
+<div class="flex flex-col items-center gap-3 shrink-0">
+<img class="w-24 h-24 rounded-full object-cover border-2 border-outline-variant hover:border-primary transition-all" data-alt="A portrait of a male actor with striking features, studio lighting with a soft crimson backlight. The photography is sharp and cinematic, focusing on expressive eyes and professional composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATWdxck7s36MmgXdTGYwAykZ2bHf51Toseq_Nt8VsysIMPtAfVZQ4od2M9nk04-EEl5KlXwdQV-EXdVng5ku8JWIz0_qbUWQ3sQ8BV6BjKzRmqOXSJVQQhooyITo0h41ex8TlR8cCb3zypKDCWD9g0fsUT0t_DWVLnIv2YuiMb_EH5Ri1D8cDOhXhXd0zISqK4T3yB7UkZdoAK09ywdEgJkrPYq-y9kzUKi3cAAdBsk9kDQsLCORiW5A0LR-n--5ZmCXKh5KT5Fw3Y"/>
+<div class="text-center">
+<p class="font-title-sm">David Chen</p>
+<p class="font-metadata text-secondary">Kaelen</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-3 shrink-0">
+<img class="w-24 h-24 rounded-full object-cover border-2 border-outline-variant hover:border-primary transition-all" data-alt="A portrait of a female actress with a thoughtful expression. Warm cinematic lighting with deep shadows, emphasizing a moody and prestigious aesthetic. The background is a blurred dark studio setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsgwQoGawMMWB9u8R0B55m-RlYnt0XyNQdZbfJ_LoRnLmgdVSN7PjLnDWnpVuGpFRE00VFYYeGugxhx5_VaS-GhetusSX7hu0XJ_3PR2G7EGoQerK0dm-kbrIfmgbHAO1iLMY_qeKffwIqQMzlsQjoh8D9tpDPY2r-o50TY2H_hZU9uWqsPG7SxjTNelb1u5l6mv6WZ7UbR9ZULRcLsjb3eCZaQQOSLfhrEejScYuC3fELRSpmjlTq91r2ndOIlB80BIbprl327Jzn"/>
+<div class="text-center">
+<p class="font-title-sm">Sasha Grey</p>
+<p class="font-metadata text-secondary">Mara</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-3 shrink-0">
+<img class="w-24 h-24 rounded-full object-cover border-2 border-outline-variant hover:border-primary transition-all" data-alt="A professional headshot of a mature male actor. Cinematic lighting highlights textures and detail, set against a dark, minimalist background. The look is authoritative and refined." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMPnhP-M3-QEMIWN6PMK1tbdRFdW1Ex5inmvTvJhiymSgPaImIToc9vPMZyHCQU4062z0dFlbUO_sX6nKuAMEhkwiWUobEZqVLUKsgR43nrBbngzrJhCy_WLdpFQ-JuhauARquSllEyJFZTlsGEqi54pcdqINQUg4bk8oZ4zdZ3XDtax6HYfrtWYRNmk5l1yyrhVOyFhhuxrusLc7artOD0toOqZOgJSI7tzgSvb_c4zRrXpJt9auMLfMUHBBnco53gkyrjeFPhmN9"/>
+<div class="text-center">
+<p class="font-title-sm">Marcus Thorne</p>
+<p class="font-metadata text-secondary">Director</p>
+</div>
+</div>
+<div class="flex flex-col items-center gap-3 shrink-0">
+<img class="w-24 h-24 rounded-full object-cover border-2 border-outline-variant hover:border-primary transition-all" data-alt="A young male actor with a modern, edgy look. Dark cinematic photography with a hint of blue rim lighting. The portrait is high contrast and atmospheric." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_odhETFP4LnqvFgaOae4Egbzj6IJMSXRNAp85Vdz9tIPBIsOp1Hkd3tiZPLnr0abjzzb7Q_aqrWUb7TX8nTmH_mAkEODb-mvfIcY6C78SaFt2QHVX57bUTK1ofdL9CWjbA1Gdv9geFjk5sqLtd4NslZxlm4uAzCIpwXMFbroSijMf5BrSUALO4_JC9MfXrXOOWMKdQMYyx6fwyUSNUBhJuP2tvRmW8grU0RwPc1wozeHmsOhyTIR2BhLQlmwQ8m17HEBVSy9yMF-n"/>
+<div class="text-center">
+<p class="font-title-sm">Leon Hart</p>
+<p class="font-metadata text-secondary">Jax</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Review Tabs -->
+<div class="space-y-6">
+<div class="flex gap-8 border-b border-outline-variant/30">
+<button class="pb-4 text-primary border-b-2 border-primary font-title-sm">User Reviews</button>
+<button class="pb-4 text-secondary font-title-sm hover:text-on-surface">Critics</button>
+<button class="pb-4 text-secondary font-title-sm hover:text-on-surface">Discussions</button>
+</div>
+<div class="space-y-6">
+<div class="glass-panel p-6 rounded-lg space-y-4">
+<div class="flex justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center font-metadata">JD</div>
+<span class="font-title-sm">John Doe</span>
+</div>
+<span class="text-primary font-bold">Go For It</span>
+</div>
+<p class="font-body-md text-on-surface-variant">Best noir film I've seen this year. The sound design is absolutely immersive. My only gripe is the ending feels a bit rushed compared to the slow burn of the first two acts.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Circle Score -->
+<div class="col-span-12 lg:col-span-4 space-y-8">
+<div class="glass-panel p-8 rounded-lg sticky top-24">
+<h3 class="font-headline-md mb-8 text-center">Circle Score</h3>
+<!-- Donut Chart -->
+<div class="relative w-56 h-56 mx-auto mb-10">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<!-- Perfection (Crimson) -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="#C0392B" stroke-dasharray="251.2" stroke-dashoffset="188.4" stroke-width="12"></circle>
+<!-- Go For It (Primary) -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="#ffb4a9" stroke-dasharray="251.2" stroke-dashoffset="213.5" stroke-width="12" transform="rotate(90, 50, 50)"></circle>
+<!-- Timepass (Grey) -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="#454747" stroke-dasharray="251.2" stroke-dashoffset="230.1" stroke-width="12" transform="rotate(150, 50, 50)"></circle>
+<!-- Skip (Dark) -->
+<circle cx="50" cy="50" fill="none" r="40" stroke="#222222" stroke-dasharray="251.2" stroke-dashoffset="242.4" stroke-width="12" transform="rotate(210, 50, 50)"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-display-lg text-on-surface">82</span>
+<span class="font-label-caps text-secondary">PEAK</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#C0392B]"></div>
+<span class="font-metadata">Perfection</span>
+</div>
+<span class="font-bold">25%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#ffb4a9]"></div>
+<span class="font-metadata">Go For It</span>
+</div>
+<span class="font-bold">45%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#454747]"></div>
+<span class="font-metadata">Timepass</span>
+</div>
+<span class="font-bold">15%</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#222222]"></div>
+<span class="font-metadata">Skip</span>
+</div>
+<span class="font-bold">15%</span>
+</div>
+</div>
+<button class="w-full mt-8 bg-surface-container-high py-4 rounded-full font-title-sm hover:bg-surface-container-highest transition-colors">
+                        Add Your Rating
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar Shell (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-surface-container-low/90 backdrop-blur-md rounded-t-lg shadow-lg">
+<div class="flex flex-col items-center justify-center text-secondary hover:text-primary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="movie">movie</span>
+<span class="font-metadata text-metadata">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary hover:text-primary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-metadata text-metadata">Discover</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary hover:text-primary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-metadata text-metadata">Community</span>
+</div>
+<div class="flex flex-col items-center justify-center text-secondary hover:text-primary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-metadata text-metadata">Profile</span>
+</div>
+</nav>
+<script>
+        // Simple scroll parallax for hero
+        window.addEventListener('scroll', () => {
+            const scroll = window.pageYOffset;
+            const heroImage = document.querySelector('section img');
+            if(heroImage) {
+                heroImage.style.transform = `translateY(${scroll * 0.4}px)`;
+            }
+        });
+
+        // Icon rendering
+        document.querySelectorAll('[data-icon]').forEach(el => {
+            const iconName = el.getAttribute('data-icon');
+            const isFill = el.getAttribute('data-weight') === 'fill';
+            const span = document.createElement('span');
+            span.className = 'material-symbols-outlined';
+            span.textContent = iconName;
+            if(isFill) span.style.fontVariationSettings = "'FILL' 1";
+            el.innerHTML = '';
+            el.appendChild(span);
+        });
+    </script>
+</body></html>

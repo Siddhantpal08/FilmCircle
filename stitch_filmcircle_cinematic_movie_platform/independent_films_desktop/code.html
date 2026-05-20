@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Independent Films | FilmCircle</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        /* Global Reset & Cinematic Behaviors */
+        body {
+            background-color: #0F0F0F; /* Base token from style guide */
+            color: #e5e2e1;
+            font-family: 'Hanken Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        /* Hide Scrollbars */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Edge Fading for Horizontal Carousels if needed */
+        .edge-fade {
+            mask-image: linear-gradient(to right, black 85%, transparent 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ffb4a9",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed-dim": "#61de8a",
+                        "primary-fixed-dim": "#ffb4a9",
+                        "on-secondary-fixed-variant": "#005228",
+                        "inverse-primary": "#b02d21",
+                        "error": "#ffb4ab",
+                        "surface-tint": "#ffb4a9",
+                        "surface-container-low": "#1c1b1b",
+                        "surface": "#131313",
+                        "surface-variant": "#353534",
+                        "on-tertiary": "#003548",
+                        "secondary-fixed": "#7efba4",
+                        "on-primary": "#690001",
+                        "surface-container": "#201f1f",
+                        "on-background": "#e5e2e1",
+                        "surface-bright": "#3a3939",
+                        "secondary": "#61de8a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "outline-variant": "#59413d",
+                        "on-primary-fixed": "#410000",
+                        "primary-fixed": "#ffdad5",
+                        "on-tertiary-fixed": "#001e2b",
+                        "on-error": "#690005",
+                        "background": "#131313",
+                        "surface-dim": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-container": "#007296",
+                        "error-container": "#93000a",
+                        "on-secondary": "#00391a",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary-fixed": "#00210c",
+                        "outline": "#a88a85",
+                        "tertiary-fixed": "#c0e8ff",
+                        "on-surface": "#e5e2e1",
+                        "tertiary-fixed-dim": "#80d0f8",
+                        "on-primary-fixed-variant": "#8e130c",
+                        "secondary-container": "#18a659",
+                        "on-tertiary-fixed-variant": "#004d66",
+                        "primary-container": "#c0392b",
+                        "on-secondary-container": "#003115",
+                        "on-primary-container": "#ffe5e1",
+                        "surface-container-high": "#2a2a2a",
+                        "tertiary": "#80d0f8",
+                        "on-surface-variant": "#e1bfb9",
+                        "on-tertiary-container": "#d3eeff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-mobile": "20px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["40px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "label-md": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="bg-surface/80 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-surface-variant flex justify-between items-center px-margin-desktop py-4 w-full transition-all duration-300 ease-in-out">
+<div class="flex items-center gap-8">
+<span class="font-display-lg text-display-lg text-primary tracking-tighter leading-none" style="font-size: 32px;">FilmCircle</span>
+<div class="hidden md:flex gap-6">
+<a class="text-on-surface-variant font-body-md text-body-md hover:scale-105 transition-transform duration-200 hover:text-primary" href="#">Community</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:scale-105 transition-transform duration-200 hover:text-primary" href="#">Clubs</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative flex items-center bg-surface-container border border-surface-variant px-4 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-size: 18px;">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md font-body-md placeholder-on-surface-variant/50 w-48 lg:w-64" placeholder="Search films..." type="text"/>
+</div>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-lg font-label-md text-label-md hover:brightness-110 transition-all duration-300">
+                Sign Up
+            </button>
+</div>
+</nav>
+<main class="flex-grow pt-32 pb-24 max-w-container-max mx-auto w-full px-margin-desktop">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+<div class="max-w-2xl">
+<h1 class="text-on-surface font-headline-lg text-headline-lg mb-2">Independent Films</h1>
+<p class="text-on-surface-variant font-body-lg text-body-lg">Discover the next generation of cinema through our curated selection of global independent works.</p>
+</div>
+<button class="bg-primary-container text-on-primary-container px-8 py-4 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:translate-x-1 transition-all">
+                Upload Your Film <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</header>
+<!-- Filter Row -->
+<section class="flex flex-col md:flex-row justify-between items-center mb-12 gap-4 border-b border-surface-variant pb-8">
+<div class="flex gap-3 overflow-x-auto w-full md:w-auto no-scrollbar">
+<button class="px-6 py-2 rounded-full border border-primary text-primary font-label-md text-label-md whitespace-nowrap">All</button>
+<button class="px-6 py-2 rounded-full border border-surface-variant text-on-surface-variant font-label-md text-label-md hover:border-on-surface hover:text-on-surface transition-colors whitespace-nowrap">Short Film</button>
+<button class="px-6 py-2 rounded-full border border-surface-variant text-on-surface-variant font-label-md text-label-md hover:border-on-surface hover:text-on-surface transition-colors whitespace-nowrap">Documentary</button>
+<button class="px-6 py-2 rounded-full border border-surface-variant text-on-surface-variant font-label-md text-label-md hover:border-on-surface hover:text-on-surface transition-colors whitespace-nowrap">Experimental</button>
+<button class="px-6 py-2 rounded-full border border-surface-variant text-on-surface-variant font-label-md text-label-md hover:border-on-surface hover:text-on-surface transition-colors whitespace-nowrap">Animation</button>
+</div>
+<div class="flex items-center gap-2 self-end">
+<span class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">Sort by</span>
+<select class="bg-transparent border-none text-on-surface font-label-md text-label-md focus:ring-0 cursor-pointer">
+<option class="bg-surface">Newest First</option>
+<option class="bg-surface">Trending</option>
+<option class="bg-surface">Most Awards</option>
+</select>
+</div>
+</section>
+<!-- Movie Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A moody, cinematic film poster for an independent drama featuring a lone silhouette walking through a neon-lit urban alleyway at night. The lighting is dominated by deep crimson and teal highlights, creating a high-contrast aesthetic that fits a boutique cinema brand. The atmosphere is mysterious and quiet, with soft film grain texture and a narrow depth of field focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCn40n1tAU5weehkyG3D0FRKjdkmV0zfSuAKvpdA7Lht2w6dGzCOmj-i-RX0TLHgRyoEmWhSVmGCT-PlwKvxa1KyxII7n-h07MtW-YMR4sabvv9e75YYZlUDopSq25XbtF6hqqhNzwM98xJwnJ9ZXeaxmJlX75Wv9iudJXfRSNTODYd0Ucdumve9a_B_ydHA8yzomfmiRtvuTPr32mpIAkxfX31-WF71cH1sPEEC-plnqcrO8dunSrPmbpp_IDXroWYeGxKDQ-Uspc"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">Fragmented Realities</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Elena Voss</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2024</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A minimalist film poster capturing a stark architectural structure under a heavy, overcast sky, emphasizing clean lines and brutalist geometry. The color palette is strictly monochromatic with subtle warm grays and deep shadows, reflecting a sophisticated experimental film aesthetic. The composition is asymmetrical and bold, conveying a sense of artistic solitude and structural elegance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-0eYy2AGix0XvvwlkpXMuVjcSKJ63x8ahTlMuribUZehw_fhp548X9QszdpV1UoVjphvxq600YjAoo7Ay4-drCWU60SWNmaS3AaBPUbMZTQMDVXieYc7fR4Mho7X4hMLULRGsZiw7zmi3bx_HUYqhqO5y6lNLaVnK7SDh3OjuBX011U6CB0crqdLiWhDSRjywUWBxtrMh3D7tkOqjeiixIRJd3uAjdzIVfYCMg1OyWUyMbscJtVIGC2KOraXTattbYLMRxZ6JHKM"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">Echoes of Concrete</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Marcus Thorne</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2023</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A vibrant and surreal animation film frame showing a bioluminescent forest with glowing floating spores and strange iridescent plants. The lighting is ethereal and magical, utilizing a wide spectrum of greens, pinks, and deep purples against a pitch-black background. The visual style is high-end digital art with soft-glow effects and intricate organic details, perfect for a premium cinema platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG3UaPTSIfRYo1i5P67Bx81XbUXf7TceL_o8lIUOh1vJhRW_DgEIhigPqMY9rgV9jXanI5VgE_QQ9EA8xefXVwRBn5QojrKR2rZl3SboAQSMFL6Ajs_Vu8MWc2J3bycJznKDGVr4vrVlV0P0WoZ9qHYac3tB9GtdgyMes9cjKGDhV4tV9v_OsjTZxtq_bc9SDAbKu1Yi3ZhT0lWB3ZxirM1IMErGlipSBjGr7Ay-XIHhl0uONKRTHgygnxCAccO6hJQCDnBTOyoX8"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">The Weaver's Dream</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Sora Kitano</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2024</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A powerful documentary film still capturing an intimate, close-up portrait of an elderly artisan working with traditional tools in a dimly lit, rustic workshop. Soft, directional golden light highlights the texture of their hands and the dust motes in the air, creating a warm, humanistic mood. The style is raw and cinematic, focusing on emotional depth and the quiet dignity of labor within a dark, layered environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6ku4MSLz6kNCBrAuvxl5UI1JH_SBfHvwmZ5ouhpRpZnMcKZqabho9YC78KmzoFRGhCcvE6dxYnTlJslxR1X-wTXsY22ElaznKZZY0AlJfiZzkGmi6IgUzVWZlaicLdRwbMVeVObVNZnE9W87ekSAyXZnO8FBdgIyc9iEweX5Zk5rvD6Dt8enmIE2Gq2NSYU5VkSgUT65VVDrOVraUc0uP05QF4REgVCWS9Znl9KbGzgoKpgVDWJMR7Imv1NJGF2IjYB8_e-P2SXk"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">Hands of Time</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">David Miller</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2023</span>
+</div>
+</div>
+</div>
+<!-- Card 5 (Next Row) -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A high-speed cinematic shot of a vintage luxury car racing through a rain-slicked city street at midnight. The puddles reflect the vibrant crimson tail lights and cool blue storefront signs, creating a rich, multi-layered color palette. The motion is captured with a slight artistic blur to emphasize speed, following a dark and moody film-noir aesthetic updated for a modern boutique audience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADZHil-EUl5TWkVLVTzpuCXVBWC4lwGK-QoGEL_e5AKIdVE2oDbRhPB_mqA3Ut4IBHD2PDgpjj5txucoXSB5waTz1ABVaaEL0XDVvX9TR_14pwhzNNLOZQmVtUnTSrBNuNotmfltR-AyBU9gk8JYxJXko_Lq9cLaoAQN0oxR3WfX3DESIfvBHiVQgnOM8HrVVS0pbw2L30h3uqSd_aEVNQ8JOiTk7Lob78K89wikVWziS2bfOLSADCnBZ7BZJKXMT-xnGeOm8vM4U"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">Neon Velocity</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Jules Vernes</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2024</span>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A serene, wide-angle cinematic landscape of a foggy mountain range at dawn, where the peaks emerge from a soft sea of clouds. The palette is dominated by muted blues and hazy whites, punctuated by a single intense orange glow from the rising sun. The mood is peaceful and grand, reflecting an indie film's focus on majestic nature and contemplative, slow-paced storytelling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQo2UbDS3oUZGyS1tawA_sebInuANE2Nxb0jVvH7b-yvUOvpFFIvQ5V1kJVD6ptisB7sT4ibYOVLBKkASnzR_5gHSPjGVZz87YIgN6EhH2NKQqNotnHryxsxwH_mAEU9HpI7esvx87H-5y7druwiruA_JKjOJ8kROxRKY1JCnhXIPrw-h5IooZVH5vxRErYZulH1qZTWUdz58dIeap3vDqW7_-Si67Ja22gDK0kFVpPjK1kK1ml_HwxTHI7Ff8Xsl-jtInK-wBN2s"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">Beyond the Peak</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Sarah Jenkins</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2022</span>
+</div>
+</div>
+</div>
+<!-- Card 7 -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A stylized and artistic close-up of a human eye, reflecting a kaleidoscopic explosion of colors and shapes within the pupil. The surrounding skin is cast in deep shadow, while the eye itself is brilliantly lit, highlighting every intricate detail of the iris. The visual style is surreal and hyper-focused, perfect for an experimental film exploring themes of perception and inner consciousness in a cinematic dark-mode environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7XyKVHl4V6zZdxz5Cq2_i9n9Y0WeEXpHxNuPOYNPALut4V43JUkxOuW2jh3a4L5HuggEEeHUoTCp5uwpMW7vUuXKG3FPbI4p0s8cUNhGN12pzEHu6tQALrMDiam0hM5jjge1Klcq9Mz_xzfo-jeguZi8Bsv6F25pLMG6ad4lgxsbFfwzIhJleC3I6rCbDBadC-VV5-BjkUTR8NE2QV8d1anvQT1hNbngMy0Xnn1vmR12CjbzKwHsgRQkbecg6egp3UBCOaek5uhY"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">Iris Aperture</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Luka Rossi</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2024</span>
+</div>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="group cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden bg-surface-container rounded-lg border border-surface-variant group-hover:scale-[1.02] group-hover:border-primary/50 transition-all duration-500">
+<img class="w-full h-full object-cover" data-alt="A cinematic long shot of a solitary lighthouse standing against a dramatic, stormy ocean with massive waves crashing against jagged black rocks. The sky is dark and turbulent with streaks of lightning, while the lighthouse lantern casts a sharp, rotating beam of white light through the darkness. The aesthetic is high-drama and atmospheric, emphasizing the themes of resilience and isolation in an independent cinematic epic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAW6WvtLF6JtgsUodFaC8UC2mvtWtz2Yzxw0SuJhhhbz3uRzTyMf873Rmr1bQzU-jZTgH8q2quhaCgpEZMjWgDGyW4uQQ3Ny100mopWoSvYA-JMipJuvATU83R9yu2TVhJ_M6mJHPHyiJn_tmUwhvfi4oYvomET-TWa3Goq27hZUjTHV4eWvNW6qaFwvrpEmcnG-pxwdMrkWIlqeHKp9DQoNVAdrkamicaJsHUAFT7ymTwVcDmLXn1ibqlj4iqBGt3jdXjYT2odp4I"/>
+<div class="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-label-sm text-label-sm uppercase tracking-widest">Indie</div>
+</div>
+<div class="mt-4 space-y-1">
+<h3 class="text-on-surface font-headline-md text-[18px] group-hover:text-primary transition-colors">The Last Beacon</h3>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-body-md text-body-md">Isabelle Croft</span>
+<span class="text-on-surface-variant/60 font-label-sm text-label-sm">2023</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Load More CTA -->
+<div class="mt-24 flex flex-col items-center gap-6">
+<div class="h-[1px] w-32 bg-surface-variant"></div>
+<button class="text-on-surface font-label-md text-label-md hover:text-primary transition-colors flex items-center gap-2">
+                Explore More Works <span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest w-full py-12 border-t border-surface-variant opacity-80 hover:opacity-100 transition-all duration-300">
+<div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop max-w-container-max mx-auto w-full gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="font-headline-md text-headline-md text-on-surface">FilmCircle</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 FilmCircle. All rights reserved.</p>
+</div>
+<div class="flex gap-8">
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" href="#">Terms</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" href="#">Press</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" href="#">Contact</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Potential for more complex JS micro-interactions
+            });
+        });
+
+        // Floating Navbar effect on scroll
+        const nav = document.querySelector('nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20) {
+                nav.classList.add('py-2', 'bg-surface/95');
+                nav.classList.remove('py-4', 'bg-surface/80');
+            } else {
+                nav.classList.add('py-4', 'bg-surface/80');
+                nav.classList.remove('py-2', 'bg-surface/95');
+            }
+        });
+    </script>
+</body></html>

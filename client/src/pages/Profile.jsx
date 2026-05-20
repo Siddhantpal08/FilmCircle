@@ -3,8 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService, movieService } from '../services';
 import Loader from '../components/common/Loader';
+import MovieCard from '../components/movie/MovieCard';
 
-const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23131322'/%3E%3Ctext x='50%25' y='46%25' text-anchor='middle' fill='%237c5cfc' font-size='40'%3E%F0%9F%8E%AC%3C/text%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' fill='%237c5cfc' font-size='14'%3ENo Poster%3C/text%3E%3C/svg%3E";
+const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23201f1f'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23c0392b' font-size='40'%3E🎬%3C/text%3E%3C/svg%3E";
+
+const TABS = ['Reviews', 'Uploaded Films', 'Clubs'];
 
 export default function Profile() {
     const { user, logout, updateUser } = useAuth();
@@ -12,6 +15,7 @@ export default function Profile() {
     const avatarFileRef = useRef(null);
     const [uploadedFilms, setUploadedFilms] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('Uploaded Films');
 
     const [editProfile, setEditProfile] = useState(false);
     const [editForm, setEditForm] = useState({ username: '', bio: '', avatarUrl: '' });
@@ -89,101 +93,111 @@ export default function Profile() {
     };
 
     if (!user) return null;
-
     const avatarSrc = user.avatarUrl?.trim();
     const displayUsername = user.username;
 
     return (
         <main className="page">
-            <div className="container" style={{ maxWidth: '800px' }}>
+            <div className="container" style={{ maxWidth: '900px' }}>
 
-                <div className="card" style={{ padding: '2rem', marginBottom: '2rem' }}>
-                    {!editProfile ? (
-                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                            <div style={{ width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid var(--clr-primary)' }}>
-                                {avatarSrc ? (
-                                    <img src={avatarSrc} alt={displayUsername} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                ) : null}
-                                <div style={{ width: '100%', height: '100%', background: 'var(--clr-primary)', display: avatarSrc ? 'none' : 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700, color: '#fff' }}>
-                                    {displayUsername?.[0]?.toUpperCase()}
-                                </div>
-                            </div>
-                            <div style={{ flex: 1 }}>
-                                <h2 style={{ marginBottom: '0.2rem' }}>{displayUsername}</h2>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--clr-text-muted)', marginBottom: '0.75rem' }}>{user.email}</p>
-                                <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                                    {user.bio || <span style={{ color: 'var(--clr-text-muted)', fontStyle: 'italic' }}>No bio yet</span>}
-                                </p>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 }}>
-                                <button className="btn btn-outline btn-sm" onClick={openEdit}>Edit Profile</button>
-                                <button className="btn btn-outline btn-sm" onClick={logout}>Logout</button>
-                                <button className="btn btn-danger btn-sm" onClick={() => { setDeleteInput(''); setShowDeleteConfirm(true); }}>Delete Account</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div>
-                            <h3 style={{ marginBottom: '1.25rem' }}>Edit Profile</h3>
-                            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '1rem' }}>
-
-                                {/* Avatar upload */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                                    <div className="avatar-upload-ring" onClick={() => avatarFileRef.current.click()} title="Click to change avatar">
-                                        {avatarPreview ? (
-                                            <img src={avatarPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        ) : (
-                                            <div style={{ width: '100%', height: '100%', background: 'var(--clr-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 700, color: '#fff' }}>
-                                                {(editForm.username?.[0] || user.username?.[0])?.toUpperCase()}
-                                            </div>
-                                        )}
-                                        <div className="avatar-upload-overlay">📷</div>
-                                    </div>
-                                    <input ref={avatarFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarFile} />
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)' }}>Click to upload</span>
-                                </div>
-
-                                <div style={{ flex: 1, minWidth: '220px' }}>
-                                    <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                                        <label className="form-label">Display Name</label>
-                                        <input className="form-input" value={editForm.username} onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))} maxLength={30} placeholder="Username (3-30 chars)" />
-                                    </div>
-                                    <div className="form-group" style={{ marginBottom: '0.75rem' }}>
-                                        <label className="form-label">Avatar URL <span style={{ color: 'var(--clr-text-muted)', fontWeight: 400 }}>(or upload above)</span></label>
-                                        <input
-                                            className="form-input"
-                                            type="text"
-                                            value={editForm.avatarUrl.startsWith('data:') ? '' : editForm.avatarUrl}
-                                            onChange={e => { setEditForm(f => ({ ...f, avatarUrl: e.target.value })); setAvatarPreview(e.target.value); }}
-                                            placeholder="https://example.com/avatar.jpg"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label">Bio <span style={{ color: 'var(--clr-text-muted)', fontWeight: 400 }}>(optional)</span></label>
-                                        <textarea className="form-textarea" rows={2} value={editForm.bio} onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))} maxLength={200} placeholder="Tell the circle about yourself..." />
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', textAlign: 'right' }}>{editForm.bio.length}/200</div>
-                                    </div>
-                                </div>
-                            </div>
-                            {saveMsg && (
-                                <div className={`alert ${saveMsg.startsWith('Profile') ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '0.75rem' }}>
-                                    {saveMsg}
-                                </div>
+                {/* Profile Header */}
+                {!editProfile ? (
+                    <section className="profile-header-section">
+                        {/* Avatar */}
+                        <div className="profile-avatar-wrap">
+                            {avatarSrc ? (
+                                <img src={avatarSrc} alt={displayUsername} className="profile-avatar-img" />
+                            ) : (
+                                <div className="profile-avatar-placeholder">{displayUsername?.[0]?.toUpperCase()}</div>
                             )}
-                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                <button className="btn btn-outline btn-sm" onClick={() => setEditProfile(false)}>Cancel</button>
-                                <button className="btn btn-primary btn-sm" onClick={handleSaveProfile} disabled={saving}>{saving ? 'Saving...' : 'Save Profile'}</button>
+                        </div>
+
+                        {/* Info */}
+                        <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1rem' }}>
+                                <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0 }}>{displayUsername}</h1>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--clr-secondary)', margin: 0 }}>@{displayUsername?.toLowerCase()}</p>
+                            </div>
+
+                            <div className="profile-stats">
+                                <div className="profile-stat">
+                                    <span className="profile-stat-num">{uploadedFilms.length}</span>
+                                    <span className="profile-stat-label">Films</span>
+                                </div>
+                                <div className="profile-stat">
+                                    <span className="profile-stat-num">{user.joinedClubs?.length || 0}</span>
+                                    <span className="profile-stat-label">Clubs</span>
+                                </div>
+                                <div className="profile-stat">
+                                    <span className="profile-stat-num">—</span>
+                                    <span className="profile-stat-label">Reviews</span>
+                                </div>
+                            </div>
+
+                            {user.bio && (
+                                <p style={{ color: 'var(--clr-on-surface)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: 520, marginTop: '0.75rem' }}>{user.bio}</p>
+                            )}
+                        </div>
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 }}>
+                            <button className="btn btn-outline btn-sm" onClick={openEdit}>Edit Profile</button>
+                            <button className="btn btn-ghost btn-sm" onClick={logout}>Logout</button>
+                            <button className="btn btn-danger btn-sm" onClick={() => { setDeleteInput(''); setShowDeleteConfirm(true); }}>Delete Account</button>
+                        </div>
+                    </section>
+                ) : (
+                    <div className="card" style={{ padding: '2rem', marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1.5rem', color: 'var(--clr-on-surface)' }}>Edit Profile</h3>
+                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                            {/* Avatar upload */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                                <div className="avatar-upload-ring" onClick={() => avatarFileRef.current.click()} title="Click to change avatar">
+                                    {avatarPreview ? (
+                                        <img src={avatarPreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div className="profile-avatar-placeholder" style={{ fontSize: '1.5rem', width: '100%', height: '100%', borderRadius: 0 }}>
+                                            {(editForm.username?.[0] || user.username?.[0])?.toUpperCase()}
+                                        </div>
+                                    )}
+                                    <div className="avatar-upload-overlay">📷</div>
+                                </div>
+                                <input ref={avatarFileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarFile} />
+                                <span style={{ fontSize: '0.75rem', color: 'var(--clr-secondary)' }}>Click to upload</span>
+                            </div>
+                            <div style={{ flex: 1, minWidth: '220px' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Display Name</label>
+                                    <input className="form-input" value={editForm.username} onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))} maxLength={30} placeholder="Username (3-30 chars)" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Avatar URL <span style={{ color: 'var(--clr-secondary)', fontWeight: 400 }}>(or upload above)</span></label>
+                                    <input className="form-input" type="text" value={editForm.avatarUrl.startsWith('data:') ? '' : editForm.avatarUrl} onChange={e => { setEditForm(f => ({ ...f, avatarUrl: e.target.value })); setAvatarPreview(e.target.value); }} placeholder="https://example.com/avatar.jpg" />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Bio <span style={{ color: 'var(--clr-secondary)', fontWeight: 400 }}>(optional)</span></label>
+                                    <textarea className="form-textarea" rows={2} value={editForm.bio} onChange={e => setEditForm(f => ({ ...f, bio: e.target.value }))} maxLength={200} placeholder="Tell the circle about yourself..." />
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--clr-secondary)', textAlign: 'right' }}>{editForm.bio.length}/200</div>
+                                </div>
                             </div>
                         </div>
-                    )}
-                </div>
+                        {saveMsg && (
+                            <div className={`alert ${saveMsg.startsWith('Profile') ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '0.75rem' }}>{saveMsg}</div>
+                        )}
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button className="btn btn-outline btn-sm" onClick={() => setEditProfile(false)}>Cancel</button>
+                            <button className="btn btn-primary btn-sm" onClick={handleSaveProfile} disabled={saving}>{saving ? 'Saving...' : 'Save Profile'}</button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Delete Account Modal */}
                 {showDeleteConfirm && (
-                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                         <div className="card" style={{ padding: '2rem', maxWidth: '440px', width: '90%' }}>
-                            <h3 style={{ color: '#e84545', marginBottom: '0.75rem' }}>Delete Account</h3>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--clr-text-muted)', marginBottom: '1rem' }}>
-                                This will permanently delete your account, all reviews, uploaded films, and posts. <strong>This cannot be undone.</strong>
+                            <h3 style={{ color: 'var(--clr-error)', marginBottom: '0.75rem' }}>Delete Account</h3>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--clr-secondary)', marginBottom: '1rem' }}>
+                                This will permanently delete your account, all reviews, uploaded films, and posts. <strong style={{ color: 'var(--clr-on-surface)' }}>This cannot be undone.</strong>
                             </p>
                             <label className="form-label">Type <strong>DELETE</strong> to confirm:</label>
                             <input className="form-input" value={deleteInput} onChange={e => setDeleteInput(e.target.value)} placeholder="DELETE" style={{ marginTop: '0.4rem', marginBottom: '1rem' }} />
@@ -197,63 +211,156 @@ export default function Profile() {
                     </div>
                 )}
 
-                {/* Uploaded Films */}
-                <section className="section">
-                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                        <h2>Your Uploaded Films</h2>
-                        <Link to="/upload" className="btn btn-primary btn-sm">+ Upload</Link>
-                    </div>
-                    {loading && <Loader />}
-                    {!loading && uploadedFilms.length === 0 && (
-                        <div className="empty-state"><div className="icon">🎥</div><p>No films uploaded yet.</p></div>
-                    )}
-                    <div className="grid-auto">
-                        {uploadedFilms.map(m => (
-                            <div key={m._id} className="card" style={{ overflow: 'hidden', width: '160px', height: '320px', flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-                                <Link to={`/movie/${m._id}`} style={{ display: 'block', width: '100%', height: '210px', flexShrink: 0, borderBottom: '1px solid var(--clr-border)' }}>
-                                    <img src={m.posterUrl || FALLBACK_POSTER} alt={m.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.src = FALLBACK_POSTER; }} />
-                                </Link>
-                                <div style={{ padding: '0.5rem 0.6rem', display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                                    <Link to={`/movie/${m._id}`} style={{ outline: 'none' }}>
-                                        <h3 style={{ fontSize: '0.85rem', color: 'var(--clr-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{m.title}</h3>
-                                    </Link>
-                                    {m.genre && <p style={{ fontSize: '0.75rem', margin: '0.15rem 0 0.4rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--clr-text-muted)' }}>{m.genre}</p>}
-                                    <button className="btn btn-danger btn-sm" style={{ width: '100%', marginTop: 'auto', padding: '0.2rem' }} onClick={() => handleDeleteFilm(m._id)}>Delete</button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
+                {/* Tabs */}
+                <div className="profile-tabs">
+                    {TABS.map(tab => (
+                        <button
+                            key={tab}
+                            className={`profile-tab ${activeTab === tab ? 'profile-tab-active' : ''}`}
+                            onClick={() => setActiveTab(tab)}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
 
-                {/* Joined Clubs */}
-                <section className="section">
-                    <div className="flex-between" style={{ marginBottom: '1rem' }}>
-                        <h2>Joined Clubs</h2>
-                        <Link to="/clubs" className="btn btn-outline btn-sm">Browse Clubs</Link>
+                {/* Tab content */}
+                {activeTab === 'Uploaded Films' && (
+                    <section className="section">
+                        <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+                            <h2 className="text-headline-md">Your Films</h2>
+                            <Link to="/upload" className="btn btn-primary btn-sm">+ Upload Film</Link>
+                        </div>
+                        {loading && <Loader />}
+                        {!loading && uploadedFilms.length === 0 && (
+                            <div className="empty-state"><div className="icon">🎥</div><p>No films uploaded yet.</p></div>
+                        )}
+                        <div className="grid-movies" style={{ justifyItems: 'start' }}>
+                            {uploadedFilms.map(m => (
+                                <div key={m._id} style={{ position: 'relative' }}>
+                                    <MovieCard
+                                        movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }}
+                                        indie
+                                    />
+                                    <button
+                                        className="btn btn-danger btn-sm"
+                                        style={{ width: '100%', marginTop: '0.5rem', borderRadius: 'var(--radius-sm)', padding: '0.3rem' }}
+                                        onClick={() => handleDeleteFilm(m._id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'Clubs' && (
+                    <section className="section">
+                        <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+                            <h2 className="text-headline-md">Joined Clubs</h2>
+                            <Link to="/clubs" className="btn btn-outline btn-sm">Browse Clubs</Link>
+                        </div>
+                        {user.joinedClubs?.length === 0 && (
+                            <div className="empty-state"><div className="icon">🏛</div><p>Not in any clubs yet.</p></div>
+                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {(user.joinedClubs || []).map(c => (
+                                <Link key={c._id || c} to={`/clubs/${c._id || c}`} className="badge badge-primary" style={{ fontSize: '0.875rem', padding: '0.5rem 1.25rem' }}>
+                                    {c.name || 'Club'}
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {activeTab === 'Reviews' && (
+                    <div className="empty-state">
+                        <div className="icon">⭐</div>
+                        <p>Your reviews will appear here.</p>
                     </div>
-                    {user.joinedClubs?.length === 0 && (
-                        <div className="empty-state"><div className="icon">🏛</div><p>Not in any clubs yet.</p></div>
-                    )}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                        {(user.joinedClubs || []).map(c => (
-                            <Link key={c._id || c} to={`/clubs/${c._id || c}`} className="badge badge-primary" style={{ fontSize: '0.85rem', padding: '0.4rem 1rem' }}>
-                                {c.name || 'Club'}
-                            </Link>
-                        ))}
-                    </div>
-                </section>
+                )}
             </div>
 
             <style>{`
-                .btn-danger { background: #e84545; color: #fff; border: none; }
-                .btn-danger:hover { background: #cf3030; }
+                .profile-header-section {
+                    display: flex;
+                    gap: 2rem;
+                    align-items: flex-start;
+                    margin-bottom: 2rem;
+                    padding: 2rem;
+                    background: var(--clr-surface-low);
+                    border: 1px solid rgba(89,65,61,0.15);
+                    border-radius: var(--radius);
+                    flex-wrap: wrap;
+                }
+                .profile-avatar-wrap { flex-shrink: 0; }
+                .profile-avatar-img {
+                    width: 128px; height: 128px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 2px solid var(--clr-primary-container);
+                    box-shadow: 0 0 24px rgba(192,57,43,0.25);
+                }
+                .profile-avatar-placeholder {
+                    width: 128px; height: 128px;
+                    border-radius: 50%;
+                    background: var(--clr-primary-container);
+                    color: var(--clr-on-primary-container);
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 2.5rem; font-weight: 800;
+                    border: 2px solid rgba(192,57,43,0.4);
+                }
+                .profile-stats {
+                    display: flex;
+                    gap: 2rem;
+                    padding: 1rem 0;
+                    border-top: 1px solid rgba(89,65,61,0.2);
+                    border-bottom: 1px solid rgba(89,65,61,0.2);
+                }
+                .profile-stat { text-align: left; }
+                .profile-stat-num { display: block; font-size: 1.25rem; font-weight: 700; color: var(--clr-on-surface); }
+                .profile-stat-label { font-size: 0.75rem; color: var(--clr-on-surface-variant); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+
+                .profile-tabs {
+                    display: flex;
+                    border-bottom: 1px solid rgba(89,65,61,0.2);
+                    margin-bottom: 2rem;
+                    overflow-x: auto;
+                    gap: 0;
+                }
+                .profile-tab {
+                    padding: 0.85rem 1.5rem;
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    color: var(--clr-secondary);
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    white-space: nowrap;
+                    transition: color 0.2s;
+                    border-bottom: 2px solid transparent;
+                    margin-bottom: -1px;
+                }
+                .profile-tab:hover { color: var(--clr-on-surface); }
+                .profile-tab-active {
+                    color: var(--clr-primary);
+                    border-bottom-color: var(--clr-primary-container);
+                }
+
+                .btn-danger { background: var(--clr-error-container); color: var(--clr-error); border: none; }
+                .btn-danger:hover { opacity: 0.85; }
                 .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
                 .avatar-upload-ring {
                     width: 88px; height: 88px; border-radius: 50%; overflow: hidden;
-                    border: 2.5px solid var(--clr-primary); position: relative; cursor: pointer; flex-shrink: 0;
+                    border: 2px solid var(--clr-primary-container); position: relative; cursor: pointer; flex-shrink: 0;
+                    background: var(--clr-surface-container);
                 }
                 .avatar-upload-overlay {
-                    position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+                    position: absolute; inset: 0; background: rgba(0,0,0,0.6);
                     display: flex; align-items: center; justify-content: center;
                     font-size: 1.4rem; opacity: 0; transition: opacity 0.2s;
                 }

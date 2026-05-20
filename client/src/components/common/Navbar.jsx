@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { movieService } from '../../services';
 import './Navbar.css';
 
-const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='60' viewBox='0 0 40 60'%3E%3Crect width='40' height='60' fill='%231a1a2e'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%237c5cfc' font-size='20'%3E🎬%3C/text%3E%3C/svg%3E";
+const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='60' viewBox='0 0 40 60'%3E%3Crect width='40' height='60' fill='%23201f1f'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%23c0392b' font-size='20'%3E🎬%3C/text%3E%3C/svg%3E";
 
 export default function Navbar() {
     const { user, logout, isAuthenticated } = useAuth();
@@ -16,9 +16,16 @@ export default function Navbar() {
     const [suggestOpen, setSuggestOpen] = useState(false);
     const [suggestLoading, setSuggestLoading] = useState(false);
     const [activeSug, setActiveSug] = useState(-1);
+    const [scrolled, setScrolled] = useState(false);
     const debounceRef = useRef(null);
     const searchRef = useRef(null);
-    const dropdownRef = useRef(null);
+
+    // Scroll effect
+    useEffect(() => {
+        const handler = () => setScrolled(window.scrollY > 40);
+        window.addEventListener('scroll', handler, { passive: true });
+        return () => window.removeEventListener('scroll', handler);
+    }, []);
 
     // Debounced autosuggest
     const fetchSuggestions = useCallback((q) => {
@@ -49,6 +56,9 @@ export default function Navbar() {
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
+
+    // Close menu on route change
+    useEffect(() => setMenuOpen(false), [location.pathname]);
 
     const handleInputChange = (e) => {
         const val = e.target.value;
@@ -88,7 +98,7 @@ export default function Navbar() {
     const isActive = (path) => location.pathname === path;
 
     return (
-        <header className="navbar">
+        <header className={`navbar${scrolled ? ' scrolled' : ''}`}>
             <div className="container navbar-inner">
                 {/* Logo */}
                 <Link to="/" className="navbar-logo">
@@ -103,7 +113,7 @@ export default function Navbar() {
                             id="search-input"
                             className="search-input"
                             type="text"
-                            placeholder="Search movies…"
+                            placeholder="Search films, directors..."
                             value={query}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
@@ -118,7 +128,7 @@ export default function Navbar() {
 
                     {/* Dropdown */}
                     {suggestOpen && suggestions.length > 0 && (
-                        <div className="suggest-dropdown" ref={dropdownRef}>
+                        <div className="suggest-dropdown">
                             {suggestions.map((s, i) => (
                                 <div
                                     key={s.imdbID}
@@ -150,9 +160,10 @@ export default function Navbar() {
 
                 {/* Nav Links */}
                 <nav className={`navbar-links ${menuOpen ? 'open' : ''}`}>
+                    <Link to="/" className={isActive('/') ? 'nav-link active' : 'nav-link'}>Home</Link>
                     <Link to="/community" className={isActive('/community') ? 'nav-link active' : 'nav-link'}>Community</Link>
                     <Link to="/clubs" className={isActive('/clubs') ? 'nav-link active' : 'nav-link'}>Clubs</Link>
-                    {isAuthenticated && <Link to="/upload" className={isActive('/upload') ? 'nav-link active' : 'nav-link'}>Upload Film</Link>}
+                    {isAuthenticated && <Link to="/upload" className={isActive('/upload') ? 'nav-link active' : 'nav-link'}>Upload</Link>}
                     <div className="nav-divider" />
                     {isAuthenticated ? (
                         <>
@@ -166,7 +177,7 @@ export default function Navbar() {
                         </>
                     ) : (
                         <>
-                            <Link to="/login" className="btn btn-ghost btn-sm">Login</Link>
+                            <Link to="/login" className="btn btn-ghost btn-sm">Log In</Link>
                             <Link to="/register" className="btn btn-primary btn-sm">Sign Up</Link>
                         </>
                     )}

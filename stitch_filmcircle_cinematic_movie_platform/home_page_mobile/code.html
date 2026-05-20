@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        /* Custom CSS to hide scrollbars while maintaining functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .crimson-glow:hover {
+            box-shadow: 0 0 30px 5px rgba(192, 57, 43, 0.2);
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+
+        .circle-score-gradient {
+            background: conic-gradient(#C0392B var(--percentage), #222222 0);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-highest": "#353534",
+                      "secondary": "#c6c6c7",
+                      "outline": "#a88a85",
+                      "on-primary-fixed-variant": "#8e130c",
+                      "secondary-fixed-dim": "#c6c6c7",
+                      "secondary-fixed": "#e2e2e2",
+                      "on-primary": "#690001",
+                      "on-surface": "#e5e2e1",
+                      "on-tertiary-fixed": "#001e2b",
+                      "surface-container-high": "#2a2a2a",
+                      "on-tertiary-fixed-variant": "#004d66",
+                      "primary-fixed": "#ffdad5",
+                      "error-container": "#93000a",
+                      "on-background": "#e5e2e1",
+                      "on-tertiary": "#003548",
+                      "surface-container": "#201f1f",
+                      "on-primary-container": "#ffe5e1",
+                      "inverse-primary": "#b02d21",
+                      "tertiary-container": "#007296",
+                      "on-error": "#690005",
+                      "surface-tint": "#ffb4a9",
+                      "on-secondary": "#2f3131",
+                      "on-surface-variant": "#e1bfb9",
+                      "primary": "#ffb4a9",
+                      "surface-container-lowest": "#0e0e0e",
+                      "on-secondary-fixed-variant": "#454747",
+                      "surface": "#131313",
+                      "tertiary": "#80d0f8",
+                      "tertiary-fixed": "#c0e8ff",
+                      "surface-variant": "#353534",
+                      "on-secondary-fixed": "#1a1c1c",
+                      "surface-dim": "#131313",
+                      "surface-container-low": "#1c1b1b",
+                      "inverse-surface": "#e5e2e1",
+                      "inverse-on-surface": "#313030",
+                      "outline-variant": "#59413d",
+                      "on-primary-fixed": "#410000",
+                      "error": "#ffb4ab",
+                      "primary-container": "#c0392b",
+                      "primary-fixed-dim": "#ffb4a9",
+                      "tertiary-fixed-dim": "#80d0f8",
+                      "on-secondary-container": "#b4b5b5",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#454747",
+                      "background": "#131313",
+                      "on-tertiary-container": "#d3eeff",
+                      "surface-bright": "#3a3939"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-lg": "48px",
+                      "stack-md": "24px",
+                      "unit": "8px",
+                      "margin-desktop": "64px",
+                      "container-max": "1440px",
+                      "stack-sm": "12px",
+                      "margin-mobile": "20px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "label-caps": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "metadata": ["Inter"],
+                      "display-lg-mobile": ["Inter"],
+                      "title-sm": ["Inter"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "metadata": ["14px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "800"}],
+                      "title-sm": ["18px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md overflow-x-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-[15px]">
+<div class="flex justify-between items-center w-full px-margin-mobile py-4 max-w-container-max mx-auto">
+<h1 class="font-display-lg text-display-lg-mobile text-primary tracking-tighter">FilmCircle</h1>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface" data-icon="search">search</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="FilmCircle logo" class="w-full h-full object-cover" data-alt="A professional headshot of a person with a clean-cut look, set against a dark, moody background with cinematic lighting. The individual has a subtle, confident expression, captured in a high-contrast independent film style. The lighting uses soft red rim-lights to emphasize the silhouette, maintaining the noir aesthetic of the premium streaming platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGB-oGOrSSrlpahsEU90AmkqnkkM_EP1yaNCyBe3Qn13NdfqAEKKbsjW2Z8WNLlF08YnrTIf6woIdbg0nrPr3vsOtK8Lfl4ZDCg3l5s8vftEf_SofzCujOr2QN1zjuFYcclCrIqrCUuurMJxhRpumlNhmQIueXoQ8Tf03Nl7YW0jHfxYKwPI7gQLKZxZq08obXhx2v4CfmcSDuvakGIADooHxvsIa8H81wxH7mf9iRgZJCyzfJuPmkzokKpogiNb4AD1_Sxw9iYWtB"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32">
+<!-- Hero: Trending Now -->
+<section class="mb-stack-lg">
+<div class="px-margin-mobile mb-stack-sm flex justify-between items-end">
+<h2 class="font-label-caps text-label-caps text-primary uppercase">Trending Now</h2>
+<span class="text-secondary font-metadata text-metadata">See All</span>
+</div>
+<div class="flex gap-4 overflow-x-auto no-scrollbar px-margin-mobile snap-x">
+<!-- Movie Card 1 -->
+<div class="flex-none w-[200px] snap-start group">
+<div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 crimson-glow bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A moody, cinematic film poster for a psychological thriller, featuring a lone figure standing in a neon-lit rain-slicked alleyway. The atmosphere is deep noir, dominated by shadows and rich blacks, with sharp crimson red neon accents reflecting on wet pavement. The composition uses a vertical 2:3 aspect ratio, typical of high-end independent cinema promotion." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFt0-n2sUT7crqYEmdnama2E5ZGtuujWBjlsFbCawt0rphFKMF2ujJy44NfdcoEOrt4PsOVtRYj_n-_y6RB9Nmw7bOtsrFwiT9hFUYbhtj-btHDWYr9L3frhOMhlbqdUhTgUI0nYsQ57ZOVhLlxwfe6bhl_yhXpNCLV-OcRoqSJ8mSK3EMXrCCc1sxBJ2TS-JxmHmc_FHFVRE71xrZHd49sgBqFhdmFZcDxWEdHGUCQb4I4czMdyOymvt7LkViEi7361bjE7SuTVvv"/>
+<div class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 rounded-full bg-surface/80 backdrop-blur-md border border-white/10">
+<div class="relative w-8 h-8 rounded-full circle-score-gradient" style="--percentage: 88%;">
+<div class="absolute inset-[2px] rounded-full bg-surface-dim flex items-center justify-center">
+<span class="font-title-sm text-[10px] text-on-surface">88</span>
+</div>
+</div>
+</div>
+</div>
+<h3 class="text-on-surface font-title-sm text-title-sm truncate">Neon Echoes</h3>
+<p class="text-secondary font-metadata text-metadata">2023</p>
+</div>
+<!-- Movie Card 2 -->
+<div class="flex-none w-[200px] snap-start group">
+<div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 crimson-glow bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A minimalist film poster for a modern drama, showing a silhouette of a person looking out of a large floor-to-ceiling window onto a foggy, monochrome city skyline. The color palette is strictly deep grays and blacks with a single thin horizontal line of crimson light across the center. The style is atmospheric, high-contrast, and feels like an A24 production." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsnQIRUN0Q24vWykh49bp95FryrDTPNlFZ89NjY8sXgxyy1NwzeeO-zKu-xx08pbqmxGGfNActJo8mIyrw5Ird7slpsgRnPHjpMP1S-0x2zHgpYUJa4DrpzvonMg4N2WZSu2GYIHXz2g093M_h0lp-MlWr1_DC9h-K-HX9c9gwsXH3V1Wys8hCvWuEfbIKsvvrbQ8q9ipJnKuo27EHG_l77edf0DBRPDTVEQC32Y-6WdyC6Kvar6zFzunbARQ8Xqm-Sb3-8rANPLcE"/>
+<div class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 rounded-full bg-surface/80 backdrop-blur-md border border-white/10">
+<div class="relative w-8 h-8 rounded-full circle-score-gradient" style="--percentage: 94%;">
+<div class="absolute inset-[2px] rounded-full bg-surface-dim flex items-center justify-center">
+<span class="font-title-sm text-[10px] text-on-surface">94</span>
+</div>
+</div>
+</div>
+</div>
+<h3 class="text-on-surface font-title-sm text-title-sm truncate">The Silent Hour</h3>
+<p class="text-secondary font-metadata text-metadata">2024</p>
+</div>
+<!-- Movie Card 3 -->
+<div class="flex-none w-[200px] snap-start group">
+<div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-3 crimson-glow bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A cinematic film poster featuring an abstract close-up of a human eye, with swirling galaxies reflected in the pupil. The lighting is low-key, focused on texture and depth, with a vibrant crimson glow emanating from the edges of the frame. The overall mood is mysterious and grand, adhering to a premium indie film aesthetic with dark, rich tonal values." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-b82ZfOeLPhsvXumgKYGsPuTeGmCGqnB_GuBaPc2TedO-qv12ucSIaPM782HTy3n63vm9mUoMk6D1wimj4xvPZSf03B25F07hFBeD5zdHFQC4BPu3QboT8z4YhEZOngpbZiWYeg4RFDTke17UoZS0-WsaHTZZhIxg2OGO6WefC_6_BdVtC_pm5W7XME4sYEsUrc8mxJFmHJegHVLnfnal95tz0WfUjRsI6W6OszR4WNIu81eUYs6fbLF67wdtl1E1QMDsVE-HnW8m"/>
+<div class="absolute top-2 right-2 flex items-center justify-center w-10 h-10 rounded-full bg-surface/80 backdrop-blur-md border border-white/10">
+<div class="relative w-8 h-8 rounded-full circle-score-gradient" style="--percentage: 79%;">
+<div class="absolute inset-[2px] rounded-full bg-surface-dim flex items-center justify-center">
+<span class="font-title-sm text-[10px] text-on-surface">79</span>
+</div>
+</div>
+</div>
+</div>
+<h3 class="text-on-surface font-title-sm text-title-sm truncate">Fragments of Mars</h3>
+<p class="text-secondary font-metadata text-metadata">2023</p>
+</div>
+</div>
+</section>
+<!-- Section: Upcoming This Month -->
+<section class="mb-stack-lg">
+<div class="px-margin-mobile mb-stack-sm">
+<h2 class="font-label-caps text-label-caps text-primary uppercase">Upcoming This Month</h2>
+</div>
+<div class="px-margin-mobile">
+<div class="relative w-full aspect-[16/9] rounded-lg overflow-hidden mb-4 group">
+<img class="w-full h-full object-cover" data-alt="A wide cinematic landscape shot of an old European theater's velvet red curtains partially open, revealing a glow from the screen within. The lighting is atmospheric and moody, with dust motes dancing in shafts of soft white light. The aesthetic is luxurious, quiet, and evocative of classical cinema, utilizing a deep crimson and charcoal color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5Nx1sr61ssVLlrAATn57xvBFX4yzYxQCU4HiFgNTxnNS0-qprj0tpOdw16ZS4cRhB7Wa7VCNxC3LAVe1wp3FqTOjydF7zgi3xaSk0cqZZP9Fb0ccjsZD9ga65D8Aa0c3R20ZORhDEM8lmque6jjpcVG2OjT_KmYRjf6VCiZpr76Nh0sxt5R32XdfBtBNdDTf7oDJOKZSoptgvhZIIXe35SH3YNcJR0HMjES2hTR_f2e63zxpcqaI9USnNcFB7xUHC7KyRWr1_X7NG"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4">
+<span class="px-2 py-1 bg-primary-container text-on-primary-container font-label-caps text-[10px] rounded mb-2 inline-block">PREMIERE OCT 24</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">The Red Curtain</h3>
+<p class="font-metadata text-metadata text-secondary">A masterpiece of suspense and heritage.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Independent Films -->
+<section class="mb-stack-lg">
+<div class="px-margin-mobile mb-stack-sm flex justify-between items-end">
+<h2 class="font-label-caps text-label-caps text-primary uppercase">Independent Films</h2>
+<span class="text-secondary font-metadata text-metadata">Explore</span>
+</div>
+<div class="flex gap-4 overflow-x-auto no-scrollbar px-margin-mobile snap-x">
+<!-- Movie Card 4 -->
+<div class="flex-none w-[160px] snap-start group">
+<div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-2 crimson-glow bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A minimalist indie film poster showing a close-up of a vintage film projector in a dark room. A single beam of light cuts through the darkness, illuminating swirling dust. The color grading is cool-toned charcoal with a small, glowing crimson power indicator light. The mood is nostalgic, artisanal, and sophisticated, reflecting high-end film production." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtVCxa2oUYh-u53c4jru6D8CMFdjZmnJxNjtw10ZYUl_R4W7UuJK84-Z8GJNbadhFcxaq7OYIwCzbafXoD9CC0CVOGuXFhN-2JMhZsXtT9OflM2lZZBf4RvupcONFyxfXuPGMoRFroFtx0FTCWFjSAIwajBxE-1mMoWPY43LWoOcEIGIYN2H9Yh7HPp8gvzExjCRdtB6HAr5HbUDKGpBIjmJ6CqJkwLiXk8wkaGiOmxCP-V6Ne40MGhCHyrf1tgSvi0dxDXiwZKnW4"/>
+</div>
+<h3 class="text-on-surface font-title-sm text-title-sm truncate text-sm">Projector</h3>
+<p class="text-secondary font-metadata text-metadata text-xs">2022</p>
+</div>
+<!-- Movie Card 5 -->
+<div class="flex-none w-[160px] snap-start group">
+<div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-2 crimson-glow bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="A moody cinematic poster showing an empty vintage cafe at night, shot through a window with rain droplets. A single red neon sign glows dimly in the background. The aesthetic is lonely yet beautiful, utilizing a film noir lighting style with deep shadows and soft crimson light spills. The focus is sharp on the raindrops and blurred on the interior." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAV2Mf0nJ1fPTlLbB5oWbhmbT-uZtdBV6TH0dDLbFuqF2CsRo3b6CxBWJ2WQhXFPrFbftXqpsC6WVQ9piSd40FdkYyRzRek2zC_lPcU5Nw8nqPjyqxEzIKIkoXwqvzXQeGZf9mjVY2QLTfj3HsKkoQITVxeo-uMLiG8Ue1wIp9hYIrD9ZxaaPvzH8X4sBJSXU2B3tNh0vBxkkkYjwuV0_Itf2p4NmyQ10x4TkBSgMXcakDqHFtZMAf1r1JjIbujY-8RWzPGp9--fnvv"/>
+</div>
+<h3 class="text-on-surface font-title-sm text-title-sm truncate text-sm">Rainy Cafe</h3>
+<p class="text-secondary font-metadata text-metadata text-xs">2024</p>
+</div>
+<!-- Movie Card 6 -->
+<div class="flex-none w-[160px] snap-start group">
+<div class="relative aspect-[2/3] rounded-lg overflow-hidden mb-2 crimson-glow bg-surface-container">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="An abstract independent film poster showing distorted reflections of city lights in a dark river at night. The lighting is high-contrast, with deep blacks and vibrant crimson and white light streaks. The style is avant-garde and cinematic, emphasizing atmosphere and texture over literal subjects. It captures the essence of experimental independent cinema." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfDFpR-Jvd3MOBUNqxj-auksYHvfmnS0jfyjl1nUhJFzn9KRihaYSF8kbjdYLtczjmgnBV6fBDdaeDo8Awxh4Ei7_vRvXxMJG23-ZcfKbRqI-1hSKSrznlcrKjgNiWt04IvAbg5OediSFLHamhn-1_bFDqJHpEJ6N29jwnxzZteR6ld5w-sXz_L7gJBtoeevu1mJtkFmTjnv1KOCEmrCxNnlBoRNr8lc87XIBJHlZRUR-4cEXnOzI2B4FK9yf_74EJJKW9eUWpmPT6"/>
+</div>
+<h3 class="text-on-surface font-title-sm text-title-sm truncate text-sm">Distortion</h3>
+<p class="text-secondary font-metadata text-metadata text-xs">2023</p>
+</div>
+</div>
+</section>
+<!-- Section: Genre Rows (Pills) -->
+<section class="mb-stack-lg">
+<div class="px-margin-mobile mb-stack-sm">
+<h2 class="font-label-caps text-label-caps text-primary uppercase">Browse by Genre</h2>
+</div>
+<div class="flex gap-2 overflow-x-auto no-scrollbar px-margin-mobile pb-2">
+<button class="flex-none px-6 py-2 rounded-full glass-card text-on-surface font-metadata text-metadata border border-white/10 hover:border-primary/50 transition-colors">Noir</button>
+<button class="flex-none px-6 py-2 rounded-full glass-card text-on-surface font-metadata text-metadata border border-white/10 hover:border-primary/50 transition-colors">Experimental</button>
+<button class="flex-none px-6 py-2 rounded-full glass-card text-on-surface font-metadata text-metadata border border-white/10 hover:border-primary/50 transition-colors">Drama</button>
+<button class="flex-none px-6 py-2 rounded-full glass-card text-on-surface font-metadata text-metadata border border-white/10 hover:border-primary/50 transition-colors">Thriller</button>
+<button class="flex-none px-6 py-2 rounded-full glass-card text-on-surface font-metadata text-metadata border border-white/10 hover:border-primary/50 transition-colors">Shorts</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-surface-container-low/90 backdrop-blur-md rounded-t-lg shadow-lg md:hidden">
+<!-- Home Active -->
+<a class="flex flex-col items-center justify-center text-primary bg-primary-container/20 rounded-xl px-4 py-2 scale-90 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="movie" style="font-variation-settings: 'FILL' 1;">movie</span>
+<span class="font-metadata text-metadata">Home</span>
+</a>
+<!-- Discover -->
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-fixed-dim" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="font-metadata text-metadata">Discover</span>
+</a>
+<!-- Community -->
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-fixed-dim" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-metadata text-metadata">Community</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-secondary hover:text-primary-fixed-dim" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-metadata text-metadata">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for active nav states and scroll reveals
+        document.querySelectorAll('nav a').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // If it was a real app, we'd handle navigation here
+                // For demo, just showing the active state toggle logic
+            });
+        });
+
+        // Atmospheric parallax or fade-in effect on scroll
+        const sections = document.querySelectorAll('section');
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100');
+                    entry.target.classList.remove('opacity-0', 'translate-y-4');
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            section.classList.add('transition-all', 'duration-700', 'opacity-0', 'translate-y-4');
+            observer.observe(section);
+        });
+    </script>
+</body></html>

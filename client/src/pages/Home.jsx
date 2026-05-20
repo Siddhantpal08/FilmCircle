@@ -2,20 +2,19 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { movieService } from '../services';
 import MovieCard from '../components/movie/MovieCard';
-import Loader from '../components/common/Loader';
 import SkeletonCard from '../components/common/SkeletonCard';
 
-const CATEGORY_ROWS = ['Marvel', 'Batman', 'Star Wars', 'Harry Potter'];
+const CATEGORY_ROWS = ['Action', 'Romance', 'Thriller', 'Horror', 'Comedy'];
 
 const QUERY_CHIPS = [
-    { label: '🦸‍♂️ Marvel', q: 'Marvel' },
-    { label: '🦇 Batman', q: 'Batman' },
-    { label: '✨ Star Wars', q: 'Star Wars' },
-    { label: '🧙‍♂️ Harry Potter', q: 'Harry Potter' },
-    { label: '🏎️ Fast & Furious', q: 'Fast and Furious' },
-    { label: '🦖 Jurassic', q: 'Jurassic' },
-    { label: '🕷️ Spider-Man', q: 'Spider-Man' },
-    { label: '💍 Lord of the Rings', q: 'Lord of the Rings' },
+    { label: 'Action', q: 'Action' },
+    { label: 'Romance', q: 'Romance' },
+    { label: 'Thriller', q: 'Thriller' },
+    { label: 'Horror', q: 'Horror' },
+    { label: 'Sci-Fi', q: 'Sci-Fi' },
+    { label: 'Drama', q: 'Drama' },
+    { label: 'Comedy', q: 'Comedy' },
+    { label: 'Noir', q: 'Noir' },
 ];
 
 function HorizontalScroll({ children }) {
@@ -41,7 +40,7 @@ function HorizontalScroll({ children }) {
 
     const scroll = (dir) => {
         const el = ref.current;
-        if (el) el.scrollBy({ left: dir * 480, behavior: 'smooth' });
+        if (el) el.scrollBy({ left: dir * 500, behavior: 'smooth' });
     };
 
     return (
@@ -49,7 +48,7 @@ function HorizontalScroll({ children }) {
             {canLeft && (
                 <button className="hscroll-arrow hscroll-arrow-left" onClick={() => scroll(-1)} aria-label="Scroll left">‹</button>
             )}
-            <div className="hscroll-track" ref={ref}>
+            <div className="hscroll-track scroller-mask" ref={ref}>
                 {children}
             </div>
             {canRight && (
@@ -89,7 +88,6 @@ export default function Home() {
                 if (status === 503) setTrendingError('OMDB API key not configured — trending movies unavailable.');
                 else setTrendingError('Could not load trending movies.');
             }
-            
             const cats = {};
             catRes.forEach((res, index) => {
                 if (res.status === 'fulfilled' && res.value.data?.results) {
@@ -123,17 +121,25 @@ export default function Home() {
 
                 {/* Hero (no query) */}
                 {!query && (
-                    <div className="hero section" style={{ paddingBottom: '0' }}>
-                        <div className="hero-text">
-                            <h1>Where cinephiles <span style={{ color: 'var(--clr-primary)' }}>connect</span>.</h1>
-                            <p style={{ fontSize: '1.1rem', marginTop: '0.75rem', maxWidth: '520px' }}>
-                                Discover films. Share your opinion. Join the circle. No star ratings — just honest, clear sentiment.
-                            </p>
-                            <div className="opinion-legend">
-                                {[['⏭️', 'Skip', 'skip'], ['🤔', 'Considerable', 'considerable'], ['✅', 'Go For It', 'goForIt'], ['⭐', 'Excellent', 'excellent']].map(([e, l, k]) => (
-                                    <span key={k} className={`legend-tag op-${k}`}>{e} {l}</span>
-                                ))}
-                            </div>
+                    <div className="home-hero section">
+                        <span className="home-hero-label text-label-caps">Premium Cinema Discovery</span>
+                        <h1 className="home-hero-title">
+                            Where Cinephiles <span className="home-hero-accent">Connect</span>.
+                        </h1>
+                        <p className="home-hero-sub">
+                            Discover films. Share your honest opinion. Join the circle. No star ratings — just clear, human sentiment.
+                        </p>
+                        <div className="opinion-legend">
+                            {[
+                                ['#c0392b', 'Perfection'],
+                                ['#ffb4a9', 'Go For It'],
+                                ['#454747', 'Timepass'],
+                                ['#555', 'Skip'],
+                            ].map(([color, label]) => (
+                                <span key={label} className="legend-tag" style={{ borderColor: color, color }}>
+                                    {label}
+                                </span>
+                            ))}
                         </div>
                     </div>
                 )}
@@ -148,7 +154,7 @@ export default function Home() {
                             <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>✕ Clear</button>
                         </div>
 
-                        {/* Quick filter chips while viewing search */}
+                        {/* Genre filter chips */}
                         <div className="chip-row" style={{ marginBottom: '1.5rem' }}>
                             {QUERY_CHIPS.map(({ label, q: cq }) => (
                                 <button
@@ -162,7 +168,7 @@ export default function Home() {
                         </div>
 
                         {loading && (
-                            <div className="grid-auto">
+                            <div className="grid-movies">
                                 {Array(8).fill().map((_, i) => <SkeletonCard key={i} />)}
                             </div>
                         )}
@@ -171,35 +177,34 @@ export default function Home() {
                             <div className="empty-state">
                                 <div className="icon">🎬</div>
                                 <p>No movies found for "{query}"</p>
-                                <p style={{ fontSize: '0.85rem', marginTop: '0.4rem' }}>Try a different spelling or browse a category above.</p>
                             </div>
                         )}
-                        <div className="grid-auto">
+                        <div className="grid-movies">
                             {results.map(m => <MovieCard key={m.imdbID} movie={m} />)}
                         </div>
                     </section>
                 )}
 
-                {/* Home content (trending + indie) */}
+                {/* Home content */}
                 {!query && (
                     <>
                         {homeLoading ? (
                             <section className="section">
-                                <div style={{ height: '1.5rem', width: '200px', background: 'var(--clr-surface-2)', borderRadius: '6px', marginBottom: '1.5rem' }} />
+                                <div className="skeleton" style={{ height: '1.5rem', width: '200px', marginBottom: '1.5rem' }} />
                                 <div className="hscroll-track">
-                                    {Array(8).fill().map((_, i) => (
-                                        <div key={i} style={{ minWidth: '180px' }}><SkeletonCard /></div>
+                                    {Array(6).fill().map((_, i) => (
+                                        <div key={i} style={{ minWidth: '160px' }}><SkeletonCard /></div>
                                     ))}
                                 </div>
                             </section>
                         ) : (
                             <>
-                                {/* Trending Section — horizontal scroll */}
+                                {/* Trending Section */}
                                 {trending.length > 0 && (
-                                    <section className="section" style={{ marginTop: '2rem' }}>
-                                        <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-                                            <h2>🔥 Trending Now</h2>
-                                            <span style={{ fontSize: '0.82rem', color: 'var(--clr-text-muted)' }}>Scroll to explore →</span>
+                                    <section className="section" style={{ marginTop: '1rem' }}>
+                                        <div className="section-header">
+                                            <h2 className="text-headline-md">Trending Now</h2>
+                                            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/?q=trending')}>View All →</button>
                                         </div>
                                         <HorizontalScroll>
                                             {trending.map(m => (
@@ -211,15 +216,18 @@ export default function Home() {
                                     </section>
                                 )}
                                 {trendingError && !trending.length && (
-                                    <div className="alert alert-error" style={{ marginBottom: '1.5rem', marginTop: '2rem' }}>{trendingError}</div>
+                                    <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>{trendingError}</div>
                                 )}
 
                                 {/* Independent Films Section */}
                                 {indie.length > 0 && (
                                     <section className="section">
-                                        <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-                                            <h2>🎥 Independent Films</h2>
-                                            <Link to="/upload" className="btn btn-outline btn-sm">Upload Yours →</Link>
+                                        <div className="section-header">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <h2 className="text-headline-md">Independent Films</h2>
+                                                <span className="badge badge-tertiary">Indie</span>
+                                            </div>
+                                            <Link to="/upload" className="btn btn-ghost btn-sm">Upload Yours →</Link>
                                         </div>
                                         <HorizontalScroll>
                                             {indie.map(m => (
@@ -238,14 +246,10 @@ export default function Home() {
                                 {CATEGORY_ROWS.map(cat => {
                                     const movies = categoryRows[cat];
                                     if (!movies || movies.length === 0) return null;
-                                    
-                                    const emoji = QUERY_CHIPS.find(q => q.q === cat)?.label.split(' ')[0] || '🍿';
-                                    const label = cat;
-
                                     return (
                                         <section key={cat} className="section">
-                                            <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
-                                                <h2>{emoji} {label}</h2>
+                                            <div className="section-header">
+                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>{cat}</h2>
                                                 <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/?q=${encodeURIComponent(cat)}`)}>View All →</button>
                                             </div>
                                             <HorizontalScroll>
@@ -259,7 +263,6 @@ export default function Home() {
                                     );
                                 })}
 
-                                {/* CTA when nothing loaded */}
                                 {trending.length === 0 && indie.length === 0 && (
                                     <div className="empty-state">
                                         <div className="icon">🍿</div>
@@ -274,72 +277,80 @@ export default function Home() {
             </div>
 
             <style>{`
-        /* Hero */
-        .hero { padding: 3rem 0 1rem; }
-        .opinion-legend { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
-        .legend-tag { padding: 0.35rem 1rem; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; background: var(--clr-surface-2); }
-        .op-skip { color: var(--op-skip); }
-        .op-considerable { color: var(--op-considerable); }
-        .op-goForIt { color: var(--op-goforit); }
-        .op-excellent { color: var(--op-excellent); }
+                /* Hero */
+                .home-hero { padding: 2.5rem 0 1.5rem; }
+                .home-hero-label { color: var(--clr-primary); display: block; margin-bottom: 1rem; }
+                .home-hero-title { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--clr-on-surface); margin-bottom: 1rem; }
+                .home-hero-accent { color: var(--clr-primary); }
+                .home-hero-sub { font-size: 1.05rem; color: var(--clr-secondary); max-width: 520px; line-height: 1.6; }
+                .opinion-legend { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+                .legend-tag {
+                    padding: 0.3rem 1rem;
+                    border-radius: var(--radius-full);
+                    font-size: 0.78rem;
+                    font-weight: 700;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    border: 1.5px solid;
+                    background: transparent;
+                }
 
-        /* Query Chips */
-        .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .query-chip {
-            padding: 0.4rem 1rem;
-            border-radius: var(--radius-full);
-            border: 1.5px solid var(--clr-border);
-            background: var(--clr-surface-2);
-            color: var(--clr-text-muted);
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .query-chip:hover { border-color: var(--clr-primary); color: var(--clr-primary); background: rgba(124,92,252,0.1); transform: translateY(-1px); }
-        .query-chip-active { border-color: var(--clr-primary) !important; color: var(--clr-primary) !important; background: rgba(124,92,252,0.15) !important; }
+                /* Section header */
+                .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem; }
 
-        /* Horizontal Scroll Track */
-        .hscroll-track {
-            display: flex;
-            gap: 1.25rem;
-            overflow-x: auto;
-            padding-bottom: 1rem;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: var(--clr-border) transparent;
-        }
-        .hscroll-track::-webkit-scrollbar { height: 4px; }
-        .hscroll-track::-webkit-scrollbar-track { background: transparent; }
-        .hscroll-track::-webkit-scrollbar-thumb { background: var(--clr-border); border-radius: 2px; }
-        .hscroll-item {
-            flex: 0 0 160px;
-            scroll-snap-align: start;
-        }
+                /* Query Chips */
+                .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+                .query-chip {
+                    padding: 0.35rem 1rem;
+                    border-radius: var(--radius-full);
+                    border: 1.5px solid rgba(89,65,61,0.3);
+                    background: var(--clr-surface-container);
+                    color: var(--clr-secondary);
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    white-space: nowrap;
+                    letter-spacing: 0.03em;
+                }
+                .query-chip:hover { border-color: var(--clr-primary-container); color: var(--clr-primary); background: rgba(192,57,43,0.08); transform: translateY(-1px); }
+                .query-chip-active { border-color: var(--clr-primary-container) !important; color: var(--clr-primary) !important; background: rgba(192,57,43,0.12) !important; }
 
-        /* Arrow Buttons */
-        .hscroll-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 10;
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            border: 1.5px solid var(--clr-border);
-            background: var(--clr-surface);
-            color: var(--clr-text);
-            font-size: 1.5rem;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
-        }
-        .hscroll-arrow:hover { border-color: var(--clr-primary); color: var(--clr-primary); background: rgba(124,92,252,0.1); }
-        .hscroll-arrow-left { left: -20px; }
-        .hscroll-arrow-right { right: -20px; }
-      `}</style>
+                /* Horizontal Scroll */
+                .hscroll-track {
+                    display: flex;
+                    gap: 1.25rem;
+                    overflow-x: auto;
+                    padding-bottom: 1rem;
+                    scroll-snap-type: x mandatory;
+                    -webkit-overflow-scrolling: touch;
+                }
+                .hscroll-track::-webkit-scrollbar { height: 3px; }
+                .hscroll-track::-webkit-scrollbar-thumb { background: var(--clr-outline-variant); border-radius: 2px; }
+                .hscroll-item { flex: 0 0 170px; scroll-snap-align: start; }
+
+                /* Arrow Buttons */
+                .hscroll-arrow {
+                    position: absolute;
+                    top: 40%;
+                    transform: translateY(-50%);
+                    z-index: 10;
+                    width: 38px; height: 38px;
+                    border-radius: 50%;
+                    border: 1px solid rgba(89,65,61,0.3);
+                    background: var(--clr-surface-container);
+                    color: var(--clr-on-surface);
+                    font-size: 1.5rem;
+                    display: flex; align-items: center; justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+                    backdrop-filter: blur(8px);
+                }
+                .hscroll-arrow:hover { border-color: var(--clr-primary-container); color: var(--clr-primary); background: rgba(192,57,43,0.15); }
+                .hscroll-arrow-left { left: -18px; }
+                .hscroll-arrow-right { right: -18px; }
+            `}</style>
         </main>
     );
 }

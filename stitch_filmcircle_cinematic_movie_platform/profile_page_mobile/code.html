@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+        /* Global Reset & Scrollbar Hiding */
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        *::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            background-color: #121414;
+            color: #e3e2e2;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .cinematic-gradient {
+            background: linear-gradient(180deg, rgba(18, 20, 20, 0) 0%, rgba(18, 20, 20, 0.9) 100%);
+        }
+        .active-tab {
+            color: #ffb4a9;
+            border-bottom: 2px solid #ffb4a9;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#ffb4a9",
+                      "on-primary-container": "#ffe5e1",
+                      "inverse-primary": "#b02d21",
+                      "on-error-container": "#ffdad6",
+                      "on-secondary-fixed": "#3c0704",
+                      "on-primary-fixed": "#410000",
+                      "surface-tint": "#ffb4a9",
+                      "secondary": "#ffb4a9",
+                      "secondary-container": "#79342b",
+                      "surface-dim": "#121414",
+                      "surface-container-high": "#292a2a",
+                      "on-secondary-fixed-variant": "#763229",
+                      "tertiary-container": "#007296",
+                      "primary-fixed": "#ffdad5",
+                      "surface-variant": "#343535",
+                      "secondary-fixed-dim": "#ffb4a9",
+                      "tertiary-fixed": "#c0e8ff",
+                      "on-tertiary-container": "#d3eeff",
+                      "on-secondary": "#591c15",
+                      "on-surface-variant": "#e1bfb9",
+                      "outline": "#a88a85",
+                      "on-tertiary-fixed": "#001e2b",
+                      "surface-bright": "#383939",
+                      "primary-container": "#c0392b",
+                      "error-container": "#93000a",
+                      "on-tertiary": "#003548",
+                      "inverse-surface": "#e3e2e2",
+                      "surface-container": "#1f2020",
+                      "surface": "#121414",
+                      "secondary-fixed": "#ffdad5",
+                      "on-primary": "#690001",
+                      "inverse-on-surface": "#303031",
+                      "error": "#ffb4ab",
+                      "surface-container-highest": "#343535",
+                      "on-secondary-container": "#fe9f91",
+                      "surface-container-low": "#1b1c1c",
+                      "surface-container-lowest": "#0d0e0f",
+                      "background": "#121414",
+                      "on-error": "#690005",
+                      "on-surface": "#e3e2e2",
+                      "outline-variant": "#59413d",
+                      "primary-fixed-dim": "#ffb4a9",
+                      "on-primary-fixed-variant": "#8e130c",
+                      "tertiary": "#80d0f8",
+                      "on-tertiary-fixed-variant": "#004d66",
+                      "on-background": "#e3e2e2",
+                      "tertiary-fixed-dim": "#80d0f8"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "section-gap": "80px",
+                      "gutter": "24px",
+                      "container-margin-desktop": "64px",
+                      "base-unit": "8px",
+                      "container-margin-mobile": "20px"
+              },
+              "fontFamily": {
+                      "body-base": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "metadata": ["Inter"],
+                      "display-lg-mobile": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-02em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "metadata": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-01em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-base">
+<!-- Top Bar Navigation (Shared Component Integration) -->
+<header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+<div class="flex justify-between items-center w-full h-16 px-container-margin-mobile">
+<span class="font-headline-md text-headline-md font-black text-on-surface">FilmCircle</span>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface" data-icon="search">search</span>
+<span class="material-symbols-outlined text-on-surface" data-icon="notifications">notifications</span>
+</div>
+</div>
+</header>
+<main class="min-h-screen pb-24">
+<!-- Hero Profile Section -->
+<section class="px-container-margin-mobile pt-8 pb-6 flex flex-col items-center text-center">
+<div class="relative mb-4">
+<div class="w-32 h-32 rounded-full border-2 border-primary-container p-1 bg-surface-container">
+<img alt="Aryan Mehta" class="w-full h-full rounded-full object-cover" data-alt="A high-quality studio portrait of a young South Asian man with short dark hair and a confident expression. The lighting is dramatic and cinematic, with strong highlights and deep shadows against a charcoal gray background. The overall aesthetic is professional, minimalist, and high-contrast, fitting a premium film-focused social platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv9eQ8jPR5PuQ90-QWvdkiwcjhN4a4mc4D7dnhi4XqQn9kdYt5O8BFdyz7tOKMKLOj3mQ7US7baFzZILQLoL_SCmjfC4WY5kZfc0kSdmrX_D3wN8B3L4ezb5GhbNjfsxHuAgjLtHp4h6Z1tQWlOV6NtnZ-ng8ueUN6Y4jFhs66FDoaWm0i7vVDz_l_a-DjKbOSes-fOKbE465ZbAag-o8nsioA8cd2qIq8pr7so6l-8ARwys11ogemz90uqs-e0w_mZklHjtPkIMc"/>
+</div>
+<div class="absolute bottom-1 right-1 bg-primary p-1.5 rounded-full border-2 border-surface">
+<span class="material-symbols-outlined text-[16px] text-on-primary" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<h1 class="font-headline-sm text-headline-sm mb-0.5">Aryan Mehta</h1>
+<p class="font-metadata text-metadata text-on-surface-variant mb-4">@aryanm</p>
+<p class="font-body-base text-body-base max-w-xs mb-6 text-on-surface/80">
+                Cinematography geek. Noir enthusiast. Criterion Collection collector. Seeking the perfect frame.
+            </p>
+<!-- Stats Bar -->
+<div class="flex gap-8 mb-8 border-y border-outline-variant/20 py-4 w-full justify-center">
+<div class="flex flex-col">
+<span class="font-bold text-lg text-on-surface">142</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">REVIEWS</span>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-lg text-on-surface">1.2k</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">FOLLOWERS</span>
+</div>
+<div class="flex flex-col">
+<span class="font-bold text-lg text-on-surface">840</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">FOLLOWING</span>
+</div>
+</div>
+<button class="w-full py-3 px-6 bg-primary-container text-on-primary-container font-label-caps text-label-caps rounded-lg transition-transform active:scale-95 shadow-lg">
+                EDIT PROFILE
+            </button>
+</section>
+<!-- Tabs Navigation -->
+<nav class="sticky top-16 z-40 bg-surface border-b border-outline-variant/20">
+<div class="flex justify-around">
+<button class="py-4 px-2 font-label-caps text-label-caps active-tab transition-colors" id="tab-reviews" onclick="switchTab('reviews')">REVIEWS</button>
+<button class="py-4 px-2 font-label-caps text-label-caps text-on-surface-variant transition-colors" id="tab-collections" onclick="switchTab('collections')">COLLECTIONS</button>
+<button class="py-4 px-2 font-label-caps text-label-caps text-on-surface-variant transition-colors" id="tab-interested" onclick="switchTab('interested')">INTERESTED IN</button>
+</div>
+</nav>
+<!-- Content Area -->
+<section class="px-container-margin-mobile mt-8 space-y-6" id="content-area">
+<!-- Review Card 1 -->
+<div class="flex gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/10">
+<div class="shrink-0 w-24 h-36 rounded-lg overflow-hidden shadow-2xl">
+<img alt="Movie Poster" class="w-full h-full object-cover" data-alt="A vintage cinematic movie poster with high-contrast noir lighting and dramatic shadows. The scene depicts a lonely figure under a streetlamp in a rain-slicked alleyway. The visual style is deep charcoal and stark white, with grainy film texture and classic bold typography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL1IrunLegoAk5tNXlsX4VVTb9QUux5QLD_MZXrphTzmKjBkMi7JunTxRS_ISGXWXBjUcutGC5CrGN_JLLPXB_wuS9j4hsLiXI56F_v7ZTVOaGpI3598tUwGDFeUQokYnNqz_LklqoqXZqCDSrs1dHqUx1oqGbc6sdr2EfnSXoVgng0k2WvP2-NqSAU2TYdGlglh_fQURBnhfZlWjTzKXa9J6wnTNFNlQQh90ygfpYatT9VWI6kfegoTJ2ItZAkx2Ltg8ItueNpJY"/>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline-sm text-base leading-tight">Shadows of the City</h3>
+<div class="bg-primary px-2 py-0.5 rounded text-[10px] font-bold text-on-primary">PERFECTION</div>
+</div>
+<p class="font-metadata text-metadata text-on-surface-variant mb-2">Dir: Elias Thorne (1954)</p>
+<p class="font-body-base text-sm line-clamp-3 text-on-surface/70 italic">
+                            "A masterclass in framing. The use of negative space here isn't just stylistic—it's the core of the protagonist's isolation."
+                        </p>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="favorite">favorite</span>
+<span class="text-xs">42</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-xs">8</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Review Card 2 -->
+<div class="flex gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/10">
+<div class="shrink-0 w-24 h-36 rounded-lg overflow-hidden shadow-2xl">
+<img alt="Movie Poster" class="w-full h-full object-cover" data-alt="A modern sci-fi film poster featuring vibrant neon colors against a dark, cosmic background. Geometric light patterns create a sense of futuristic technology and motion. The color palette emphasizes electric blue and crimson red, with a sleek, polished digital aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARxTkAe2TzN9sTx5iytaBs5b_WgiHvEHg3hcLrxo0xuRmY_WVk4sEYrp0U9DkkyeXIYHpFfg6Blfe0NIm-_8wuXwsW-_7GjSmMiW7HDG1i4DcL9CAE2WfRyqDrXedpU_gVgk2AnwNU-x3Wo2al_bj9H3C22dTNSCIulN4GyGBbLKJFbWbF1K8Q9zY_lQ6QIQcgsuvSqHxcpGSifXQtgciWX9tRoaA4Ng9X-mnhUK9_ZCPcUG8-h9XnN8ChCSjBw3S604eDJyy6hjc"/>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline-sm text-base leading-tight">Neon Pulse</h3>
+<div class="bg-surface-container-highest px-2 py-0.5 rounded text-[10px] font-bold text-on-surface">GO FOR IT</div>
+</div>
+<p class="font-metadata text-metadata text-on-surface-variant mb-2">Dir: Sarah Chen (2023)</p>
+<p class="font-body-base text-sm line-clamp-3 text-on-surface/70 italic">
+                            "Visually arresting. The color palette alone is worth the ticket price, even if the second act drags slightly."
+                        </p>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="favorite">favorite</span>
+<span class="text-xs">156</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-xs">24</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Review Card 3 -->
+<div class="flex gap-4 p-4 bg-surface-container-low rounded-xl border border-outline-variant/10">
+<div class="shrink-0 w-24 h-36 rounded-lg overflow-hidden shadow-2xl">
+<img alt="Movie Poster" class="w-full h-full object-cover" data-alt="A minimalist film poster for a quiet indie drama. The composition is simple, featuring a single bicycle leaning against a weathered brick wall in soft, golden hour sunlight. The mood is nostalgic and intimate, with warm tones and a clean, spacious layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTC4s_xvhGCAJN1FUYORoSyQkXonKUZlLSxT2-J_ws09yOKFEUrr6VWTU0m2vfpJ2lvAPuLpnTJ0cwWsrH4Whv4HfsxZ7Tl-bvYxxHswdQx-mlwyiKASh4MAJtRB9MOe8PArCnsU6Xemwwy5WXE4IBiQtSI4a2c8gIgp2keg-UO6LqVLzRqr2jRTGr1hPoufxLsm-IzFWRS0PkoyuZJPtjHePYf4rZJwjdjfQXee2qwnjr01bRDA2aul92PLPAcWnQJ1f5znwNsN4"/>
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-headline-sm text-base leading-tight">The Quiet Road</h3>
+<div class="bg-outline-variant/40 px-2 py-0.5 rounded text-[10px] font-bold text-on-surface">TIMEPASS</div>
+</div>
+<p class="font-metadata text-metadata text-on-surface-variant mb-2">Dir: Marc Ross (2021)</p>
+<p class="font-body-base text-sm line-clamp-3 text-on-surface/70 italic">
+                            "A gentle exploration of grief. It doesn't break new ground, but it's executed with a lot of heart and decent pacing."
+                        </p>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="favorite">favorite</span>
+<span class="text-xs">89</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" data-icon="chat_bubble">chat_bubble</span>
+<span class="text-xs">12</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Shared Component Strategy) -->
+<footer class="fixed bottom-0 left-0 right-0 z-50 bg-surface-container-lowest border-t border-outline-variant/20 md:hidden">
+<div class="flex justify-around items-center h-20 px-gutter">
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-[10px]">HOME</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-caps text-[10px]">EXPLORE</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<div class="w-12 h-12 bg-primary-container rounded-full flex items-center justify-center -mt-8 shadow-xl border-4 border-background">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="add">add</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="movie">movie</span>
+<span class="font-label-caps text-[10px]">CLUBS</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-caps text-[10px]">PROFILE</span>
+</div>
+</div>
+</footer>
+<script>
+        function switchTab(tab) {
+            const buttons = ['tab-reviews', 'tab-collections', 'tab-interested'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (id === `tab-${tab}`) {
+                    btn.classList.add('active-tab');
+                    btn.classList.remove('text-on-surface-variant');
+                } else {
+                    btn.classList.remove('active-tab');
+                    btn.classList.add('text-on-surface-variant');
+                }
+            });
+
+            // Simulate content change
+            const contentArea = document.getElementById('content-area');
+            if (tab !== 'reviews') {
+                contentArea.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-20 text-center">
+                        <span class="material-symbols-outlined text-6xl text-outline-variant/30 mb-4" data-icon="folder_open">folder_open</span>
+                        <h3 class="font-headline-sm text-on-surface-variant">Empty Space</h3>
+                        <p class="font-body-base text-on-surface-variant/60">Aryan hasn't curated this section yet.</p>
+                    </div>
+                `;
+            } else {
+                window.location.reload(); // Quick reset to show initial review list
+            }
+        }
+
+        // Interaction for Edit Profile Button
+        document.querySelector('button').addEventListener('click', function() {
+            this.textContent = 'SAVING...';
+            setTimeout(() => {
+                this.textContent = 'EDIT PROFILE';
+            }, 1000);
+        });
+    </script>
+</body></html>

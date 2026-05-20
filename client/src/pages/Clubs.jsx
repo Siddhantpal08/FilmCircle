@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
 
 const GENRE_FILTERS = ['All', 'Drama', 'Horror', 'Sci-Fi', 'Action', 'Independent', 'Bollywood', 'General'];
-const GENRE_EMOJIS = { Drama: '🎭', Horror: '👻', Thriller: '🕵️', 'Sci-Fi': '🤖', Comedy: '😂', Action: '💥', Romance: '💘', Independent: '🎥', Documentary: '📚', Animation: '🎨', Bollywood: '🎬', International: '🌍', General: '🏛️', All: '✨' };
+const GENRE_EMOJIS = {
+    Drama: '🎭', Horror: '👻', Thriller: '🕵️', 'Sci-Fi': '🤖', Comedy: '😂', Action: '💥',
+    Romance: '💘', Independent: '🎥', Documentary: '📚', Animation: '🎨', Bollywood: '🎬',
+    International: '🌍', General: '🏛️', All: '✨'
+};
 
 function ClubCard({ club, onJoin }) {
     const { isAuthenticated, user } = useAuth();
@@ -15,34 +19,34 @@ function ClubCard({ club, onJoin }) {
     const isJoined = !!currentUserId && club.members?.some(m => m === currentUserId || m._id === currentUserId || m.id === currentUserId);
 
     return (
-        <div 
-            className="club-card card" 
-            style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', cursor: 'pointer' }}
-            onClick={() => navigate(`/clubs/${club._id}`)}
-        >
-            <div className="flex-between" style={{ alignItems: 'flex-start' }}>
-                <h3 style={{ color: 'var(--clr-text)', lineHeight: 1.2, fontSize: '1rem', flex: 1, minWidth: 0 }}>
-                    <span style={{ marginRight: '0.4rem' }}>{emoji}</span>{club.name}
-                </h3>
-                <span className="badge badge-primary" style={{ flexShrink: 0, marginLeft: '0.5rem' }}>{club.genre || 'General'}</span>
+        <div className="club-card" onClick={() => navigate(`/clubs/${club._id}`)}>
+            <div className="club-card-icon">
+                <span style={{ fontSize: '1.25rem' }}>{emoji}</span>
             </div>
-            {club.description && (
-                <p style={{ fontSize: '0.83rem', color: 'var(--clr-text-muted)', WebkitLineClamp: 2, overflow: 'hidden', display: '-webkit-box', WebkitBoxOrient: 'vertical', margin: 0 }}>
-                    {club.description}
-                </p>
-            )}
-            <div className="flex-between" style={{ marginTop: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--clr-text-muted)' }}>
-                    👥 {club.memberCount || club.members?.length || 0} member{(club.memberCount || club.members?.length) !== 1 ? 's' : ''}
-                </span>
-                {isAuthenticated && (
-                    <button 
-                        className={`btn btn-sm ${isJoined ? 'btn-ghost' : 'btn-outline'}`} 
-                        onClick={(e) => { e.stopPropagation(); onJoin(club._id); }}
-                    >
-                        {isJoined ? '✓ Joined' : 'Join'}
-                    </button>
+            <div style={{ padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <h3 style={{ color: 'var(--clr-on-surface)', fontSize: '1rem', fontWeight: 700, lineHeight: 1.3 }}>{club.name}</h3>
+                    <span className="badge badge-primary" style={{ marginLeft: '0.5rem', flexShrink: 0 }}>{club.genre || 'General'}</span>
+                </div>
+                {club.description && (
+                    <p style={{ fontSize: '0.83rem', color: 'var(--clr-secondary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', marginBottom: '1rem', lineHeight: 1.5 }}>
+                        {club.description}
+                    </p>
                 )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--clr-secondary)' }}>
+                        👥 {club.memberCount || club.members?.length || 0} member{(club.memberCount || club.members?.length) !== 1 ? 's' : ''}
+                    </span>
+                    {isAuthenticated && (
+                        <button
+                            className={`btn btn-sm ${isJoined ? 'btn-ghost' : 'btn-outline'}`}
+                            style={{ borderRadius: 'var(--radius-sm)', letterSpacing: '0.05em' }}
+                            onClick={(e) => { e.stopPropagation(); onJoin(club._id); }}
+                        >
+                            {isJoined ? '✓ Joined' : 'Join Club'}
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -99,52 +103,47 @@ export default function Clubs() {
     return (
         <main className="page">
             <div className="container">
-                <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                    <h1>🏛️ Clubs</h1>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                        <input
-                            className="form-input"
-                            style={{ width: '220px' }}
-                            placeholder="Search clubs…"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        />
-                        {isAuthenticated && (
-                            <button className="btn btn-primary" onClick={() => setShowCreate(s => !s)}>
-                                + Create Club
-                            </button>
-                        )}
+                {/* Header */}
+                <div className="clubs-header">
+                    <div>
+                        <h1>Clubs</h1>
+                        <p style={{ color: 'var(--clr-secondary)', marginTop: '0.5rem', maxWidth: 540, fontSize: '0.95rem' }}>
+                            Join niche circles of cinephiles or create your own exclusive community to discuss cinema, host watch parties, and share curated lists.
+                        </p>
                     </div>
+                    {isAuthenticated && (
+                        <button className="btn btn-primary" style={{ padding: '0.85rem 2rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }} onClick={() => setShowCreate(s => !s)}>
+                            + Create Club
+                        </button>
+                    )}
                 </div>
 
-                {/* Genre Filter Chips */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '2rem' }}>
-                    {GENRE_FILTERS.map(g => (
-                        <button
-                            key={g}
-                            onClick={() => setGenreFilter(g)}
-                            style={{
-                                padding: '0.35rem 0.9rem',
-                                borderRadius: '999px',
-                                border: `1.5px solid ${genreFilter === g ? 'var(--clr-primary)' : 'var(--clr-border)'}`,
-                                background: genreFilter === g ? 'rgba(124,92,252,0.15)' : 'var(--clr-surface-2)',
-                                color: genreFilter === g ? 'var(--clr-primary)' : 'var(--clr-text-muted)',
-                                fontSize: '0.8rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                whiteSpace: 'nowrap',
-                            }}
-                        >
-                            {GENRE_EMOJIS[g] || '✨'} {g}
-                        </button>
-                    ))}
+                {/* Search + filter row */}
+                <div className="clubs-toolbar">
+                    <input
+                        className="form-input"
+                        style={{ width: '260px' }}
+                        placeholder="Search clubs…"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                    <div className="chip-row">
+                        {GENRE_FILTERS.map(g => (
+                            <button
+                                key={g}
+                                onClick={() => setGenreFilter(g)}
+                                className={`query-chip ${genreFilter === g ? 'query-chip-active' : ''}`}
+                            >
+                                {GENRE_EMOJIS[g] || '✨'} {g}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Create Club Form */}
                 {showCreate && (
                     <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-                        <h3 style={{ marginBottom: '1rem' }}>Create a New Club</h3>
+                        <h3 style={{ marginBottom: '1rem', color: 'var(--clr-on-surface)' }}>Create a New Club</h3>
                         {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
                         <form onSubmit={handleCreate}>
                             <div className="grid-2">
@@ -182,10 +181,74 @@ export default function Clubs() {
                         <p>No clubs found. {isAuthenticated ? 'Create one above!' : 'Login to create the first club!'}</p>
                     </div>
                 )}
-                <div className="grid-clubs">
+                <div className="clubs-grid">
                     {filtered.map(c => <ClubCard key={c._id} club={c} onJoin={handleJoin} />)}
                 </div>
             </div>
+
+            <style>{`
+                .clubs-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 2.5rem;
+                    flex-wrap: wrap;
+                    gap: 1.5rem;
+                }
+                .clubs-toolbar {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    margin-bottom: 2rem;
+                    flex-wrap: wrap;
+                }
+                .clubs-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr));
+                    gap: 1.5rem;
+                }
+                .club-card {
+                    background: var(--clr-surface-low);
+                    border: 1px solid rgba(89,65,61,0.15);
+                    border-radius: var(--radius);
+                    overflow: hidden;
+                    cursor: pointer;
+                    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .club-card:hover {
+                    border-color: var(--clr-primary-container);
+                    transform: translateY(-3px);
+                    box-shadow: 0 0 20px rgba(192,57,43,0.12);
+                }
+                .club-card-icon {
+                    aspect-ratio: 16/9;
+                    background: linear-gradient(135deg, var(--clr-surface-container) 0%, var(--clr-surface-high) 100%);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 3rem;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .club-card-icon::after {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(to bottom, transparent 50%, rgba(19,19,19,0.6) 100%);
+                }
+                .chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+                .query-chip {
+                    padding: 0.3rem 0.85rem; border-radius: var(--radius-full);
+                    border: 1.5px solid rgba(89,65,61,0.3);
+                    background: var(--clr-surface-container);
+                    color: var(--clr-secondary); font-size: 0.78rem; font-weight: 600;
+                    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+                }
+                .query-chip:hover { border-color: var(--clr-primary-container); color: var(--clr-primary); }
+                .query-chip-active { border-color: var(--clr-primary-container) !important; color: var(--clr-primary) !important; background: rgba(192,57,43,0.1) !important; }
+            `}</style>
         </main>
     );
 }
