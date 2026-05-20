@@ -11,21 +11,32 @@ const GENRE_EMOJIS = {
     International: '🌍', General: '🏛️', All: '✨'
 };
 
+const getClubBanner = (genre) => {
+    const g = (genre || '').toLowerCase();
+    if (g.includes('action')) return '/banners/action.png';
+    if (g.includes('horror')) return '/banners/horror.png';
+    if (g.includes('sci-fi') || g.includes('scifi')) return '/banners/scifi.png';
+    if (g.includes('drama')) return '/banners/drama.png';
+    if (g.includes('independent') || g.includes('indie')) return '/banners/indie.png';
+    return '/banners/default.png';
+};
+
 function ClubCard({ club, onJoin }) {
     const { isAuthenticated, user } = useAuth();
     const navigate = useNavigate();
     const emoji = GENRE_EMOJIS[club.genre] || '🏛️';
     const currentUserId = user?._id || user?.id;
     const isJoined = !!currentUserId && club.members?.some(m => m === currentUserId || m._id === currentUserId || m.id === currentUserId);
+    const banner = getClubBanner(club.genre);
 
     return (
         <div className="club-card" onClick={() => navigate(`/clubs/${club._id}`)}>
-            <div className="club-card-icon">
-                <span style={{ fontSize: '1.25rem' }}>{emoji}</span>
+            <div className="club-card-icon" style={{ backgroundImage: `url(${banner})` }}>
+                <span className="club-emoji-badge">{emoji}</span>
             </div>
-            <div style={{ padding: '1.25rem' }}>
+            <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                    <h3 style={{ color: 'var(--clr-on-surface)', fontSize: '1rem', fontWeight: 700, lineHeight: 1.3 }}>{club.name}</h3>
+                    <h3 style={{ color: 'var(--clr-on-surface)', fontSize: '1rem', fontWeight: 700, lineHeight: 1.3, margin: 0 }}>{club.name}</h3>
                     <span className="badge badge-primary" style={{ marginLeft: '0.5rem', flexShrink: 0 }}>{club.genre || 'General'}</span>
                 </div>
                 {club.description && (
@@ -224,11 +235,11 @@ export default function Clubs() {
                 }
                 .club-card-icon {
                     aspect-ratio: 16/9;
-                    background: linear-gradient(135deg, var(--clr-surface-container) 0%, var(--clr-surface-high) 100%);
+                    background-size: cover;
+                    background-position: center;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 3rem;
                     position: relative;
                     overflow: hidden;
                 }
@@ -236,7 +247,23 @@ export default function Clubs() {
                     content: '';
                     position: absolute;
                     inset: 0;
-                    background: linear-gradient(to bottom, transparent 50%, rgba(19,19,19,0.6) 100%);
+                    background: linear-gradient(to bottom, rgba(15,15,15,0.2) 0%, rgba(15,15,15,0.7) 100%);
+                }
+                .club-emoji-badge {
+                    position: absolute;
+                    bottom: 0.75rem;
+                    left: 0.75rem;
+                    font-size: 1.5rem;
+                    z-index: 2;
+                    background: rgba(15,15,15,0.8);
+                    backdrop-filter: blur(4px);
+                    border: 1px solid rgba(89,65,61,0.3);
+                    border-radius: var(--radius-sm);
+                    width: 36px;
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
                 .chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
                 .query-chip {

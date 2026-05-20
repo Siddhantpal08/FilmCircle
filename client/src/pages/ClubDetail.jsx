@@ -6,6 +6,16 @@ import Loader from '../components/common/Loader';
 
 const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller', 'Romance', 'Documentary', 'Animation', 'General', 'Other'];
 
+const getClubBanner = (genre) => {
+    const g = (genre || '').toLowerCase();
+    if (g.includes('action')) return '/banners/action.png';
+    if (g.includes('horror')) return '/banners/horror.png';
+    if (g.includes('sci-fi') || g.includes('scifi')) return '/banners/scifi.png';
+    if (g.includes('drama')) return '/banners/drama.png';
+    if (g.includes('independent') || g.includes('indie')) return '/banners/indie.png';
+    return '/banners/default.png';
+};
+
 export default function ClubDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -106,60 +116,63 @@ export default function ClubDetail() {
                 {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
 
                 {/* Header */}
-                <div className="card" style={{ padding: '2rem', marginBottom: '2rem' }}>
-                    {editMode ? (
-                        <form onSubmit={handleSaveEdit}>
-                            <h3 style={{ marginBottom: '1rem' }}>Edit Club</h3>
-                            <div className="grid-2" style={{ marginBottom: '1rem' }}>
-                                <div className="form-group">
-                                    <label className="form-label">Club Name *</label>
-                                    <input className="form-input" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Genre</label>
-                                    <select className="form-select" value={editForm.genre} onChange={e => setEditForm(f => ({ ...f, genre: e.target.value }))}>
-                                        {GENRES.map(g => <option key={g}>{g}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Description</label>
-                                <textarea className="form-textarea" rows={2} value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
-                            </div>
-                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-                                <button type="button" className="btn btn-outline" onClick={() => setEditMode(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</button>
-                            </div>
-                        </form>
-                    ) : (
-                        <>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
-                                <div>
-                                    <span className="badge badge-primary" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>{club.genre || 'General'}</span>
-                                    <h1 style={{ margin: 0 }}>{club.name}</h1>
-                                    {club.description && <p style={{ marginTop: '0.5rem', color: 'var(--clr-secondary)' }}>{club.description}</p>}
-                                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--clr-secondary)' }}>
-                                        👥 {club.members?.length} members · Created by <strong>{club.createdBy?.username}</strong>
+                <div className="card" style={{ overflow: 'hidden', padding: 0, marginBottom: '2rem' }}>
+                    <div className="club-detail-banner" style={{ backgroundImage: `url(${getClubBanner(club.genre)})`, height: '160px', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }} />
+                    <div style={{ padding: '2rem' }}>
+                        {editMode ? (
+                            <form onSubmit={handleSaveEdit}>
+                                <h3 style={{ marginBottom: '1rem' }}>Edit Club</h3>
+                                <div className="grid-2" style={{ marginBottom: '1rem' }}>
+                                    <div className="form-group">
+                                        <label className="form-label">Club Name *</label>
+                                        <input className="form-input" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Genre</label>
+                                        <select className="form-select" value={editForm.genre} onChange={e => setEditForm(f => ({ ...f, genre: e.target.value }))}>
+                                            {GENRES.map(g => <option key={g}>{g}</option>)}
+                                        </select>
                                     </div>
                                 </div>
-                                {isCreator && (
-                                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                                        <button className="btn btn-outline btn-sm" onClick={() => setEditMode(true)}>✏️ Edit</button>
-                                        <button className="btn btn-sm" style={{ background: 'rgba(232,69,69,0.15)', color: 'var(--clr-error)', border: '1px solid var(--clr-error)' }} onClick={handleDeleteClub}>🗑 Delete</button>
+                                <div className="form-group">
+                                    <label className="form-label">Description</label>
+                                    <textarea className="form-textarea" rows={2} value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                                    <button type="button" className="btn btn-outline" onClick={() => setEditMode(false)}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</button>
+                                </div>
+                            </form>
+                        ) : (
+                            <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+                                    <div>
+                                        <span className="badge badge-primary" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>{club.genre || 'General'}</span>
+                                        <h1 style={{ margin: 0 }}>{club.name}</h1>
+                                        {club.description && <p style={{ marginTop: '0.5rem', color: 'var(--clr-secondary)' }}>{club.description}</p>}
+                                        <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--clr-secondary)' }}>
+                                            👥 {club.members?.length} members · Created by <strong>{club.createdBy?.username}</strong>
+                                        </div>
+                                    </div>
+                                    {isCreator && (
+                                        <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                                            <button className="btn btn-outline btn-sm" onClick={() => setEditMode(true)}>✏️ Edit</button>
+                                            <button className="btn btn-sm" style={{ background: 'rgba(232,69,69,0.15)', color: 'var(--clr-error)', border: '1px solid var(--clr-error)' }} onClick={handleDeleteClub}>🗑 Delete</button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {memberMsg && <div className="alert alert-success" style={{ marginTop: '1rem' }}>{memberMsg}</div>}
+                                {isAuthenticated && (
+                                    <div style={{ marginTop: '1rem' }}>
+                                        {isMember
+                                            ? <button className="btn btn-outline btn-sm" onClick={handleLeave}>Leave Club</button>
+                                            : <button className="btn btn-primary btn-sm" onClick={handleJoin}>Join Club</button>}
                                     </div>
                                 )}
-                            </div>
-
-                            {memberMsg && <div className="alert alert-success" style={{ marginTop: '1rem' }}>{memberMsg}</div>}
-                            {isAuthenticated && (
-                                <div style={{ marginTop: '1rem' }}>
-                                    {isMember
-                                        ? <button className="btn btn-outline btn-sm" onClick={handleLeave}>Leave Club</button>
-                                        : <button className="btn btn-primary btn-sm" onClick={handleJoin}>Join Club</button>}
-                                </div>
-                            )}
-                        </>
-                    )}
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* Post in Club */}

@@ -124,9 +124,7 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId }) {
                 <button className="comm-action-btn" onClick={() => setShowComments(c => !c)}>
                     💬 <span>{localComments.length}</span>
                 </button>
-                <button className="comm-action-btn">
-                    ↗ <span>Share</span>
-                </button>
+
             </div>
 
             {showComments && (

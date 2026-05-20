@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { movieService, reviewService } from '../services';
+import { movieService, reviewService, bookmarkService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import InfographicChart from '../components/movie/InfographicChart';
 import Loader from '../components/common/Loader';
@@ -173,6 +173,62 @@ export default function MovieDetail() {
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
 
+    const [isBookmarked, setIsBookmarked] = useState(false);
+    const [isInteresting, setIsInteresting] = useState(false);
+
+    useEffect(() => {
+        if (id) {
+            setIsBookmarked(bookmarkService.has(id));
+            const interestingMap = JSON.parse(localStorage.getItem('filmcircle_interesting') || '{}');
+            setIsInteresting(!!interestingMap[id]);
+        }
+    }, [id]);
+
+    const toggleBookmark = () => {
+        if (!movie) return;
+        const rawPoster = movie.Poster && movie.Poster !== 'N/A' ? movie.Poster : (movie.posterUrl || '');
+        const state = bookmarkService.toggle({
+            _id: movie._id,
+            imdbID: movie.imdbID || movie._id,
+            title: movie.Title || movie.title,
+            Title: movie.Title || movie.title,
+            Poster: rawPoster,
+            posterUrl: rawPoster,
+            Year: movie.Year || movie.year || '',
+            year: movie.Year || movie.year || '',
+            Genre: movie.Genre || movie.genre || '',
+            genre: movie.Genre || movie.genre || '',
+            isIndependent: movie.isIndependent
+        });
+        setIsBookmarked(state);
+    };
+
+    const toggleInteresting = () => {
+        if (!id || !movie) return;
+        const rawPoster = movie.Poster && movie.Poster !== 'N/A' ? movie.Poster : (movie.posterUrl || '');
+        const interestingMap = JSON.parse(localStorage.getItem('filmcircle_interesting') || '{}');
+        const nextState = !interestingMap[id];
+        if (nextState) {
+            interestingMap[id] = {
+                _id: movie._id,
+                imdbID: movie.imdbID || movie._id,
+                title: movie.Title || movie.title,
+                Title: movie.Title || movie.title,
+                Poster: rawPoster,
+                posterUrl: rawPoster,
+                Year: movie.Year || movie.year || '',
+                year: movie.Year || movie.year || '',
+                Genre: movie.Genre || movie.genre || '',
+                genre: movie.Genre || movie.genre || '',
+                isIndependent: movie.isIndependent
+            };
+        } else {
+            delete interestingMap[id];
+        }
+        localStorage.setItem('filmcircle_interesting', JSON.stringify(interestingMap));
+        setIsInteresting(nextState);
+    };
+
     const secsLeft = useEditTimer(myReview?.createdAt);
     const canEdit = secsLeft > 0;
 
@@ -225,8 +281,19 @@ export default function MovieDetail() {
     };
 
     return (
-        <main className="page">
-            <div className="container">
+        <main className="page" style={{ position: 'relative', overflow: 'hidden' }}>
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundImage: `url(${poster})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'blur(80px) brightness(0.12)',
+                opacity: 0.5,
+                zIndex: 0,
+                pointerEvents: 'none'
+            }} />
+            <div className="container" style={{ position: 'relative', zIndex: 1 }}>
                 <div className="movie-detail-grid">
 
                     {/* Poster */}
@@ -245,7 +312,25 @@ export default function MovieDetail() {
                                 🔗 No watch link provided
                             </p>
                         )}
-                        {imdbRating && <div className="imdb-badge">⭐ IMDb: {imdbRating}</div>}
+                        {imdbRating && <div className="imdb-badge" style={{ display: 'block', textAlign: 'center', marginTop: '0.75rem' }}>⭐ IMDb: {imdbRating}</div>}
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+                            <button 
+                                className={`btn btn-sm ${isInteresting ? 'btn-primary' : 'btn-outline'}`} 
+                                onClick={toggleInteresting}
+                                style={{ width: '100%', justifyContent: 'center', gap: '0.35rem' }}
+                            >
+                                {isInteresting ? '🔥 Interesting!' : '✨ Mark Interesting'}
+                            </button>
+                            <button 
+                                className={`btn btn-sm ${isBookmarked ? 'btn-primary' : 'btn-outline'}`} 
+                                onClick={toggleBookmark}
+                                style={{ width: '100%', justifyContent: 'center', gap: '0.35rem' }}
+                            >
+                                {isBookmarked ? '🔖 Bookmarked' : '📌 Bookmark Film'}
+                            </button>
+                        </div>
+
                         {isOwner && !editMode && (
                             <button className="btn btn-outline btn-sm" style={{ marginTop: '1rem', width: '100%' }} onClick={() => {
                                 setEditForm({

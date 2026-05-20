@@ -17,6 +17,32 @@ export const movieService = {
     upload: (data) => api.post('/movies/upload', data),
     update: (id, data) => api.put(`/movies/${id}`, data),
     delete: (id) => api.delete(`/movies/${id}`),
+    getByCategory: (genre) => api.get(`/movies/search?q=${encodeURIComponent(genre)}`),
+};
+
+// Client-side bookmark service using localStorage
+const BOOKMARK_KEY = 'filmcircle_bookmarks';
+export const bookmarkService = {
+    getAll: () => {
+        try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY) || '[]'); } catch { return []; }
+    },
+    add: (movie) => {
+        const all = bookmarkService.getAll();
+        const id = movie.imdbID || movie._id;
+        if (!all.find(m => (m.imdbID || m._id) === id)) {
+            localStorage.setItem(BOOKMARK_KEY, JSON.stringify([...all, movie]));
+        }
+    },
+    remove: (id) => {
+        const all = bookmarkService.getAll().filter(m => (m.imdbID || m._id) !== id);
+        localStorage.setItem(BOOKMARK_KEY, JSON.stringify(all));
+    },
+    has: (id) => bookmarkService.getAll().some(m => (m.imdbID || m._id) === id),
+    toggle: (movie) => {
+        const id = movie.imdbID || movie._id;
+        if (bookmarkService.has(id)) { bookmarkService.remove(id); return false; }
+        else { bookmarkService.add(movie); return true; }
+    },
 };
 
 export const reviewService = {

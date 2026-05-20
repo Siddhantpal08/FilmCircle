@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { movieService } from '../services';
+import { movieService, bookmarkService } from '../services';
 import MovieCard from '../components/movie/MovieCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 
@@ -17,47 +17,6 @@ const QUERY_CHIPS = [
     { label: 'Noir', q: 'Noir' },
 ];
 
-function HorizontalScroll({ children }) {
-    const ref = useRef(null);
-    const [canLeft, setCanLeft] = useState(false);
-    const [canRight, setCanRight] = useState(true);
-
-    const check = () => {
-        const el = ref.current;
-        if (!el) return;
-        setCanLeft(el.scrollLeft > 4);
-        setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-    };
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        check();
-        el.addEventListener('scroll', check, { passive: true });
-        window.addEventListener('resize', check);
-        return () => { el.removeEventListener('scroll', check); window.removeEventListener('resize', check); };
-    }, [children]);
-
-    const scroll = (dir) => {
-        const el = ref.current;
-        if (el) el.scrollBy({ left: dir * 500, behavior: 'smooth' });
-    };
-
-    return (
-        <div style={{ position: 'relative' }}>
-            {canLeft && (
-                <button className="hscroll-arrow hscroll-arrow-left" onClick={() => scroll(-1)} aria-label="Scroll left">‹</button>
-            )}
-            <div className="hscroll-track scroller-mask" ref={ref}>
-                {children}
-            </div>
-            {canRight && (
-                <button className="hscroll-arrow hscroll-arrow-right" onClick={() => scroll(1)} aria-label="Scroll right">›</button>
-            )}
-        </div>
-    );
-}
-
 export default function Home() {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
@@ -71,6 +30,9 @@ export default function Home() {
     const [homeLoading, setHomeLoading] = useState(true);
     const [error, setError] = useState('');
     const [trendingError, setTrendingError] = useState('');
+
+    const [bookmarks, setBookmarks] = useState([]);
+    const [interestingMovies, setInterestingMovies] = useState([]);
 
     // Fetch indie + trending on mount
     useEffect(() => {
@@ -98,6 +60,13 @@ export default function Home() {
         }).finally(() => setHomeLoading(false));
     }, []);
 
+    // Load local storage items
+    useEffect(() => {
+        setBookmarks(bookmarkService.getAll());
+        const interestingMap = JSON.parse(localStorage.getItem('filmcircle_interesting') || '{}');
+        setInterestingMovies(Object.values(interestingMap));
+    }, [query]);
+
     // Search when query changes
     useEffect(() => {
         if (!query) return;
@@ -116,183 +85,250 @@ export default function Home() {
     }, [query]);
 
     return (
-        <main className="page">
-            <div className="container">
-
-                {/* Hero (no query) */}
-                {!query && (
-                    <div className="home-hero section">
-                        <span className="home-hero-label text-label-caps">Premium Cinema Discovery</span>
-                        <h1 className="home-hero-title">
-                            Where Cinephiles <span className="home-hero-accent">Connect</span>.
-                        </h1>
-                        <p className="home-hero-sub">
-                            Discover films. Share your honest opinion. Join the circle. No star ratings — just clear, human sentiment.
-                        </p>
-                        <div className="opinion-legend">
-                            {[
-                                ['#c0392b', 'Perfection'],
-                                ['#ffb4a9', 'Go For It'],
-                                ['#454747', 'Timepass'],
-                                ['#555', 'Skip'],
-                            ].map(([color, label]) => (
-                                <span key={label} className="legend-tag" style={{ borderColor: color, color }}>
-                                    {label}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Search Results */}
-                {query && (
-                    <section className="section">
-                        <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                            <h2>
-                                Results for "<span style={{ color: 'var(--clr-primary)' }}>{query}</span>"
-                            </h2>
-                            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>✕ Clear</button>
-                        </div>
-
-                        {/* Genre filter chips */}
-                        <div className="chip-row" style={{ marginBottom: '1.5rem' }}>
-                            {QUERY_CHIPS.map(({ label, q: cq }) => (
-                                <button
-                                    key={cq}
-                                    className={`query-chip ${query === cq ? 'query-chip-active' : ''}`}
-                                    onClick={() => navigate(`/?q=${encodeURIComponent(cq)}`)}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
-
-                        {loading && (
-                            <div className="grid-movies">
-                                {Array(8).fill().map((_, i) => <SkeletonCard key={i} />)}
+        <main className="page home-page-gradient">
+            <div className="container home-layout">
+                {/* Left Main Content */}
+                <div className="home-main">
+                    {/* Search Results */}
+                    {query && (
+                        <section className="section">
+                            <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                                <h2>
+                                    Results for "<span style={{ color: 'var(--clr-primary)' }}>{query}</span>"
+                                </h2>
+                                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>✕ Clear</button>
                             </div>
-                        )}
-                        {error && <div className="alert alert-error">{error}</div>}
-                        {!loading && results.length === 0 && !error && (
-                            <div className="empty-state">
-                                <div className="icon">🎬</div>
-                                <p>No movies found for "{query}"</p>
-                            </div>
-                        )}
-                        <div className="grid-movies">
-                            {results.map(m => <MovieCard key={m.imdbID} movie={m} />)}
-                        </div>
-                    </section>
-                )}
 
-                {/* Home content */}
-                {!query && (
-                    <>
-                        {homeLoading ? (
-                            <section className="section">
-                                <div className="skeleton" style={{ height: '1.5rem', width: '200px', marginBottom: '1.5rem' }} />
-                                <div className="hscroll-track">
-                                    {Array(6).fill().map((_, i) => (
-                                        <div key={i} style={{ minWidth: '160px' }}><SkeletonCard /></div>
-                                    ))}
+                            {/* Genre filter chips */}
+                            <div className="chip-row" style={{ marginBottom: '1.5rem' }}>
+                                {QUERY_CHIPS.map(({ label, q: cq }) => (
+                                    <button
+                                        key={cq}
+                                        className={`query-chip ${query === cq ? 'query-chip-active' : ''}`}
+                                        onClick={() => navigate(`/?q=${encodeURIComponent(cq)}`)}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {loading && (
+                                <div className="grid-movies-6x2">
+                                    {Array(12).fill().map((_, i) => <SkeletonCard key={i} />)}
                                 </div>
-                            </section>
-                        ) : (
-                            <>
-                                {/* Trending Section */}
-                                {trending.length > 0 && (
-                                    <section className="section" style={{ marginTop: '1rem' }}>
-                                        <div className="section-header">
-                                            <h2 className="text-headline-md">Trending Now</h2>
-                                            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/?q=trending')}>View All →</button>
-                                        </div>
-                                        <HorizontalScroll>
-                                            {trending.map(m => (
-                                                <div key={m.imdbID} className="hscroll-item">
-                                                    <MovieCard movie={m} />
-                                                </div>
-                                            ))}
-                                        </HorizontalScroll>
-                                    </section>
-                                )}
-                                {trendingError && !trending.length && (
-                                    <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>{trendingError}</div>
-                                )}
+                            )}
+                            {error && <div className="alert alert-error">{error}</div>}
+                            {!loading && results.length === 0 && !error && (
+                                <div className="empty-state">
+                                    <div className="icon">🎬</div>
+                                    <p>No movies found for "{query}"</p>
+                                </div>
+                            )}
+                            <div className="grid-movies-6x2">
+                                {results.slice(0, 12).map(m => <MovieCard key={m.imdbID || m._id} movie={m} />)}
+                            </div>
+                        </section>
+                    )}
 
-                                {/* Independent Films Section */}
-                                {indie.length > 0 && (
-                                    <section className="section">
-                                        <div className="section-header">
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                <h2 className="text-headline-md">Independent Films</h2>
-                                                <span className="badge badge-tertiary">Indie</span>
+                    {/* Home content */}
+                    {!query && (
+                        <>
+                            {homeLoading ? (
+                                <section className="section">
+                                    <div className="skeleton" style={{ height: '1.5rem', width: '200px', marginBottom: '1.5rem' }} />
+                                    <div className="grid-movies-6x2">
+                                        {Array(12).fill().map((_, i) => (
+                                            <SkeletonCard key={i} />
+                                        ))}
+                                    </div>
+                                </section>
+                            ) : (
+                                <>
+                                    {/* My Bookmarks Section */}
+                                    {bookmarks.length > 0 && (
+                                        <section className="section">
+                                            <div className="section-header">
+                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>My Bookmarks</h2>
                                             </div>
-                                            <Link to="/upload" className="btn btn-ghost btn-sm">Upload Yours →</Link>
-                                        </div>
-                                        <HorizontalScroll>
-                                            {indie.map(m => (
-                                                <div key={m._id} className="hscroll-item">
+                                            <div className="grid-movies-6x2">
+                                                {bookmarks.slice(0, 12).map(m => (
+                                                    <MovieCard key={m.imdbID || m._id} movie={m} indie={m.isIndependent} />
+                                                ))}
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    {/* Most Interesting Section */}
+                                    {interestingMovies.length > 0 && (
+                                        <section className="section">
+                                            <div className="section-header">
+                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>Most Interesting</h2>
+                                            </div>
+                                            <div className="grid-movies-6x2">
+                                                {interestingMovies.slice(0, 12).map(m => (
+                                                    <MovieCard key={m.imdbID || m._id} movie={m} indie={m.isIndependent} />
+                                                ))}
+                                            </div>
+                                        </section>
+                                    )}
+
+                                    {/* Trending Section */}
+                                    {trending.length > 0 && (
+                                        <section className="section">
+                                            <div className="section-header">
+                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>Trending Now</h2>
+                                                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/?q=trending')}>View All →</button>
+                                            </div>
+                                            <div className="grid-movies-6x2">
+                                                {trending.slice(0, 12).map(m => (
+                                                    <MovieCard key={m.imdbID} movie={m} />
+                                                ))}
+                                            </div>
+                                        </section>
+                                    )}
+                                    {trendingError && !trending.length && (
+                                        <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>{trendingError}</div>
+                                    )}
+
+                                    {/* Independent Films Section */}
+                                    {indie.length > 0 && (
+                                        <section className="section">
+                                            <div className="section-header">
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>Independent Films</h2>
+                                                    <span className="badge badge-tertiary">Indie</span>
+                                                </div>
+                                                <Link to="/upload" className="btn btn-ghost btn-sm">Upload Yours →</Link>
+                                            </div>
+                                            <div className="grid-movies-6x2">
+                                                {indie.slice(0, 12).map(m => (
                                                     <MovieCard
+                                                        key={m._id}
                                                         movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }}
                                                         indie
                                                     />
-                                                </div>
-                                            ))}
-                                        </HorizontalScroll>
-                                    </section>
-                                )}
-
-                                {/* Category Rows */}
-                                {CATEGORY_ROWS.map(cat => {
-                                    const movies = categoryRows[cat];
-                                    if (!movies || movies.length === 0) return null;
-                                    return (
-                                        <section key={cat} className="section">
-                                            <div className="section-header">
-                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>{cat}</h2>
-                                                <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/?q=${encodeURIComponent(cat)}`)}>View All →</button>
-                                            </div>
-                                            <HorizontalScroll>
-                                                {movies.map(m => (
-                                                    <div key={m.imdbID} className="hscroll-item">
-                                                        <MovieCard movie={m} />
-                                                    </div>
                                                 ))}
-                                            </HorizontalScroll>
+                                            </div>
                                         </section>
-                                    );
-                                })}
+                                    )}
 
-                                {trending.length === 0 && indie.length === 0 && (
-                                    <div className="empty-state">
-                                        <div className="icon">🍿</div>
-                                        <p style={{ fontSize: '1.1rem' }}>Search for any movie above to get started!</p>
+                                    {/* Category Rows */}
+                                    {CATEGORY_ROWS.map(cat => {
+                                        const movies = categoryRows[cat];
+                                        if (!movies || movies.length === 0) return null;
+                                        return (
+                                            <section key={cat} className="section">
+                                                <div className="section-header">
+                                                    <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>{cat}</h2>
+                                                    <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/?q=${encodeURIComponent(cat)}`)}>View All →</button>
+                                                </div>
+                                                <div className="grid-movies-6x2">
+                                                    {movies.slice(0, 12).map(m => (
+                                                        <MovieCard key={m.imdbID} movie={m} />
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        );
+                                    })}
+
+                                    {trending.length === 0 && indie.length === 0 && bookmarks.length === 0 && interestingMovies.length === 0 && (
+                                        <div className="empty-state">
+                                            <div className="icon">🍿</div>
+                                            <p style={{ fontSize: '1.1rem' }}>Search for any movie above to get started!</p>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* Right Sidebar */}
+                <aside className="home-sidebar">
+                    <div className="home-sidebar-card">
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
+                            <span style={{ color: 'var(--clr-primary-container)' }}>↑</span> Trending Discussions
+                        </h3>
+                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {['Poor Things', 'Oppenheimer', 'A24 Season', 'Cannes 2024', 'Kubrick Retro'].map((topic, i) => (
+                                <li key={topic} style={{ cursor: 'pointer' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.875rem', color: 'var(--clr-on-surface)', fontWeight: 500 }}>{topic}</span>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--clr-secondary)' }}>{[2400, 1800, 950, 820, 540][i]} posts</span>
                                     </div>
-                                )}
-                            </>
-                        )}
-                    </>
-                )}
+                                    {i < 4 && <div style={{ height: '1px', background: 'rgba(89,65,61,0.2)', marginTop: '0.75rem' }} />}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
+                    <div className="home-sidebar-card">
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
+                            <span style={{ color: 'var(--clr-primary-container)' }}>👥</span> Active Clubs
+                        </h3>
+                        {['35mm Society', 'Lynchian Dreams', 'Neo-Noir Collective'].map((club, idx) => {
+                            const genres = ['drama', 'indie', 'default'];
+                            return (
+                                <div key={club} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div style={{ 
+                                            width: 44, 
+                                            height: 44, 
+                                            borderRadius: 8, 
+                                            backgroundImage: `url(/banners/${genres[idx]}.png)`,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
+                                            border: '1px solid rgba(192,57,43,0.3)', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center' 
+                                        }} />
+                                        <div>
+                                            <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--clr-on-surface)' }}>{club}</p>
+                                            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--clr-secondary)' }}>Active now</p>
+                                        </div>
+                                    </div>
+                                    <button style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-primary-container)', background: 'none', border: 'none', cursor: 'pointer' }}>Join</button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </aside>
             </div>
 
             <style>{`
-                /* Hero */
-                .home-hero { padding: 2.5rem 0 1.5rem; }
-                .home-hero-label { color: var(--clr-primary); display: block; margin-bottom: 1rem; }
-                .home-hero-title { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--clr-on-surface); margin-bottom: 1rem; }
-                .home-hero-accent { color: var(--clr-primary); }
-                .home-hero-sub { font-size: 1.05rem; color: var(--clr-secondary); max-width: 520px; line-height: 1.6; }
-                .opinion-legend { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
-                .legend-tag {
-                    padding: 0.3rem 1rem;
-                    border-radius: var(--radius-full);
-                    font-size: 0.78rem;
-                    font-weight: 700;
-                    letter-spacing: 0.08em;
-                    text-transform: uppercase;
-                    border: 1.5px solid;
-                    background: transparent;
+                .home-page-gradient {
+                    background: radial-gradient(circle at 50% 0%, rgba(192, 57, 43, 0.08) 0%, rgba(15, 15, 15, 0) 70%), var(--clr-bg);
+                }
+                .home-layout {
+                    display: flex;
+                    gap: 2.5rem;
+                    align-items: flex-start;
+                    padding-top: 1.5rem;
+                }
+                .home-main {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .home-sidebar {
+                    width: 320px;
+                    flex-shrink: 0;
+                    position: sticky;
+                    top: 90px;
+                    display: none;
+                }
+                @media (min-width: 1024px) {
+                    .home-sidebar {
+                        display: block;
+                    }
+                }
+
+                .home-sidebar-card {
+                    background: var(--clr-surface-high);
+                    border: 1px solid rgba(89,65,61,0.15);
+                    border-radius: var(--radius);
+                    padding: 1.25rem;
+                    margin-bottom: 1.5rem;
                 }
 
                 /* Section header */
@@ -316,40 +352,22 @@ export default function Home() {
                 .query-chip:hover { border-color: var(--clr-primary-container); color: var(--clr-primary); background: rgba(192,57,43,0.08); transform: translateY(-1px); }
                 .query-chip-active { border-color: var(--clr-primary-container) !important; color: var(--clr-primary) !important; background: rgba(192,57,43,0.12) !important; }
 
-                /* Horizontal Scroll */
-                .hscroll-track {
-                    display: flex;
+                /* Grid Movies 6x2 */
+                .grid-movies-6x2 {
+                    display: grid;
+                    grid-template-columns: repeat(6, 1fr);
                     gap: 1.25rem;
-                    overflow-x: auto;
-                    padding-bottom: 1rem;
-                    scroll-snap-type: x mandatory;
-                    -webkit-overflow-scrolling: touch;
+                    margin-bottom: 2.5rem;
                 }
-                .hscroll-track::-webkit-scrollbar { height: 3px; }
-                .hscroll-track::-webkit-scrollbar-thumb { background: var(--clr-outline-variant); border-radius: 2px; }
-                .hscroll-item { flex: 0 0 170px; scroll-snap-align: start; }
-
-                /* Arrow Buttons */
-                .hscroll-arrow {
-                    position: absolute;
-                    top: 40%;
-                    transform: translateY(-50%);
-                    z-index: 10;
-                    width: 38px; height: 38px;
-                    border-radius: 50%;
-                    border: 1px solid rgba(89,65,61,0.3);
-                    background: var(--clr-surface-container);
-                    color: var(--clr-on-surface);
-                    font-size: 1.5rem;
-                    display: flex; align-items: center; justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-                    backdrop-filter: blur(8px);
+                @media (max-width: 1200px) {
+                    .grid-movies-6x2 { grid-template-columns: repeat(4, 1fr); }
                 }
-                .hscroll-arrow:hover { border-color: var(--clr-primary-container); color: var(--clr-primary); background: rgba(192,57,43,0.15); }
-                .hscroll-arrow-left { left: -18px; }
-                .hscroll-arrow-right { right: -18px; }
+                @media (max-width: 768px) {
+                    .grid-movies-6x2 { grid-template-columns: repeat(3, 1fr); }
+                }
+                @media (max-width: 480px) {
+                    .grid-movies-6x2 { grid-template-columns: repeat(2, 1fr); }
+                }
             `}</style>
         </main>
     );
