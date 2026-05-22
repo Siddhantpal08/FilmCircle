@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { communityService } from '../services';
+import { communityService, clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
 
 const FIVE_MIN = 5 * 60 * 1000;
+const TABS = ['All Posts', 'Your Posts', 'Your Comments', 'Your Likes'];
 
 function useEditTimer(createdAt) {
     const [canEdit, setCanEdit] = useState(Date.now() - new Date(createdAt).getTime() < FIVE_MIN);
     const [secsLeft, setSecsLeft] = useState(0);
     const intervalRef = useRef(null);
-
     useEffect(() => {
         const elapsed = Date.now() - new Date(createdAt).getTime();
         if (elapsed >= FIVE_MIN) { setCanEdit(false); return; }
@@ -22,12 +22,11 @@ function useEditTimer(createdAt) {
         }, 1000);
         return () => clearInterval(intervalRef.current);
     }, [createdAt]);
-
     return { canEdit, secsLeft };
 }
 
-function PostCard({ post, onLike, onDelete, onUpdate, currentUserId }) {
-    const [showComments, setShowComments] = useState(false);
+function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightComment }) {
+    const [showComments, setShowComments] = useState(!!highlightComment);
     const [commentText, setCommentText] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [localComments, setLocalComments] = useState(post.comments || []);
@@ -79,9 +78,11 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId }) {
     return (
         <div className="comm-post-card">
             <div className="comm-post-header">
-                <div className="comm-post-avatar">{post.author?.username?.[0]?.toUpperCase()}</div>
+                <div className="comm-post-avatar">{post.author?.username?.[0]?.toUpperCase() || '?'}</div>
                 <div style={{ flex: 1 }}>
-                    <strong style={{ color: 'var(--clr-on-surface)', fontSize: '0.9rem' }}>{post.author?.username || 'Unknown'}</strong>
+                    <strong style={{ color: 'var(--clr-on-surface)', fontSize: '0.9rem' }}>
+                        {post.author?.username || 'Unknown'}
+                    </strong>
                     <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--clr-secondary)' }}>
                         {timeAgo(post.createdAt)}
                         {isEdited && <span style={{ marginLeft: '0.4rem', fontStyle: 'italic', opacity: 0.7 }}>· edited</span>}
@@ -124,14 +125,13 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId }) {
                 <button className="comm-action-btn" onClick={() => setShowComments(c => !c)}>
                     💬 <span>{localComments.length}</span>
                 </button>
-
             </div>
 
             {showComments && (
                 <div className="comm-comments">
                     {localComments.map((c, i) => (
-                        <div key={i} className="comm-comment-item">
-                            <div className="comm-comment-avatar">{c.author?.username?.[0]?.toUpperCase()}</div>
+                        <div key={i} className={`comm-comment-item ${highlightComment && c.author?._id === currentUserId ? 'comm-comment-highlighted' : ''}`}>
+                            <div className="comm-comment-avatar">{c.author?.username?.[0]?.toUpperCase() || '?'}</div>
                             <div>
                                 <span className="comm-comment-author">{c.author?.username || 'User'}</span>
                                 <span className="comm-comment-text">{c.text}</span>
@@ -158,11 +158,19 @@ export default function Community() {
     const [loading, setLoading] = useState(true);
     const [newPost, setNewPost] = useState('');
     const [posting, setPosting] = useState(false);
+    const [activeTab, setActiveTab] = useState('All Posts');
+
+    // Sidebar state
+    const [trendingPosts, setTrendingPosts] = useState([]);
+    const [activeClubs, setActiveClubs] = useState([]);
+    const [sidebarLoading, setSidebarLoading] = useState(true);
+
+    const currentUserId = user?._id || user?.id;
 
     const loadPosts = async (p = 1) => {
         setLoading(true);
         try {
-            const res = await communityService.getPosts(p, 10);
+            const res = await communityService.getPosts(p, 50); // fetch more for client-side filtering
             const { posts: data, pages } = res.data;
             setPosts(prev => p === 1 ? data : [...prev, ...data]);
             setHasMore(p < pages);
@@ -172,6 +180,18 @@ export default function Community() {
     };
 
     useEffect(() => { loadPosts(1); }, []);
+
+    // Load sidebar data
+    useEffect(() => {
+        setSidebarLoading(true);
+        communityService.getSidebar()
+            .then(res => {
+                setTrendingPosts(res.data.trendingPosts || []);
+                setActiveClubs(res.data.activeClubs || []);
+            })
+            .catch(err => console.error('[Sidebar] fetch error:', err))
+            .finally(() => setSidebarLoading(false));
+    }, [posts.length]); // refresh sidebar when posts change
 
     const handleCreatePost = async (e) => {
         e.preventDefault();
@@ -196,19 +216,54 @@ export default function Community() {
         loadPosts(1);
     };
 
-    const currentUserId = user?._id || user?.id;
+    // ── Client-side filtering ───────────────────────────────────────────────────
+    const filteredPosts = (() => {
+        if (activeTab === 'Your Posts') {
+            return posts.filter(p => p.author?._id === currentUserId || p.author?.id === currentUserId);
+        }
+        if (activeTab === 'Your Comments') {
+            return posts.filter(p =>
+                p.comments?.some(c => c.author?._id === currentUserId || c.author?.id === currentUserId)
+            );
+        }
+        if (activeTab === 'Your Likes') {
+            return posts.filter(p => p.likes?.some(id => id === currentUserId));
+        }
+        return posts;
+    })();
+
+    const emptyMessages = {
+        'Your Posts': "You haven't posted anything yet.",
+        'Your Comments': "You haven't commented on any posts yet.",
+        'Your Likes': "You haven't liked anything yet.",
+    };
+
+    const handleJoinClub = async (clubId) => {
+        if (!isAuthenticated) return;
+        try {
+            await clubService.join(clubId);
+            // Refresh sidebar
+            communityService.getSidebar().then(res => {
+                setTrendingPosts(res.data.trendingPosts || []);
+                setActiveClubs(res.data.activeClubs || []);
+            }).catch(() => {});
+        } catch { }
+    };
+
+    const truncate = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : str;
 
     return (
         <main className="page">
             <div className="comm-layout container">
-                {/* Left Feed */}
+
+                {/* ── Left Feed ── */}
                 <div className="comm-feed">
                     <div style={{ marginBottom: '1.5rem' }}>
                         <h1 className="text-headline-md">Community</h1>
                         <p style={{ color: 'var(--clr-secondary)', marginTop: '0.25rem', fontSize: '0.9rem' }}>Connect with the cinema elite.</p>
                     </div>
 
-                    {/* Create post */}
+                    {/* Compose box */}
                     {isAuthenticated && (
                         <form className="comm-compose" onSubmit={handleCreatePost}>
                             <div className="comm-compose-avatar">{user?.username?.[0]?.toUpperCase()}</div>
@@ -231,14 +286,46 @@ export default function Community() {
                         </form>
                     )}
 
+                    {/* ── Filter Tabs ── */}
+                    <div className="comm-tabs">
+                        {TABS.map(tab => {
+                            // Hide user-specific tabs when not logged in
+                            if (!isAuthenticated && tab !== 'All Posts') return null;
+                            return (
+                                <button
+                                    key={tab}
+                                    className={`comm-tab ${activeTab === tab ? 'comm-tab-active' : ''}`}
+                                    onClick={() => setActiveTab(tab)}
+                                >
+                                    {tab}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Feed */}
                     {loading && posts.length === 0 && <Loader />}
-                    {posts.length === 0 && !loading && (
-                        <div className="empty-state"><div className="icon">💬</div><p>No posts yet — be the first!</p></div>
+
+                    {!loading && filteredPosts.length === 0 && (
+                        <div className="empty-state">
+                            <div className="icon">💬</div>
+                            <p>{activeTab === 'All Posts' ? 'No posts yet — be the first!' : emptyMessages[activeTab]}</p>
+                        </div>
                     )}
-                    {posts.map(p => (
-                        <PostCard key={p._id} post={p} onLike={handleLike} onDelete={handleDelete} onUpdate={() => loadPosts(1)} currentUserId={currentUserId} />
+
+                    {filteredPosts.map(p => (
+                        <PostCard
+                            key={p._id}
+                            post={p}
+                            onLike={handleLike}
+                            onDelete={handleDelete}
+                            onUpdate={() => loadPosts(1)}
+                            currentUserId={currentUserId}
+                            highlightComment={activeTab === 'Your Comments'}
+                        />
                     ))}
-                    {hasMore && (
+
+                    {activeTab === 'All Posts' && hasMore && (
                         <div className="flex-center" style={{ marginTop: '1.5rem' }}>
                             <button className="btn btn-outline" onClick={() => loadPosts(page + 1)} disabled={loading}>
                                 {loading ? 'Loading…' : 'Load More'}
@@ -247,53 +334,100 @@ export default function Community() {
                     )}
                 </div>
 
-                {/* Sidebar */}
+                {/* ── Right Sidebar ── */}
                 <aside className="comm-sidebar">
+
+                    {/* Trending Discussions */}
                     <div className="comm-sidebar-card">
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
                             <span style={{ color: 'var(--clr-primary-container)' }}>↑</span> Trending Discussions
                         </h3>
-                        <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {['Poor Things', 'Oppenheimer', 'A24 Season', 'Cannes 2024', 'Kubrick Retro'].map((topic, i) => (
-                                <li key={topic} style={{ cursor: 'pointer' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '0.875rem', color: 'var(--clr-on-surface)', fontWeight: 500 }}>{topic}</span>
-                                        <span style={{ fontSize: '0.75rem', color: 'var(--clr-secondary)' }}>{[2400, 1800, 950, 820, 540][i]} posts</span>
-                                    </div>
-                                    {i < 4 && <div style={{ height: '1px', background: 'rgba(89,65,61,0.2)', marginTop: '0.75rem' }} />}
-                                </li>
-                            ))}
-                        </ul>
+                        {sidebarLoading ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {Array(3).fill().map((_, i) => (
+                                    <div key={i} style={{ height: 14, borderRadius: 4, background: 'var(--clr-surface-container)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+                                ))}
+                            </div>
+                        ) : trendingPosts.length === 0 ? (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--clr-secondary)', margin: 0 }}>No discussions yet — start one!</p>
+                        ) : (
+                            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {trendingPosts.map((post, i) => (
+                                    <li key={post._id} style={{ cursor: 'default' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                                            <span style={{ fontSize: '0.825rem', color: 'var(--clr-on-surface)', fontWeight: 500, lineHeight: 1.4 }}>
+                                                {truncate(post.content, 55)}
+                                            </span>
+                                            <span style={{ fontSize: '0.72rem', color: 'var(--clr-secondary)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                                💬 {post.commentCount}
+                                            </span>
+                                        </div>
+                                        {i < trendingPosts.length - 1 && <div style={{ height: '1px', background: 'rgba(89,65,61,0.2)', marginTop: '0.75rem' }} />}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
+
+                    {/* Active Clubs */}
                     <div className="comm-sidebar-card">
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
                             <span style={{ color: 'var(--clr-primary-container)' }}>👥</span> Active Clubs
                         </h3>
-                        {['35mm Society', 'Lynchian Dreams', 'Neo-Noir Collective'].map(club => (
-                            <div key={club} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(192,57,43,0.15)', border: '1px solid rgba(192,57,43,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>🎬</div>
-                                    <div>
-                                        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--clr-on-surface)' }}>{club}</p>
-                                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--clr-secondary)' }}>Active now</p>
-                                    </div>
-                                </div>
-                                <button style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-primary-container)', background: 'none', border: 'none', cursor: 'pointer' }}>Join</button>
+                        {sidebarLoading ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                {Array(3).fill().map((_, i) => (
+                                    <div key={i} style={{ height: 36, borderRadius: 6, background: 'var(--clr-surface-container)', animation: 'pulse 1.4s ease-in-out infinite' }} />
+                                ))}
                             </div>
-                        ))}
+                        ) : activeClubs.length === 0 ? (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--clr-secondary)', margin: 0 }}>No clubs yet — create one!</p>
+                        ) : (
+                            activeClubs.map(club => (
+                                <div key={club._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(192,57,43,0.15)', border: '1px solid rgba(192,57,43,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', flexShrink: 0 }}>🎬</div>
+                                        <div>
+                                            <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--clr-on-surface)' }}>{club.name}</p>
+                                            <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>
+                                                {club.recentPostCount > 0 ? `${club.recentPostCount} post${club.recentPostCount !== 1 ? 's' : ''} this week` : 'Quiet this week'}
+                                                {' · '}{club.memberCount} member{club.memberCount !== 1 ? 's' : ''}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-primary-container)', background: 'none', border: 'none', cursor: 'pointer' }}
+                                        onClick={() => handleJoinClub(club._id)}
+                                    >
+                                        Join
+                                    </button>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </aside>
             </div>
 
             <style>{`
                 .comm-layout {
-                    display: flex;
+                    display: grid;
+                    grid-template-columns: minmax(0, 1fr) 280px;
                     gap: 2rem;
-                    align-items: flex-start;
+                    align-items: start;
+                    padding-top: 1.5rem;
                 }
-                .comm-feed { flex: 1; max-width: 700px; }
-                .comm-sidebar { width: 300px; flex-shrink: 0; display: none; }
-                @media (min-width: 1024px) { .comm-sidebar { display: block; } }
+                .comm-feed { min-width: 0; }
+                .comm-sidebar {
+                    width: 280px;
+                    min-width: 0;
+                    position: sticky;
+                    top: 90px;
+                    align-self: start;
+                }
+                @media (max-width: 1024px) {
+                    .comm-layout { grid-template-columns: 1fr; }
+                    .comm-sidebar { display: none; }
+                }
 
                 .comm-sidebar-card {
                     background: var(--clr-surface-high);
@@ -303,9 +437,41 @@ export default function Community() {
                     margin-bottom: 1.25rem;
                 }
 
-                .comm-compose {
+                /* Filter tabs */
+                .comm-tabs {
                     display: flex;
-                    gap: 1rem;
+                    gap: 0.25rem;
+                    margin-bottom: 1.25rem;
+                    background: var(--clr-surface-high);
+                    border: 1px solid rgba(89,65,61,0.15);
+                    border-radius: var(--radius);
+                    padding: 0.35rem;
+                    flex-wrap: wrap;
+                }
+                .comm-tab {
+                    flex: 1;
+                    min-width: max-content;
+                    padding: 0.45rem 0.85rem;
+                    border-radius: calc(var(--radius) - 2px);
+                    border: none;
+                    background: transparent;
+                    color: var(--clr-secondary);
+                    font-size: 0.82rem;
+                    font-weight: 600;
+                    font-family: inherit;
+                    cursor: pointer;
+                    transition: all 0.18s;
+                    white-space: nowrap;
+                }
+                .comm-tab:hover { color: var(--clr-on-surface); background: rgba(89,65,61,0.08); }
+                .comm-tab-active {
+                    background: var(--clr-primary-container) !important;
+                    color: var(--clr-on-primary-container) !important;
+                    box-shadow: 0 1px 4px rgba(192,57,43,0.25);
+                }
+
+                .comm-compose {
+                    display: flex; gap: 1rem;
                     background: var(--clr-surface-high);
                     border: 1px solid rgba(89,65,61,0.15);
                     border-radius: var(--radius);
@@ -313,32 +479,21 @@ export default function Community() {
                     margin-bottom: 1.25rem;
                 }
                 .comm-compose-avatar {
-                    width: 44px; height: 44px;
-                    border-radius: 50%;
+                    width: 44px; height: 44px; border-radius: 50%;
                     background: var(--clr-primary-container);
                     color: var(--clr-on-primary-container);
                     display: flex; align-items: center; justify-content: center;
-                    font-weight: 800; font-size: 1rem;
-                    flex-shrink: 0;
+                    font-weight: 800; font-size: 1rem; flex-shrink: 0;
                 }
                 .comm-compose-textarea {
-                    width: 100%;
-                    background: transparent;
-                    border: none;
-                    outline: none;
-                    color: var(--clr-on-surface);
-                    font-size: 0.95rem;
-                    resize: none;
-                    font-family: inherit;
-                    min-height: 50px;
+                    width: 100%; background: transparent; border: none; outline: none;
+                    color: var(--clr-on-surface); font-size: 0.95rem; resize: none;
+                    font-family: inherit; min-height: 50px;
                 }
                 .comm-compose-textarea::placeholder { color: rgba(168,138,133,0.5); }
                 .comm-compose-footer {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-top: 0.75rem;
-                    padding-top: 0.75rem;
+                    display: flex; justify-content: space-between; align-items: center;
+                    margin-top: 0.75rem; padding-top: 0.75rem;
                     border-top: 1px solid rgba(89,65,61,0.2);
                 }
 
@@ -346,22 +501,17 @@ export default function Community() {
                     background: var(--clr-surface-high);
                     border: 1px solid rgba(89,65,61,0.12);
                     border-radius: var(--radius);
-                    padding: 1.25rem;
-                    margin-bottom: 1rem;
+                    padding: 1.25rem; margin-bottom: 1rem;
                     transition: border-color 0.2s;
                 }
                 .comm-post-card:hover { border-color: rgba(89,65,61,0.3); }
-                .comm-post-header {
-                    display: flex; align-items: center; gap: 0.75rem;
-                    margin-bottom: 1rem;
-                }
+                .comm-post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
                 .comm-post-avatar {
                     width: 38px; height: 38px; border-radius: 50%;
                     background: var(--clr-primary-container);
                     color: var(--clr-on-primary-container);
                     display: flex; align-items: center; justify-content: center;
-                    font-weight: 700; font-size: 0.9rem;
-                    flex-shrink: 0;
+                    font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
                 }
                 .comm-post-content { cursor: pointer; margin-bottom: 1rem; }
                 .comm-post-actions {
@@ -375,20 +525,22 @@ export default function Community() {
                     font-size: 0.875rem; font-weight: 500;
                     color: var(--clr-secondary);
                     background: none; border: none; cursor: pointer;
-                    transition: color 0.2s;
-                    padding: 0.25rem 0;
+                    transition: color 0.2s; padding: 0.25rem 0;
                 }
                 .comm-action-btn:hover { color: var(--clr-primary-container); }
                 .comm-action-liked { color: #e05050 !important; }
 
                 .comm-comments {
-                    margin-top: 1rem;
-                    padding-top: 1rem;
+                    margin-top: 1rem; padding-top: 1rem;
                     border-top: 1px solid rgba(89,65,61,0.15);
                 }
-                .comm-comment-item {
-                    display: flex; gap: 0.6rem; align-items: flex-start;
-                    margin-bottom: 0.6rem;
+                .comm-comment-item { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.6rem; }
+                .comm-comment-highlighted {
+                    background: rgba(192,57,43,0.07);
+                    border-radius: var(--radius-sm);
+                    padding: 0.3rem 0.5rem;
+                    margin-left: -0.5rem;
+                    border-left: 3px solid var(--clr-primary-container);
                 }
                 .comm-comment-avatar {
                     width: 28px; height: 28px; border-radius: 50%;
@@ -400,6 +552,8 @@ export default function Community() {
                 .comm-comment-author { font-size: 0.82rem; font-weight: 700; color: var(--clr-on-surface); margin-right: 0.4rem; }
                 .comm-comment-text { font-size: 0.85rem; color: var(--clr-on-surface-variant); }
                 .comm-comment-form { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+                @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
             `}</style>
         </main>
     );

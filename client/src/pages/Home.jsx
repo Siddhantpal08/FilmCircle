@@ -1,75 +1,123 @@
+// TMDB integration — local test only, do not commit yet
+
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-dom';
 import { movieService } from '../services';
 import MovieCard from '../components/movie/MovieCard';
+import TmdbMovieCard from '../components/movie/TmdbMovieCard';
 import SkeletonCard from '../components/common/SkeletonCard';
+import { tmdbService } from '../services/tmdbService';
 
-const CATEGORY_ROWS = ['Action', 'Romance', 'Thriller', 'Horror', 'Comedy'];
-
+// ── OMDB-based genre chips (search bar — untouched) ──────────────────────────
 const QUERY_CHIPS = [
-    { label: 'Action', q: 'Action' },
-    { label: 'Romance', q: 'Romance' },
+    { label: 'Action',   q: 'Action' },
+    { label: 'Romance',  q: 'Romance' },
     { label: 'Thriller', q: 'Thriller' },
-    { label: 'Horror', q: 'Horror' },
-    { label: 'Sci-Fi', q: 'Sci-Fi' },
-    { label: 'Drama', q: 'Drama' },
-    { label: 'Comedy', q: 'Comedy' },
-    { label: 'Noir', q: 'Noir' },
+    { label: 'Horror',   q: 'Horror' },
+    { label: 'Sci-Fi',   q: 'Sci-Fi' },
+    { label: 'Drama',    q: 'Drama' },
+    { label: 'Comedy',   q: 'Comedy' },
+    { label: 'Noir',     q: 'Noir' },
+];
+
+// ── TMDB category rows config ─────────────────────────────────────────────────
+const TMDB_CATEGORIES = [
+    { key: 'action',    label: 'Action & Thriller', fetcher: () => tmdbService.getActionThriller() },
+    { key: 'comedy',    label: 'Comedy',            fetcher: () => tmdbService.getComedy() },
+    { key: 'drama',     label: 'Drama',             fetcher: () => tmdbService.getDrama() },
+    { key: 'scifi',     label: 'Sci-Fi & Fantasy',  fetcher: () => tmdbService.getSciFiFantasy() },
+    { key: 'animation', label: 'Animation',         fetcher: () => tmdbService.getAnimation() },
 ];
 
 export default function Home() {
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
     const navigate = useNavigate();
+    const { pathname } = useLocation();
+    const isHomePage = pathname === '/';
 
-    const [results, setResults] = useState([]);
-    const [indie, setIndie] = useState([]);
-    const [trending, setTrending] = useState([]);
-    const [categoryRows, setCategoryRows] = useState({});
-    const [loading, setLoading] = useState(false);
-    const [homeLoading, setHomeLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [trendingError, setTrendingError] = useState('');
+    // ── OMDB state (search + indie — untouched logic) ─────────────────────────
+    const [results, setResults]   = useState([]);
+    const [indie, setIndie]       = useState([]);
+    const [loading, setLoading]   = useState(false);
+    const [error, setError]       = useState('');
 
-    const [interestingMovies, setInterestingMovies] = useState([]);
+    // ── TMDB Trending state ───────────────────────────────────────────────────
+    const [tmdbTrending, setTmdbTrending]               = useState([]);
+    const [tmdbTrendingError, setTmdbTrendingError]     = useState('');
+    const [tmdbTrendingLoading, setTmdbTrendingLoading] = useState(true);
 
-    // Fetch indie + trending on mount
+    // ── TMDB category rows state: { [key]: { movies, error, loading } } ───────
+    const [categoryRows, setCategoryRows] = useState(
+        Object.fromEntries(TMDB_CATEGORIES.map(c => [c.key, { movies: [], error: false, loading: true }]))
+    );
+
+    // ── Sidebar: Community "Most Interesting" leaderboard ────────────────────────
+    const [leaderboard, setLeaderboard]               = useState([]);
+    const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+
+
+    // ── Fetch OMDB indie films on mount ───────────────────────────────────────
     useEffect(() => {
-        setHomeLoading(true);
-        Promise.allSettled([
-            movieService.getIndependent(),
-            movieService.getTrending(),
-            ...CATEGORY_ROWS.map(cat => movieService.search(cat))
-        ]).then((results) => {
-            const [indieRes, trendingRes, ...catRes] = results;
-            if (indieRes.status === 'fulfilled') setIndie(indieRes.value.data);
-            if (trendingRes.status === 'fulfilled') setTrending(trendingRes.value.data);
-            if (trendingRes.status === 'rejected') {
-                const status = trendingRes.reason?.response?.status;
-                if (status === 503) setTrendingError('OMDB API key not configured — trending movies unavailable.');
-                else setTrendingError('Could not load trending movies.');
-            }
-            const cats = {};
-            catRes.forEach((res, index) => {
-                if (res.status === 'fulfilled' && res.value.data?.results) {
-                    cats[CATEGORY_ROWS[index]] = res.value.data.results;
-                }
-            });
-            setCategoryRows(cats);
-        }).finally(() => setHomeLoading(false));
+        movieService.getIndependent()
+            .then(res => setIndie(res.data))
+            .catch(err => console.error('[OMDB] indie fetch error:', err));
     }, []);
 
-    // Load Most Interesting from localStorage
+    // ── Fetch TMDB Trending Now on mount ──────────────────────────────────────
     useEffect(() => {
-        const interestingMap = JSON.parse(localStorage.getItem('filmcircle_interesting') || '{}');
-        setInterestingMovies(Object.values(interestingMap));
-    }, [query]);
+        setTmdbTrendingLoading(true);
+        tmdbService.getTrending()
+            .then(movies => {
+                if (movies.length === 0) {
+                    setTmdbTrendingError('Could not load trending movies.');
+                } else {
+                    setTmdbTrending(movies);
+                }
+            })
+            .catch(err => {
+                console.error('[TMDB] trending fetch error:', err);
+                setTmdbTrendingError('Could not load trending movies.');
+            })
+            .finally(() => setTmdbTrendingLoading(false));
+    }, []);
 
-    // Search when query changes
+
+    // ── Fetch TMDB category rows on mount ─────────────────────────────────────
+    useEffect(() => {
+        TMDB_CATEGORIES.forEach(({ key, fetcher }) => {
+            fetcher()
+                .then(movies => {
+                    setCategoryRows(prev => ({
+                        ...prev,
+                        [key]: { movies, error: movies.length === 0, loading: false },
+                    }));
+                })
+                .catch(err => {
+                    console.error(`[TMDB] category "${key}" fetch error:`, err);
+                    setCategoryRows(prev => ({
+                        ...prev,
+                        [key]: { movies: [], error: true, loading: false },
+                    }));
+                });
+        });
+    }, []);
+
+    // ── Fetch community "Most Interesting" leaderboard on mount ─────────────────────
+    useEffect(() => {
+        setLeaderboardLoading(true);
+        movieService.getInterestingLeaderboard()
+            .then(res => setLeaderboard(res.data || []))
+            .catch(err => console.error('[Leaderboard] fetch error:', err))
+            .finally(() => setLeaderboardLoading(false));
+    }, []);
+
+    // ── OMDB search when query changes (untouched logic) ──────────────────────
     useEffect(() => {
         if (!query) return;
         setLoading(true);
         setError('');
+        setResults([]);
         movieService.search(query)
             .then(res => setResults(res.data.results))
             .catch(err => {
@@ -82,13 +130,17 @@ export default function Home() {
             .finally(() => setLoading(false));
     }, [query]);
 
+    const homeContentLoading = tmdbTrendingLoading;
+
     return (
         <main className="page home-page-gradient">
             <div className="container">
             <div className="home-layout">
+
                 {/* ── Left Main Content ── */}
                 <div className="home-main">
-                    {/* Search Results */}
+
+                    {/* ── OMDB Search Results (shown only when there is a query) ── */}
                     {query && (
                         <section className="section">
                             <div className="flex-between" style={{ marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -129,125 +181,181 @@ export default function Home() {
                         </section>
                     )}
 
-                    {/* Home content */}
+                    {/* ── Home content (no active search query) ── */}
                     {!query && (
                         <>
-                            {homeLoading ? (
-                                <section className="section">
-                                    <div className="skeleton" style={{ height: '1.5rem', width: '200px', marginBottom: '1.5rem' }} />
+                            {/* ── 1. Trending Now (TMDB) ── */}
+                            <section className="section">
+                                <div className="section-header">
+                                    <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>
+                                        Trending Now
+                                        <span className="tmdb-source-badge">via TMDB</span>
+                                    </h2>
+                                    <button
+                                        className="btn btn-ghost btn-sm"
+                                        onClick={() => navigate('/?q=trending')}
+                                    >
+                                        View All →
+                                    </button>
+                                </div>
+
+                                {tmdbTrendingLoading && (
                                     <div className="grid-movies-6x2">
-                                        {Array(12).fill().map((_, i) => (
-                                            <SkeletonCard key={i} />
+                                        {Array(12).fill().map((_, i) => <SkeletonCard key={i} />)}
+                                    </div>
+                                )}
+                                {tmdbTrendingError && !tmdbTrendingLoading && (
+                                    <div className="tmdb-error-msg">⚠ {tmdbTrendingError}</div>
+                                )}
+                                {!tmdbTrendingLoading && tmdbTrending.length > 0 && (
+                                    <div className="grid-movies-6x2">
+                                        {tmdbTrending.map(m => (
+                                            <TmdbMovieCard key={m.tmdbId} movie={m} />
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+
+                            {/* ── 2. Independent Films (OMDB — user-uploaded) ── */}
+                            {indie.length > 0 && (
+                                <section className="section">
+                                    <div className="section-header">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>Independent Films</h2>
+                                            <span className="badge badge-tertiary">Indie</span>
+                                        </div>
+                                        <Link to="/upload" className="btn btn-ghost btn-sm">Upload Yours →</Link>
+                                    </div>
+                                    <div className="grid-movies-6x2">
+                                        {indie.slice(0, 12).map(m => (
+                                            <MovieCard
+                                                key={m._id}
+                                                movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }}
+                                                indie
+                                            />
                                         ))}
                                     </div>
                                 </section>
-                            ) : (
-                                <>
-                                    {/* Trending Section */}
-                                    {trending.length > 0 && (
-                                        <section className="section">
-                                            <div className="section-header">
-                                                <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>Trending Now</h2>
-                                                <button className="btn btn-ghost btn-sm" onClick={() => navigate('/?q=trending')}>View All →</button>
-                                            </div>
-                                            <div className="grid-movies-6x2">
-                                                {trending.slice(0, 12).map(m => (
-                                                    <MovieCard key={m.imdbID} movie={m} />
-                                                ))}
-                                            </div>
-                                        </section>
-                                    )}
-                                    {trendingError && !trending.length && (
-                                        <div className="alert alert-error" style={{ marginBottom: '1.5rem' }}>{trendingError}</div>
-                                    )}
+                            )}
 
-                                    {/* Independent Films Section */}
-                                    {indie.length > 0 && (
-                                        <section className="section">
-                                            <div className="section-header">
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                    <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>Independent Films</h2>
-                                                    <span className="badge badge-tertiary">Indie</span>
-                                                </div>
-                                                <Link to="/upload" className="btn btn-ghost btn-sm">Upload Yours →</Link>
-                                            </div>
-                                            <div className="grid-movies-6x2">
-                                                {indie.slice(0, 12).map(m => (
-                                                    <MovieCard
-                                                        key={m._id}
-                                                        movie={{ Title: m.title, Poster: m.posterUrl, Year: m.year || '', imdbID: m._id, Genre: m.genre || '' }}
-                                                        indie
-                                                    />
-                                                ))}
-                                            </div>
-                                        </section>
-                                    )}
-
-                                    {/* Category Rows */}
-                                    {CATEGORY_ROWS.map(cat => {
-                                        const movies = categoryRows[cat];
-                                        if (!movies || movies.length === 0) return null;
-                                        return (
-                                            <section key={cat} className="section">
-                                                <div className="section-header">
-                                                    <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>{cat}</h2>
-                                                    <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/?q=${encodeURIComponent(cat)}`)}>View All →</button>
-                                                </div>
-                                                <div className="grid-movies-6x2">
-                                                    {movies.slice(0, 12).map(m => (
-                                                        <MovieCard key={m.imdbID} movie={m} />
-                                                    ))}
-                                                </div>
-                                            </section>
-                                        );
-                                    })}
-
-                                    {trending.length === 0 && indie.length === 0 && (
-                                        <div className="empty-state">
-                                            <div className="icon">🍿</div>
-                                            <p style={{ fontSize: '1.1rem' }}>Search for any movie above to get started!</p>
+                            {/* ── 3–7. TMDB Category Rows ── */}
+                            {TMDB_CATEGORIES.map(({ key, label }) => {
+                                const row = categoryRows[key];
+                                return (
+                                    <section key={key} className="section">
+                                        <div className="section-header">
+                                            <h2 className="text-headline-md" style={{ borderLeft: '4px solid var(--clr-primary-container)', paddingLeft: '1rem' }}>
+                                                {label}
+                                            </h2>
+                                            <button
+                                                className="btn btn-ghost btn-sm"
+                                                onClick={() => navigate(`/?q=${encodeURIComponent(label)}`)}
+                                            >
+                                                View All →
+                                            </button>
                                         </div>
-                                    )}
-                                </>
+
+                                        {row.loading && (
+                                            <div className="grid-movies-6x2">
+                                                {Array(12).fill().map((_, i) => <SkeletonCard key={i} />)}
+                                            </div>
+                                        )}
+                                        {row.error && !row.loading && (
+                                            <div className="tmdb-error-msg">⚠ Could not load {label} movies.</div>
+                                        )}
+                                        {!row.loading && row.movies.length > 0 && (
+                                            <div className="grid-movies-6x2">
+                                                {row.movies.map(m => (
+                                                    <TmdbMovieCard key={m.tmdbId} movie={m} />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </section>
+                                );
+                            })}
+
+                            {/* Empty state — only if everything failed */}
+                            {tmdbTrending.length === 0 && indie.length === 0 && !homeContentLoading && (
+                                <div className="empty-state">
+                                    <div className="icon">🍿</div>
+                                    <p style={{ fontSize: '1.1rem' }}>Search for any movie above to get started!</p>
+                                </div>
                             )}
                         </>
                     )}
                 </div>
 
-                {/* ── Right Sidebar ── */}
+                {/* ── Right Sidebar (restored fully — untouched) ── */}
                 <aside className="home-sidebar">
-                    {/* Most Interesting Widget */}
-                    {interestingMovies.length > 0 && (
-                        <div className="home-sidebar-card">
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
-                                <span style={{ color: 'var(--clr-primary-container)' }}>⭐</span> Most Interesting
-                            </h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                                {interestingMovies.slice(0, 5).map((m, i) => (
-                                    <div key={m.imdbID || m._id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
-                                        onClick={() => window.location.href = `/movie/${m.imdbID || m._id}`}>
-                                        <img
-                                            src={m.Poster || m.posterUrl}
-                                            alt={m.Title || m.title}
-                                            style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0, border: '1px solid rgba(89,65,61,0.3)' }}
-                                            onError={e => { e.target.style.background = 'var(--clr-surface-high)'; e.target.src = ''; }}
-                                        />
-                                        <div style={{ minWidth: 0 }}>
-                                            <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: 'var(--clr-on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {m.Title || m.title}
-                                            </p>
-                                            <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>{m.Year || m.year || ''}</p>
+
+                    {/* 1. Community "Most Interesting" Leaderboard */}
+                    <div className="home-sidebar-card">
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
+                            <span style={{ color: 'var(--clr-primary-container)' }}>⭐</span> Most Interesting
+                            <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--clr-secondary)', fontWeight: 400, letterSpacing: '0.04em' }}>platform-wide</span>
+                        </h3>
+
+                        {leaderboardLoading && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {Array(5).fill().map((_, i) => (
+                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div style={{ width: 40, height: 56, borderRadius: 6, background: 'var(--clr-surface-container)', flexShrink: 0, animation: 'pulse 1.4s ease-in-out infinite' }} />
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ height: 10, borderRadius: 4, background: 'var(--clr-surface-container)', marginBottom: 6, animation: 'pulse 1.4s ease-in-out infinite' }} />
+                                            <div style={{ height: 8, width: '60%', borderRadius: 4, background: 'var(--clr-surface-container)', animation: 'pulse 1.4s ease-in-out infinite' }} />
                                         </div>
-                                        {i < Math.min(interestingMovies.length - 1, 4) && (
-                                            <div style={{ position: 'absolute' }} />
-                                        )}
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Trending Discussions */}
+                        {!leaderboardLoading && leaderboard.length === 0 && (
+                            <p style={{ fontSize: '0.8rem', color: 'var(--clr-secondary)', lineHeight: 1.6, margin: 0 }}>
+                                No votes yet — be the first to mark a film as interesting!
+                            </p>
+                        )}
+
+                        {!leaderboardLoading && leaderboard.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                {leaderboard.map((m) => (
+                                    <div
+                                        key={m._id}
+                                        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                                        onClick={() => window.location.href = `/movie/${m.imdbID || m._id}`}
+                                    >
+                                        <img
+                                            src={m.posterUrl}
+                                            alt={m.title}
+                                            style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0, border: '1px solid rgba(89,65,61,0.3)' }}
+                                            onError={e => { e.target.style.background = 'var(--clr-surface-high)'; e.target.src = ''; }}
+                                        />
+                                        <div style={{ minWidth: 0, flex: 1 }}>
+                                            <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: 'var(--clr-on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {m.title}
+                                            </p>
+                                            <p style={{ margin: '0.15rem 0 0', fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>{m.year || ''}</p>
+                                        </div>
+                                        <span style={{
+                                            flexShrink: 0,
+                                            fontSize: '0.68rem',
+                                            fontWeight: 700,
+                                            color: 'var(--clr-primary-container)',
+                                            background: 'rgba(192,57,43,0.08)',
+                                            border: '1px solid rgba(192,57,43,0.2)',
+                                            borderRadius: 'var(--radius-full)',
+                                            padding: '0.1rem 0.45rem',
+                                            whiteSpace: 'nowrap',
+                                        }}>
+                                            ★ {m.interestingCount}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 2. Trending Discussions — hidden on homepage */}
+                    {!isHomePage && (
                     <div className="home-sidebar-card">
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
                             <span style={{ color: 'var(--clr-primary-container)' }}>↑</span> Trending Discussions
@@ -264,8 +372,10 @@ export default function Home() {
                             ))}
                         </ul>
                     </div>
+                    )}
 
-                    {/* Active Clubs */}
+                    {/* 3. Active Clubs — hidden on homepage */}
+                    {!isHomePage && (
                     <div className="home-sidebar-card">
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', marginBottom: '1.25rem' }}>
                             <span style={{ color: 'var(--clr-primary-container)' }}>👥</span> Active Clubs
@@ -276,16 +386,11 @@ export default function Home() {
                                 <div key={club} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <div style={{
-                                            width: 44,
-                                            height: 44,
-                                            borderRadius: 8,
+                                            width: 44, height: 44, borderRadius: 8,
                                             backgroundImage: `url(/banners/${genres[idx]}.png)`,
-                                            backgroundSize: 'cover',
-                                            backgroundPosition: 'center',
+                                            backgroundSize: 'cover', backgroundPosition: 'center',
                                             border: '1px solid rgba(192,57,43,0.3)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
                                             background: 'var(--clr-surface-high)',
                                         }} />
                                         <div>
@@ -298,6 +403,7 @@ export default function Home() {
                             );
                         })}
                     </div>
+                    )}
                 </aside>
             </div>
             </div>
@@ -317,14 +423,12 @@ export default function Home() {
                     width: 100%;
                 }
                 .home-main {
-                    /* minmax(0,1fr) above already constrains this, but belt-and-suspenders: */
                     min-width: 0;
                     overflow: hidden;
                 }
                 .home-sidebar {
                     width: 280px;
                     min-width: 0;
-                    /* sticky so panels stay in view while scrolling main column */
                     position: sticky;
                     top: 90px;
                     align-self: start;
@@ -334,19 +438,12 @@ export default function Home() {
 
                 /* Tablet: collapse to single column, hide sidebar */
                 @media (max-width: 1024px) {
-                    .home-layout {
-                        grid-template-columns: 1fr;
-                    }
-                    .home-sidebar {
-                        display: none;
-                    }
+                    .home-layout { grid-template-columns: 1fr; }
+                    .home-sidebar { display: none; }
                 }
-                /* Mobile: show sidebar below main if ever made visible */
+                /* Mobile */
                 @media (max-width: 767px) {
-                    .home-layout {
-                        display: block;
-                        padding-top: 1rem;
-                    }
+                    .home-layout { display: block; padding-top: 1rem; }
                 }
 
                 .home-sidebar-card {
@@ -385,7 +482,7 @@ export default function Home() {
                 .query-chip:hover { border-color: var(--clr-primary-container); color: var(--clr-primary); background: rgba(192,57,43,0.08); transform: translateY(-1px); }
                 .query-chip-active { border-color: var(--clr-primary-container) !important; color: var(--clr-primary) !important; background: rgba(192,57,43,0.12) !important; }
 
-                /* 6×2 movie grid */
+                /* ── 6×2 movie grid — used for ALL sections (search, trending, indie, categories) ── */
                 .grid-movies-6x2 {
                     display: grid;
                     grid-template-columns: repeat(6, 1fr);
@@ -396,6 +493,51 @@ export default function Home() {
                 @media (max-width: 1100px) { .grid-movies-6x2 { grid-template-columns: repeat(4, 1fr); } }
                 @media (max-width: 768px)  { .grid-movies-6x2 { grid-template-columns: repeat(3, 1fr); } }
                 @media (max-width: 480px)  { .grid-movies-6x2 { grid-template-columns: repeat(2, 1fr); } }
+
+                /* TMDB error message */
+                .tmdb-error-msg {
+                    font-size: 0.85rem;
+                    color: var(--clr-secondary);
+                    background: rgba(192,57,43,0.06);
+                    border: 1px solid rgba(192,57,43,0.15);
+                    border-radius: var(--radius);
+                    padding: 0.75rem 1rem;
+                    margin-bottom: 1.5rem;
+                }
+
+                /* TMDB source badge next to section title */
+                .tmdb-source-badge {
+                    display: inline-block;
+                    font-size: 0.6rem;
+                    font-weight: 700;
+                    letter-spacing: 0.07em;
+                    text-transform: uppercase;
+                    color: rgba(192,57,43,0.7);
+                    border: 1px solid rgba(192,57,43,0.25);
+                    border-radius: var(--radius-full);
+                    padding: 0.1rem 0.45rem;
+                    margin-left: 0.6rem;
+                    vertical-align: middle;
+                    position: relative;
+                    top: -2px;
+                }
+
+                /* INDIE pill badge — shown next to Independent Films heading */
+                .indie-pill-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    font-size: 0.62rem;
+                    font-weight: 800;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    color: #fff;
+                    background: linear-gradient(135deg, rgba(192,57,43,0.85) 0%, rgba(142,35,25,0.9) 100%);
+                    border: 1px solid rgba(192,57,43,0.5);
+                    border-radius: var(--radius-full);
+                    padding: 0.18rem 0.6rem;
+                    flex-shrink: 0;
+                    box-shadow: 0 1px 4px rgba(192,57,43,0.25);
+                }
             `}</style>
         </main>
     );

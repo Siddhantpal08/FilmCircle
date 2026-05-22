@@ -102,7 +102,7 @@ const getReviewsForMovie = async (req, res, next) => {
 const getUserReviewForMovie = async (req, res, next) => {
     try {
         const review = await Review.findOne({ movieId: req.params.movieId, userId: req.user._id });
-        if (!review) return res.status(404).json({ message: 'No review found for this movie' });
+        if (!review) return res.status(200).json(null);
         res.json(review);
     } catch (err) {
         next(err);

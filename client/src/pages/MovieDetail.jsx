@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { movieService, reviewService, bookmarkService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import InfographicChart from '../components/movie/InfographicChart';
@@ -160,6 +160,10 @@ function ReviewFeed({ reviews }) {
 
 export default function MovieDetail() {
     const { id } = useParams();
+    const [searchParams] = useSearchParams();
+    const titleHint = searchParams.get('title') || '';
+    const posterHint = searchParams.get('poster') || '';
+    const yearHint = searchParams.get('year') || '';
     const { isAuthenticated, user } = useAuth();
     const [movie, setMovie] = useState(null);
     const [reviewData, setReviewData] = useState(null);
@@ -227,6 +231,13 @@ export default function MovieDetail() {
         }
         localStorage.setItem('filmcircle_interesting', JSON.stringify(interestingMap));
         setIsInteresting(nextState);
+
+        // Sync the vote to the backend leaderboard (fire-and-forget — UI is already updated above)
+        movieService.toggleInteresting(id, {
+            title: movie.Title || movie.title,
+            posterUrl: rawPoster,
+            year: movie.Year || movie.year || '',
+        }).catch(err => console.warn('[Interesting] backend sync error:', err));
     };
 
     const secsLeft = useEditTimer(myReview?.createdAt);
@@ -235,7 +246,8 @@ export default function MovieDetail() {
     const fetchAll = () => {
         setLoading(true);
         Promise.all([
-            movieService.getById(id).then(r => setMovie(r.data)),
+            // Pass titleHint, posterHint, yearHint so backend can resolve TMDB numeric IDs via OMDB title lookup or fallback
+            movieService.getById(id, titleHint, posterHint, yearHint).then(r => setMovie(r.data)),
             reviewService.getForMovie(id).then(r => setReviewData(r.data)).catch(() => setReviewData(null)),
             ...(isAuthenticated ? [reviewService.getMyReview(id).then(r => setMyReview(r.data)).catch(() => { })] : []),
         ])

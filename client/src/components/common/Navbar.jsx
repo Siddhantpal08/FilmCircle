@@ -174,7 +174,6 @@ export default function Navbar() {
                                     : <div className="avatar-placeholder">{user?.username?.[0]?.toUpperCase()}</div>
                                 }
                             </Link>
-                            <button className="btn btn-outline btn-sm" onClick={handleLogout}>Logout</button>
                         </>
                     ) : (
                         <>

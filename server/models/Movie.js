@@ -16,6 +16,9 @@ const movieSchema = new mongoose.Schema({
     }],
     uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     isIndependent: { type: Boolean, default: false },
+    // Community "Most Interesting" leaderboard fields
+    interestingCount: { type: Number, default: 0 },
+    interestingUsers: [{ type: String }], // stores user IDs (or session tokens) that have marked this
 }, { timestamps: true });
 
 module.exports = mongoose.model('Movie', movieSchema);

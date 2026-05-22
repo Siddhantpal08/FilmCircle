@@ -1,12 +1,13 @@
 const express = require('express');
 const {
-    getPosts, createPost, toggleLike, addComment, updatePost, deletePost
+    getPosts, createPost, toggleLike, addComment, updatePost, deletePost, getSidebarData
 } = require('../controllers/communityController');
 const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
 router.get('/posts', getPosts);                          // GET /api/community/posts
+router.get('/sidebar', getSidebarData);                  // GET /api/community/sidebar
 router.post('/posts', protect, createPost);              // POST /api/community/posts
 router.put('/posts/:id', protect, updatePost);           // PUT /api/community/posts/:id
 router.post('/posts/:id/like', protect, toggleLike);     // POST /api/community/posts/:id/like

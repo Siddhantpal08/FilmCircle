@@ -121,26 +121,52 @@ const getIndependentMovies = async (req, res, next) => {
 
 // @route   GET /api/movies/:id
 // @access  Public
-// Handles both OMDb imdbID (starts with 'tt') and MongoDB ObjectId (for independent films)
+// Handles:
+//   1. OMDb imdbID (starts with 'tt')           → OMDB by i=
+//   2. Numeric TMDB ID + ?title= query param     → OMDB by t= (title lookup)
+//   3. MongoDB ObjectId                          → indie film from DB
 const getMovieById = async (req, res, next) => {
-    try {
-        const { id } = req.params;
+    const { id } = req.params;
+    const { title } = req.query; // optional: passed when navigating from a TMDB card
 
-        // Try as OMDb imdbID first
-        if (id.startsWith('tt')) {
-            try {
-                const data = await omdbGet({ i: id, plot: 'full' });
-                return res.json(data);
-            } catch (omdbErr) {
-                // Fall through to DB lookup
-            }
+    // ── 1. OMDB imdbID (tt...) ───────────────────────────────────────────────
+    if (id.startsWith('tt')) {
+        try {
+            const data = await omdbGet({ i: id, plot: 'full' });
+            return res.json(data);
+        } catch (omdbErr) {
+            // fall through to DB lookup
         }
+    }
 
-        // Look up as MongoDB document (for independent films)
+    // ── 2. Numeric TMDB ID — resolve via OMDB title lookup ───────────────────
+    if (/^\d+$/.test(id) && title) {
+        try {
+            const data = await omdbGet({ t: title.trim(), plot: 'full' });
+            return res.json(data);
+        } catch (omdbErr) {
+            // OMDB couldn't match the title — return synthetic object based on query params
+            return res.json({
+                imdbID: id,
+                Title: title,
+                Year: req.query.year || 'Unknown',
+                Poster: req.query.poster || 'N/A',
+                Genre: 'Unknown',
+                Plot: 'No description available for this regional film.',
+                isIndependent: false
+            });
+        }
+    }
+
+    // ── 3. MongoDB ObjectId (indie films) ────────────────────────────────────
+    try {
         const movie = await Movie.findById(id).populate('uploadedBy', 'username avatarUrl');
         if (!movie) return res.status(404).json({ message: 'Movie not found' });
-        res.json(movie);
+        return res.json(movie);
     } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(404).json({ message: 'Movie not found — invalid ID.' });
+        }
         next(err);
     }
 };
@@ -279,4 +305,75 @@ const suggestMovies = async (req, res, next) => {
     }
 };
 
-module.exports = { searchMovies, getIndependentMovies, getMovieById, uploadMovie, updateMovie, deleteMovie, getTrendingMovies, suggestMovies };
+// @route   POST /api/movies/interesting/:movieId
+// @access  Public — uses a user identifier (auth user ID if logged in, else clientId header)
+// Toggles the "Most Interesting" flag for a film and updates interestingCount
+const toggleInteresting = async (req, res, next) => {
+    try {
+        const { movieId } = req.params;
+        // Accept either an authenticated user ID or an anonymous clientId sent by the frontend
+        const userId = req.user?._id?.toString() || req.headers['x-client-id'] || null;
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User identifier required.' });
+        }
+
+        // Build a synthetic Movie document for OMDB/TMDB films not in our DB.
+        // If the movieId is a real MongoDB ObjectId, findById works normally.
+        // Otherwise we upsert a thin record keyed by imdbID or tmdbId.
+        let movie;
+        const isObjectId = /^[a-f\d]{24}$/i.test(movieId);
+        if (isObjectId) {
+            movie = await Movie.findById(movieId);
+        } else {
+            // For external IDs (tt... or numeric TMDB), upsert a minimal record
+            movie = await Movie.findOneAndUpdate(
+                { imdbID: movieId },
+                {
+                    $setOnInsert: {
+                        title: req.body.title || movieId,
+                        posterUrl: req.body.posterUrl || '',
+                        year: req.body.year || '',
+                        imdbID: movieId,
+                        isIndependent: false,
+                    }
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            );
+        }
+
+        if (!movie) return res.status(404).json({ message: 'Movie not found.' });
+
+        const alreadyMarked = movie.interestingUsers.includes(userId);
+        if (alreadyMarked) {
+            // Un-mark
+            movie.interestingUsers = movie.interestingUsers.filter(u => u !== userId);
+            movie.interestingCount = Math.max(0, (movie.interestingCount || 1) - 1);
+        } else {
+            // Mark
+            movie.interestingUsers.push(userId);
+            movie.interestingCount = (movie.interestingCount || 0) + 1;
+        }
+
+        await movie.save();
+        res.json({ marked: !alreadyMarked, interestingCount: movie.interestingCount });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @route   GET /api/movies/interesting/leaderboard
+// @access  Public — top 10 films by interestingCount
+const getInterestingLeaderboard = async (req, res, next) => {
+    try {
+        const films = await Movie.find({ interestingCount: { $gt: 0 } })
+            .sort({ interestingCount: -1 })
+            .limit(10)
+            .select('title imdbID posterUrl year interestingCount');
+        res.json(films);
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { searchMovies, getIndependentMovies, getMovieById, uploadMovie, updateMovie, deleteMovie, getTrendingMovies, suggestMovies, toggleInteresting, getInterestingLeaderboard };

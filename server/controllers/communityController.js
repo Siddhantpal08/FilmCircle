@@ -136,4 +136,47 @@ const deletePost = async (req, res, next) => {
     }
 };
 
-module.exports = { getPosts, createPost, toggleLike, addComment, updatePost, deletePost };
+// @route   GET /api/community/sidebar
+// @access  Public — trending discussions + active clubs for sidebar
+const getSidebarData = async (req, res, next) => {
+    try {
+        const Club = require('../models/Club');
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+        // Top 5 posts by comment count (most discussed)
+        const trendingPosts = await Post.aggregate([
+            { $addFields: { commentCount: { $size: '$comments' } } },
+            { $sort: { commentCount: -1, createdAt: -1 } },
+            { $limit: 5 },
+            { $project: { content: 1, commentCount: 1, createdAt: 1 } },
+        ]);
+
+        // All clubs — compute recentPostCount (posts in last 7 days) for activity sorting
+        const clubs = await Club.find()
+            .select('name members posts')
+            .lean();
+
+        const clubsWithActivity = clubs.map(club => ({
+            _id: club._id,
+            name: club.name,
+            memberCount: club.members?.length || 0,
+            recentPostCount: (club.posts || []).filter(
+                p => new Date(p.createdAt) >= sevenDaysAgo
+            ).length,
+        }));
+
+        // Sort by recent posts desc, then member count desc
+        clubsWithActivity.sort((a, b) =>
+            b.recentPostCount - a.recentPostCount || b.memberCount - a.memberCount
+        );
+
+        res.json({
+            trendingPosts,
+            activeClubs: clubsWithActivity.slice(0, 5),
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { getPosts, createPost, toggleLike, addComment, updatePost, deletePost, getSidebarData };
