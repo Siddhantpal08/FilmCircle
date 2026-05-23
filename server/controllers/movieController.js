@@ -4,6 +4,10 @@ const Movie = require('../models/Movie');
 const OMDB_BASE = process.env.OMDB_BASE_URL || 'https://www.omdbapi.com/';
 const OMDB_KEY = process.env.OMDB_API_KEY;
 
+// TMDB — used only for exact movie-detail lookups via numeric TMDB ID
+const TMDB_BASE = 'https://api.tmdb.org/3';
+const TMDB_KEY = process.env.VITE_TMDB_API_KEY || process.env.TMDB_API_KEY;
+
 // Curated list of 30 popular/trending titles (by imdbID)
 const TRENDING_IDS = [
     'tt9362722', // Spider-Man: Across the Spider-Verse
@@ -123,11 +127,12 @@ const getIndependentMovies = async (req, res, next) => {
 // @access  Public
 // Handles:
 //   1. OMDb imdbID (starts with 'tt')           → OMDB by i=
-//   2. Numeric TMDB ID + ?title= query param     → OMDB by t= (title lookup)
-//   3. MongoDB ObjectId                          → indie film from DB
+//   2. Numeric TMDB ID                          → TMDB /movie/{id} for imdb_id → OMDB by i=
+//   3. MongoDB ObjectId                         → indie film from DB
 const getMovieById = async (req, res, next) => {
     const { id } = req.params;
-    const { title } = req.query; // optional: passed when navigating from a TMDB card
+    // Hint params forwarded from the card click (used only for fallback display)
+    const { title, poster, year } = req.query;
 
     // ── 1. OMDB imdbID (tt...) ───────────────────────────────────────────────
     if (id.startsWith('tt')) {
@@ -139,23 +144,88 @@ const getMovieById = async (req, res, next) => {
         }
     }
 
-    // ── 2. Numeric TMDB ID — resolve via OMDB title lookup ───────────────────
-    if (/^\d+$/.test(id) && title) {
-        try {
-            const data = await omdbGet({ t: title.trim(), plot: 'full' });
-            return res.json(data);
-        } catch (omdbErr) {
-            // OMDB couldn't match the title — return synthetic object based on query params
-            return res.json({
-                imdbID: id,
-                Title: title,
-                Year: req.query.year || 'Unknown',
-                Poster: req.query.poster || 'N/A',
-                Genre: 'Unknown',
-                Plot: 'No description available for this regional film.',
-                isIndependent: false
-            });
+    // ── 2. Numeric TMDB ID — fetch exact details from TMDB, then enrich via OMDB i= ──
+    if (/^\d+$/.test(id)) {
+        // Step A: call TMDB /movie/{id} to get canonical details including imdb_id
+        let tmdbData = null;
+        if (TMDB_KEY) {
+            try {
+                const tmdbRes = await axios.get(
+                    `${TMDB_BASE}/movie/${id}`,
+                    { params: { api_key: TMDB_KEY, language: 'en-US', append_to_response: 'credits' } }
+                );
+                tmdbData = tmdbRes.data;
+            } catch (tmdbErr) {
+                console.warn(`[TMDB] /movie/${id} lookup failed:`, tmdbErr.message);
+            }
         }
+
+        // Step B: if TMDB gave us an imdb_id, call OMDB by i= for exact, enriched data
+        if (tmdbData && tmdbData.imdb_id) {
+            try {
+                const omdbData = await omdbGet({ i: tmdbData.imdb_id, plot: 'full' });
+                // Merge: prefer OMDB fields, but fill any gaps with TMDB data
+                return res.json({
+                    ...omdbData,
+                    // Ensure a good poster — prefer OMDB's, fall back to TMDB's
+                    Poster:
+                        (omdbData.Poster && omdbData.Poster !== 'N/A')
+                            ? omdbData.Poster
+                            : (tmdbData.poster_path
+                                ? `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`
+                                : (poster || 'N/A')),
+                });
+            } catch (omdbErr) {
+                // OMDB lookup failed even though we have imdb_id — return TMDB data directly
+                const directors = (tmdbData.credits?.crew || [])
+                    .filter(c => c.job === 'Director')
+                    .map(c => c.name)
+                    .join(', ');
+                const cast = (tmdbData.credits?.cast || [])
+                    .slice(0, 5)
+                    .map(c => c.name)
+                    .join(', ');
+                return res.json({
+                    imdbID: tmdbData.imdb_id || id,
+                    Title: tmdbData.title || title || 'Unknown',
+                    Year: tmdbData.release_date ? tmdbData.release_date.slice(0, 4) : (year || 'Unknown'),
+                    Poster: tmdbData.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`
+                        : (poster || 'N/A'),
+                    Genre: (tmdbData.genres || []).map(g => g.name).join(', ') || 'Unknown',
+                    Plot: tmdbData.overview || 'No description available.',
+                    Director: directors || '—',
+                    Actors: cast || '—',
+                    imdbRating: tmdbData.vote_average ? tmdbData.vote_average.toFixed(1) : null,
+                    isIndependent: false,
+                });
+            }
+        }
+
+        // Step C: TMDB key missing or TMDB returned no imdb_id — fall back to OMDB
+        // title+year search (?t= with &y= is more accurate than title alone)
+        if (title) {
+            try {
+                const params = { t: title.trim(), plot: 'full' };
+                if (year) params.y = year.trim();
+                const data = await omdbGet(params);
+                return res.json(data);
+            } catch (omdbErr) {
+                // Nothing worked — return a synthetic display object from the URL hints
+                return res.json({
+                    imdbID: id,
+                    Title: title,
+                    Year: year || 'Unknown',
+                    Poster: poster || 'N/A',
+                    Genre: 'Unknown',
+                    Plot: 'No description available for this film.',
+                    isIndependent: false,
+                });
+            }
+        }
+
+        // No title hint and no TMDB data — give up gracefully
+        return res.status(404).json({ message: 'Movie not found — no lookup data available.' });
     }
 
     // ── 3. MongoDB ObjectId (indie films) ────────────────────────────────────
