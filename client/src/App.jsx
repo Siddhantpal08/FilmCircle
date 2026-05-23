@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/common/Navbar';
 import Home from './pages/Home';
@@ -19,13 +19,19 @@ function ProtectedRoute({ children }) {
     return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
+// Routes where the global Navbar should be hidden
+const AUTH_ROUTES = ['/login', '/register'];
+
 function AppRoutes() {
     const { loading } = useAuth();
+    const location = useLocation();
+    const hideNav = AUTH_ROUTES.includes(location.pathname);
+
     if (loading) return <Loader fullPage />;
 
     return (
         <>
-            <Navbar />
+            {!hideNav && <Navbar />}
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />

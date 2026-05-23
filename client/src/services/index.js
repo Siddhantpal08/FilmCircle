@@ -20,6 +20,8 @@ export const authService = {
     getMe: () => api.get('/auth/me'),
     updateProfile: (data) => api.put('/auth/profile', data),
     deleteAccount: () => api.delete('/auth/account'),
+    forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+    resetPassword: (token, email, password) => api.post('/auth/reset-password', { token, email, password }),
 };
 
 export const movieService = {

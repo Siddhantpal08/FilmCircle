@@ -27,6 +27,9 @@ const userSchema = new mongoose.Schema({
     avatarUrl: { type: String, default: '' },
     uploadedMovies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Movie' }],
     joinedClubs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Club' }],
+    // Password reset
+    resetToken: { type: String },
+    resetTokenExpiry: { type: Date },
 }, { timestamps: true });
 
 // Hash password before saving

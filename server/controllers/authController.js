@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const Review = require('../models/Review');
 const Movie = require('../models/Movie');
@@ -166,4 +168,103 @@ const deleteAccount = async (req, res, next) => {
     }
 };
 
-module.exports = { register, login, getMe, updateProfile, deleteAccount };
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email is required' });
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        // Always return success to prevent email enumeration attacks
+        if (!user) {
+            return res.json({ message: 'If that email is registered, a reset link has been sent.' });
+        }
+
+        // Generate a secure random token
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+        user.resetToken = hashedToken;
+        user.resetTokenExpiry = Date.now() + 60 * 60 * 1000; // 1 hour
+        await user.save({ validateBeforeSave: false });
+
+        // Build reset URL — use VITE_API_URL base or CLIENT_URL
+        const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+        const resetUrl = `${clientUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
+
+        // Send email via nodemailer
+        const transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT || '587', 10),
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+
+        await transporter.sendMail({
+            from: `"FilmCircle" <${process.env.SMTP_USER || 'noreply@filmcircle.app'}>`,
+            to: user.email,
+            subject: 'Reset your FilmCircle password',
+            html: `
+                <div style="font-family:sans-serif;max-width:480px;margin:auto;">
+                    <h2 style="color:#c0392b;">🎬 FilmCircle Password Reset</h2>
+                    <p>Hi <strong>${user.username}</strong>,</p>
+                    <p>Someone requested a password reset for your account. Click the button below to set a new password. This link expires in 1 hour.</p>
+                    <a href="${resetUrl}" style="display:inline-block;background:#c0392b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin:16px 0;">Reset Password</a>
+                    <p style="color:#888;font-size:0.85rem;">If you didn't request this, you can safely ignore this email.</p>
+                    <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+                    <p style="color:#aaa;font-size:0.75rem;">FilmCircle — Your cinema, your circle.</p>
+                </div>
+            `,
+        });
+
+        res.json({ message: 'If that email is registered, a reset link has been sent.' });
+    } catch (err) {
+        // Clean up token on mail failure so user can retry
+        try {
+            const u = await User.findOne({ email: req.body?.email?.toLowerCase().trim() });
+            if (u) { u.resetToken = undefined; u.resetTokenExpiry = undefined; await u.save({ validateBeforeSave: false }); }
+        } catch (_) { /* ignore */ }
+        console.error('[forgotPassword] Error:', err.message);
+        res.status(500).json({ message: 'Failed to send reset email. Please check server email configuration.' });
+    }
+};
+
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res, next) => {
+    try {
+        const { token, email, password } = req.body;
+        if (!token || !email || !password) {
+            return res.status(400).json({ message: 'Token, email, and new password are required.' });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+        }
+
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        const user = await User.findOne({
+            email: email.toLowerCase().trim(),
+            resetToken: hashedToken,
+            resetTokenExpiry: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired reset link. Please request a new one.' });
+        }
+
+        user.password = password;
+        user.resetToken = undefined;
+        user.resetTokenExpiry = undefined;
+        await user.save();
+
+        res.json({ message: 'Password reset successful. You can now log in.' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { register, login, getMe, updateProfile, deleteAccount, forgotPassword, resetPassword };
