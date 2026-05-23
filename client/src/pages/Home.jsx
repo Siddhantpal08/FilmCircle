@@ -7,6 +7,7 @@ import MovieCard from '../components/movie/MovieCard';
 import TmdbMovieCard from '../components/movie/TmdbMovieCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 import { tmdbService } from '../services/tmdbService';
+import { useAuth } from '../context/AuthContext';
 
 // ── OMDB-based genre chips (search bar — untouched) ──────────────────────────
 const QUERY_CHIPS = [
@@ -35,6 +36,7 @@ export default function Home() {
     const navigate = useNavigate();
     const { pathname } = useLocation();
     const isHomePage = pathname === '/';
+    const { isAuthenticated } = useAuth();
 
     // ── OMDB state (search + indie — untouched logic) ─────────────────────────
     const [results, setResults]   = useState([]);
@@ -398,7 +400,9 @@ export default function Home() {
                                             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--clr-secondary)' }}>Active now</p>
                                         </div>
                                     </div>
+                                    {isAuthenticated && (
                                     <button style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-primary-container)', background: 'none', border: 'none', cursor: 'pointer' }}>Join</button>
+                                    )}
                                 </div>
                             );
                         })}

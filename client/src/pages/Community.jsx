@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { communityService, clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
@@ -286,51 +287,75 @@ export default function Community() {
                         </form>
                     )}
 
-                    {/* ── Filter Tabs ── */}
-                    <div className="comm-tabs">
-                        {TABS.map(tab => {
-                            // Hide user-specific tabs when not logged in
-                            if (!isAuthenticated && tab !== 'All Posts') return null;
-                            return (
-                                <button
-                                    key={tab}
-                                    className={`comm-tab ${activeTab === tab ? 'comm-tab-active' : ''}`}
-                                    onClick={() => setActiveTab(tab)}
-                                >
-                                    {tab}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Feed */}
-                    {loading && posts.length === 0 && <Loader />}
-
-                    {!loading && filteredPosts.length === 0 && (
-                        <div className="empty-state">
-                            <div className="icon">💬</div>
-                            <p>{activeTab === 'All Posts' ? 'No posts yet — be the first!' : emptyMessages[activeTab]}</p>
+                    {/* ── Gated content: show lock screen for logged-out users ── */}
+                    {!isAuthenticated ? (
+                        <div style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                            textAlign: 'center', padding: '4rem 2rem', gap: '1rem',
+                            background: 'var(--clr-surface-high)', border: '1px solid rgba(89,65,61,0.15)',
+                            borderRadius: 'var(--radius)',
+                        }}>
+                            <div style={{ fontSize: '3rem', lineHeight: 1 }}>🔒</div>
+                            <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700, color: 'var(--clr-on-surface)' }}>
+                                Join the conversation
+                            </h2>
+                            <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--clr-secondary)', maxWidth: '340px', lineHeight: 1.6 }}>
+                                Login or create an account to read and post in the FilmCircle community
+                            </p>
+                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                <Link to="/login" className="btn btn-primary">Log In</Link>
+                                <Link to="/register" className="btn btn-outline">Sign Up</Link>
+                            </div>
                         </div>
-                    )}
+                    ) : (
+                        <>
+                            {/* ── Filter Tabs ── */}
+                            <div className="comm-tabs">
+                                {TABS.map(tab => {
+                                    // Hide user-specific tabs when not logged in
+                                    if (!isAuthenticated && tab !== 'All Posts') return null;
+                                    return (
+                                        <button
+                                            key={tab}
+                                            className={`comm-tab ${activeTab === tab ? 'comm-tab-active' : ''}`}
+                                            onClick={() => setActiveTab(tab)}
+                                        >
+                                            {tab}
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-                    {filteredPosts.map(p => (
-                        <PostCard
-                            key={p._id}
-                            post={p}
-                            onLike={handleLike}
-                            onDelete={handleDelete}
-                            onUpdate={() => loadPosts(1)}
-                            currentUserId={currentUserId}
-                            highlightComment={activeTab === 'Your Comments'}
-                        />
-                    ))}
+                            {/* Feed */}
+                            {loading && posts.length === 0 && <Loader />}
 
-                    {activeTab === 'All Posts' && hasMore && (
-                        <div className="flex-center" style={{ marginTop: '1.5rem' }}>
-                            <button className="btn btn-outline" onClick={() => loadPosts(page + 1)} disabled={loading}>
-                                {loading ? 'Loading…' : 'Load More'}
-                            </button>
-                        </div>
+                            {!loading && filteredPosts.length === 0 && (
+                                <div className="empty-state">
+                                    <div className="icon">💬</div>
+                                    <p>{activeTab === 'All Posts' ? 'No posts yet — be the first!' : emptyMessages[activeTab]}</p>
+                                </div>
+                            )}
+
+                            {filteredPosts.map(p => (
+                                <PostCard
+                                    key={p._id}
+                                    post={p}
+                                    onLike={handleLike}
+                                    onDelete={handleDelete}
+                                    onUpdate={() => loadPosts(1)}
+                                    currentUserId={currentUserId}
+                                    highlightComment={activeTab === 'Your Comments'}
+                                />
+                            ))}
+
+                            {activeTab === 'All Posts' && hasMore && (
+                                <div className="flex-center" style={{ marginTop: '1.5rem' }}>
+                                    <button className="btn btn-outline" onClick={() => loadPosts(page + 1)} disabled={loading}>
+                                        {loading ? 'Loading…' : 'Load More'}
+                                    </button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
 
@@ -395,12 +420,14 @@ export default function Community() {
                                             </p>
                                         </div>
                                     </div>
+                                    {isAuthenticated && (
                                     <button
                                         style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-primary-container)', background: 'none', border: 'none', cursor: 'pointer' }}
                                         onClick={() => handleJoinClub(club._id)}
                                     >
                                         Join
                                     </button>
+                                    )}
                                 </div>
                             ))
                         )}

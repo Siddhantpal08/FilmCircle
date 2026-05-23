@@ -326,22 +326,24 @@ export default function MovieDetail() {
                         )}
                         {imdbRating && <div className="imdb-badge" style={{ display: 'block', textAlign: 'center', marginTop: '0.75rem' }}>⭐ IMDb: {imdbRating}</div>}
                         
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
-                            <button 
-                                className={`btn btn-sm ${isInteresting ? 'btn-primary' : 'btn-outline'}`} 
-                                onClick={toggleInteresting}
-                                style={{ width: '100%', justifyContent: 'center', gap: '0.35rem' }}
-                            >
-                                {isInteresting ? '🔥 Interesting!' : '✨ Mark Interesting'}
-                            </button>
-                            <button 
-                                className={`btn btn-sm ${isBookmarked ? 'btn-primary' : 'btn-outline'}`} 
-                                onClick={toggleBookmark}
-                                style={{ width: '100%', justifyContent: 'center', gap: '0.35rem' }}
-                            >
-                                {isBookmarked ? '🔖 Bookmarked' : '📌 Bookmark Film'}
-                            </button>
-                        </div>
+                        {isAuthenticated && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
+                                <button 
+                                    className={`btn btn-sm ${isInteresting ? 'btn-primary' : 'btn-outline'}`} 
+                                    onClick={toggleInteresting}
+                                    style={{ width: '100%', justifyContent: 'center', gap: '0.35rem' }}
+                                >
+                                    {isInteresting ? '🔥 Interesting!' : '✨ Mark Interesting'}
+                                </button>
+                                <button 
+                                    className={`btn btn-sm ${isBookmarked ? 'btn-primary' : 'btn-outline'}`} 
+                                    onClick={toggleBookmark}
+                                    style={{ width: '100%', justifyContent: 'center', gap: '0.35rem' }}
+                                >
+                                    {isBookmarked ? '🔖 Bookmarked' : '📌 Bookmark Film'}
+                                </button>
+                            </div>
+                        )}
 
                         {isOwner && !editMode && (
                             <button className="btn btn-outline btn-sm" style={{ marginTop: '1rem', width: '100%' }} onClick={() => {
