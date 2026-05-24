@@ -195,13 +195,49 @@ const forgotPassword = async (req, res, next) => {
         const resetUrl = `${clientUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
 
         // Send email via nodemailer
+        let host = process.env.SMTP_HOST;
+        let port = parseInt(process.env.SMTP_PORT || '587', 10);
+        let userAuth = process.env.SMTP_USER;
+        let passAuth = process.env.SMTP_PASS;
+
+        // If using live.smtp.mailtrap.io but sending from unverified domain (e.g. gmail.com),
+        // fallback dynamically to Mailtrap Sandbox SMTP using their API Token!
+        if (host === 'live.smtp.mailtrap.io' && process.env.SMTP_FROM?.endsWith('gmail.com')) {
+            try {
+                console.log('[forgotPassword] Detected live Mailtrap with Gmail sender. Fetching Sandbox SMTP credentials dynamically...');
+                const accountsRes = await fetch('https://mailtrap.io/api/accounts', {
+                    headers: { 'Authorization': `Bearer ${process.env.SMTP_PASS}` }
+                });
+                if (accountsRes.ok) {
+                    const accounts = await accountsRes.json();
+                    if (accounts.length > 0) {
+                        const inboxesRes = await fetch(`https://mailtrap.io/api/accounts/${accounts[0].id}/inboxes`, {
+                            headers: { 'Authorization': `Bearer ${process.env.SMTP_PASS}` }
+                        });
+                        if (inboxesRes.ok) {
+                            const inboxes = await inboxesRes.json();
+                            if (inboxes.length > 0) {
+                                host = inboxes[0].domain || 'sandbox.smtp.mailtrap.io';
+                                port = 2525;
+                                userAuth = inboxes[0].username;
+                                passAuth = inboxes[0].password;
+                                console.log('[forgotPassword] Successfully fell back to Mailtrap Sandbox:', userAuth);
+                            }
+                        }
+                    }
+                }
+            } catch (fallbackErr) {
+                console.error('[forgotPassword] Sandbox fallback retrieval failed:', fallbackErr.message);
+            }
+        }
+
         const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT || '587', 10),
+            host,
+            port,
             secure: process.env.SMTP_SECURE === 'true',
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user: userAuth,
+                pass: passAuth,
             },
         });
 
