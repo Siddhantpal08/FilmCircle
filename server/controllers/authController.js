@@ -206,7 +206,7 @@ const forgotPassword = async (req, res, next) => {
         });
 
         await transporter.sendMail({
-            from: `"FilmCircle" <${process.env.SMTP_USER || 'noreply@filmcircle.app'}>`,
+            from: `"FilmCircle" <${process.env.SMTP_FROM || 'noreply@filmcircle.app'}>`,
             to: user.email,
             subject: 'Reset your FilmCircle password',
             html: `
