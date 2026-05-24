@@ -1,0 +1,104 @@
+.custom-select {
+    position: relative;
+    width: 100%;
+    font-family: inherit;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid #C0392B;
+    border-radius: var(--radius-sm, 4px);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 0.875rem;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.custom-select-trigger:hover:not(:disabled) {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 1px rgba(192, 57, 43, 0.2);
+}
+
+.custom-select.is-open .custom-select-trigger {
+    border-color: #C0392B;
+    box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.25);
+}
+
+.custom-select-placeholder {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.custom-select-value {
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-select-chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.custom-select-chevron.is-open {
+    transform: rotate(180deg);
+}
+
+.custom-select-menu {
+    position: absolute;
+    z-index: 200;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0.35rem 0;
+    list-style: none;
+    background: #1a1a1a;
+    border: 1px solid #C0392B;
+    border-radius: var(--radius-sm, 4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+    max-height: 220px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+
+.custom-select.is-open .custom-select-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.custom-select-option {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+}
+
+.custom-select-option:hover {
+    background: rgba(192, 57, 43, 0.2);
+    color: #fff;
+}
+
+.custom-select-option.is-selected {
+    background: rgba(192, 57, 43, 0.35);
+    color: #fff;
+    font-weight: 600;
+}
+
+.custom-select.is-disabled .custom-select-trigger {
+    opacity: 0.55;
+    cursor: not-allowed;
+}

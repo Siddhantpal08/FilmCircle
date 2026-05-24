@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
+import CustomSelect from '../components/common/CustomSelect';
 
 const GENRE_FILTERS = ['All', 'Drama', 'Horror', 'Sci-Fi', 'Action', 'Independent', 'Bollywood', 'General'];
 const CLUB_GENRES = GENRE_FILTERS.filter(g => g !== 'All');
+const CLUB_GENRE_OPTIONS = [{ value: '', label: 'Select genre…' }, ...CLUB_GENRES.map(g => ({ value: g, label: g }))];
 const MAX_BANNER_BYTES = 3 * 1024 * 1024;
 const MAX_LOGO_BYTES = 1 * 1024 * 1024;
 const GENRE_EMOJIS = {
@@ -338,16 +340,12 @@ export default function Clubs() {
                                         </div>
                                         <div className="form-group club-modal-field">
                                             <label className="form-label">Genre / Theme</label>
-                                            <select
-                                                className="form-select club-modal-input"
+                                            <CustomSelect
+                                                className="club-modal-input"
                                                 value={form.genre}
                                                 onChange={e => setForm(f => ({ ...f, genre: e.target.value }))}
-                                            >
-                                                <option value="">Select genre…</option>
-                                                {CLUB_GENRES.map(g => (
-                                                    <option key={g} value={g}>{g}</option>
-                                                ))}
-                                            </select>
+                                                options={CLUB_GENRE_OPTIONS}
+                                            />
                                         </div>
                                     </div>
                                 </div>

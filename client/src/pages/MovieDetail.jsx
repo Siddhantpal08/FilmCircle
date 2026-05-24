@@ -4,6 +4,7 @@ import { movieService, reviewService, bookmarkService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import InfographicChart from '../components/movie/InfographicChart';
 import Loader from '../components/common/Loader';
+import CustomSelect from '../components/common/CustomSelect';
 
 const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'%3E%3Crect width='300' height='450' fill='%23201f1f'/%3E%3Ctext x='50%25' y='44%25' text-anchor='middle' fill='%23c0392b' font-size='60'%3E%F0%9F%8E%AC%3C/text%3E%3Ctext x='50%25' y='57%25' text-anchor='middle' fill='%23a88a85' font-size='16'%3ENo Poster%3C/text%3E%3C/svg%3E";
 const OPINIONS = [
@@ -13,6 +14,7 @@ const OPINIONS = [
     { key: 'excellent', emoji: '⭐', label: 'Perfection', color: '#c0392b' },
 ];
 const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller', 'Romance', 'Documentary', 'Animation', 'Other'];
+const GENRE_OPTIONS = [{ value: '', label: 'Select genre…' }, ...GENRES.map(g => ({ value: g, label: g }))];
 const FIVE_MIN = 5 * 60 * 1000;
 
 // Countdown hook — tracks time remaining within the 5-min edit window
@@ -432,10 +434,11 @@ export default function MovieDetail() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Genre</label>
-                                        <select className="form-select" value={editForm.genre} onChange={e => setEditForm(f => ({ ...f, genre: e.target.value }))}>
-                                            <option value="">Select genre…</option>
-                                            {GENRES.map(g => <option key={g}>{g}</option>)}
-                                        </select>
+                                        <CustomSelect
+                                            value={editForm.genre}
+                                            onChange={e => setEditForm(f => ({ ...f, genre: e.target.value }))}
+                                            options={GENRE_OPTIONS}
+                                        />
                                     </div>
                                 </div>
                                 <div className="grid-2">

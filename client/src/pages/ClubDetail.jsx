@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
+import CustomSelect from '../components/common/CustomSelect';
 
 const GENRES = ['Drama', 'Horror', 'Sci-Fi', 'Action', 'Independent', 'Bollywood', 'General'];
+const GENRE_OPTIONS = [{ value: '', label: 'Select genre…' }, ...GENRES.map(g => ({ value: g, label: g }))];
 
 const getClubBanner = (genre) => {
     const g = (genre || '').toLowerCase();
@@ -147,9 +149,11 @@ export default function ClubDetail() {
                                     </div>
                                     <div className="form-group">
                                         <label className="form-label">Genre</label>
-                                        <select className="form-select" value={editForm.genre} onChange={e => setEditForm(f => ({ ...f, genre: e.target.value }))}>
-                                            {GENRES.map(g => <option key={g}>{g}</option>)}
-                                        </select>
+                                        <CustomSelect
+                                            value={editForm.genre}
+                                            onChange={e => setEditForm(f => ({ ...f, genre: e.target.value }))}
+                                            options={GENRE_OPTIONS}
+                                        />
                                     </div>
                                 </div>
                                 <div className="form-group">
