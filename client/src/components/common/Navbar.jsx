@@ -114,7 +114,7 @@ export default function Navbar() {
                             id="search-input"
                             className="search-input"
                             type="text"
-                            placeholder="Search films, directors..."
+                            placeholder="Search films..."
                             value={query}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
@@ -177,10 +177,7 @@ export default function Navbar() {
                             </Link>
                         </>
                     ) : (
-                        <>
-                            <Link to="/login" className="btn btn-ghost btn-sm">Log In</Link>
-                            <Link to="/register" className="btn btn-primary btn-sm">Sign Up</Link>
-                        </>
+                        <Link to="/login" className="btn btn-primary btn-sm">Log In</Link>
                     )}
                 </nav>
 

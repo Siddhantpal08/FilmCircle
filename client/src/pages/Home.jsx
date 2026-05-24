@@ -404,7 +404,7 @@ export default function Home() {
                 .home-layout {
                     display: grid;
                     grid-template-columns: minmax(0, 1fr) 280px;
-                    gap: 2rem;
+                    gap: 3.5rem;
                     align-items: start;
                     padding-top: 1.5rem;
                     width: 100%;
@@ -421,6 +421,8 @@ export default function Home() {
                     align-self: start;
                     display: flex;
                     flex-direction: column;
+                    /* align top with the first poster row (below the Trending Now heading) */
+                    padding-top: 2.9rem;
                 }
 
                 /* Tablet: collapse to single column, hide sidebar */

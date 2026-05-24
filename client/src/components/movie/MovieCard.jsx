@@ -1,11 +1,17 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23201f1f'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23c0392b' font-size='30'%3E🎬%3C/text%3E%3Ctext x='50%25' y='63%25' text-anchor='middle' fill='%23a88a85' font-size='12'%3ENo Poster%3C/text%3E%3C/svg%3E";
 
 export default function MovieCard({ movie, indie = false }) {
     const id = movie.imdbID || movie._id;
-    let poster = (movie.Poster && movie.Poster !== 'N/A') ? movie.Poster : (movie.posterUrl || FALLBACK);
-    if (poster.startsWith('http://')) poster = poster.replace('http://', 'https://');
+    const rawPoster = movie.Poster && movie.Poster !== 'N/A'
+        ? movie.Poster
+        : (movie.posterUrl || null);
+    const poster = rawPoster?.startsWith('http://')
+        ? rawPoster.replace('http://', 'https://')
+        : rawPoster;
+
+    const [imgError, setImgError] = useState(false);
+    const showFallback = !poster || imgError;
     const title = movie.Title || movie.title;
     const year = movie.Year || movie.year || '';
     const genre = movie.Genre || movie.genre || '';
@@ -14,13 +20,20 @@ export default function MovieCard({ movie, indie = false }) {
         <>
             <Link to={`/movie/${id}`} className="movie-card group">
                 <div className="movie-card-poster">
-                    <img
-                        src={poster}
-                        alt={title}
-                        className="movie-poster-img"
-                        onError={e => { e.target.src = FALLBACK; }}
-                        loading="lazy"
-                    />
+                    {showFallback ? (
+                        <div className="movie-poster-fallback">
+                            <span className="movie-poster-fallback-icon">🎬</span>
+                            <span className="movie-poster-fallback-title">{title}</span>
+                        </div>
+                    ) : (
+                        <img
+                            src={poster}
+                            alt={title}
+                            className="movie-poster-img"
+                            onError={() => setImgError(true)}
+                            loading="lazy"
+                        />
+                    )}
                     {indie && <span className="movie-indie-badge">Indie</span>}
                     {/* Score overlay (appears on hover) */}
                     <div className="movie-score-overlay">
@@ -73,6 +86,38 @@ export default function MovieCard({ movie, indie = false }) {
                     transition: transform 0.5s ease;
                 }
                 .movie-card:hover .movie-poster-img { transform: scale(1.06); }
+
+                /* ── No-poster fallback ── */
+                .movie-poster-fallback {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.6rem;
+                    background: linear-gradient(160deg, #1e1c1c 0%, #171515 100%);
+                    padding: 1rem;
+                }
+                .movie-poster-fallback-icon {
+                    font-size: 2rem;
+                    opacity: 0.5;
+                    filter: grayscale(0.4);
+                    line-height: 1;
+                }
+                .movie-poster-fallback-title {
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    color: rgba(168, 138, 133, 0.75);
+                    text-align: center;
+                    line-height: 1.4;
+                    letter-spacing: 0.02em;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 4;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                    word-break: break-word;
+                }
 
                 .movie-indie-badge {
                     position: absolute;

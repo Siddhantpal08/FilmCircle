@@ -348,16 +348,31 @@ const getTrendingMovies = async (req, res, next) => {
 
 // @route   GET /api/movies/suggest?q=partial
 // @access  Public — lightweight autocomplete (returns up to 8 titles)
+// Uses raw axios (not omdbGet) so a "no results" response from OMDB doesn't throw
+// and kill suggestions for short/partial queries.
 const suggestMovies = async (req, res, next) => {
     try {
         const { q } = req.query;
         if (!q || q.trim().length < 2) return res.json([]);
-        let data = await omdbGet({ s: q.trim(), type: 'movie' });
-        
-        // Typo fallback: if no results and word is long enough, try truncating to first 5 chars
+
+        if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
+            return res.json([]);
+        }
+
+        // Raw axios call — we inspect Response ourselves instead of letting omdbGet throw
+        const omdbSearch = async (term) => {
+            const resp = await axios.get(OMDB_BASE, {
+                params: { s: term, type: 'movie', apikey: OMDB_KEY },
+            });
+            return resp.data; // { Response, Search?, totalResults? }
+        };
+
+        let data = await omdbSearch(q.trim());
+
+        // Typo / prefix fallback: if partial query returned nothing and it's long enough,
+        // retry with the first 5 characters (e.g. "incep" instead of "incepti")
         if (data.Response === 'False' && q.trim().length > 5) {
-            const fallbackQuery = q.trim().slice(0, 5);
-            const fallbackData = await omdbGet({ s: fallbackQuery, type: 'movie' });
+            const fallbackData = await omdbSearch(q.trim().slice(0, 5));
             if (fallbackData.Response !== 'False') data = fallbackData;
         }
 
@@ -369,9 +384,8 @@ const suggestMovies = async (req, res, next) => {
         }));
         res.json(suggestions);
     } catch (err) {
-        // Return empty array gracefully — autocomplete failure is non-critical
-        if (err.statusCode === 404 || err.statusCode === 503) return res.json([]);
-        next(err);
+        // Autocomplete failure is non-critical — return empty array gracefully
+        res.json([]);
     }
 };
 
