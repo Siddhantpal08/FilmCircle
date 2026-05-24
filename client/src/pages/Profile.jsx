@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { authService, movieService } from '../services';
+import { authService, movieService, reviewService } from '../services';
 import Loader from '../components/common/Loader';
 import MovieCard from '../components/movie/MovieCard';
 
@@ -9,11 +9,19 @@ const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
 
 const TABS = ['Reviews', 'Uploaded Films', 'Clubs'];
 
+const OPINIONS = [
+    { key: 'skip', emoji: '⏭️', label: 'Skip', color: '#888' },
+    { key: 'considerable', emoji: '🤔', label: 'Timepass', color: '#c8c6c5' },
+    { key: 'goForIt', emoji: '✅', label: 'Go For It', color: '#ffb4a9' },
+    { key: 'excellent', emoji: '⭐', label: 'Perfection', color: '#c0392b' },
+];
+
 export default function Profile() {
     const { user, logout, updateUser } = useAuth();
     const navigate = useNavigate();
     const avatarFileRef = useRef(null);
     const [uploadedFilms, setUploadedFilms] = useState([]);
+    const [myReviews, setMyReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('Uploaded Films');
 
@@ -31,13 +39,26 @@ export default function Profile() {
     const [deletingFilm, setDeletingFilm] = useState(false);
 
     useEffect(() => {
-        movieService.getIndependent()
-            .then(res => {
-                const userId = user?._id || user?.id;
-                setUploadedFilms(res.data.filter(m => m.uploadedBy?._id === userId || m.uploadedBy === userId));
-            })
-            .finally(() => setLoading(false));
-    }, [user]);
+        setLoading(true);
+        Promise.all([
+            authService.getMe().then(res => {
+                updateUser(res.data);
+                return res.data;
+            }),
+            movieService.getIndependent(),
+            reviewService.getMyReviews().then(res => {
+                setMyReviews(res.data);
+            }).catch(() => setMyReviews([]))
+        ])
+        .then(([freshUser, filmsRes]) => {
+            const userId = freshUser?.id || freshUser?._id || user?.id || user?._id;
+            setUploadedFilms(filmsRes.data.filter(m => m.uploadedBy?._id === userId || m.uploadedBy === userId));
+        })
+        .catch(err => {
+            console.error("Failed to fetch profile details:", err);
+        })
+        .finally(() => setLoading(false));
+    }, []);
 
     const openEdit = () => {
         setEditForm({ username: user.username || '', bio: user.bio || '', avatarUrl: user.avatarUrl || '' });
@@ -145,7 +166,7 @@ export default function Profile() {
                                     <span className="profile-stat-label">Clubs</span>
                                 </div>
                                 <div className="profile-stat">
-                                    <span className="profile-stat-num">—</span>
+                                    <span className="profile-stat-num">{myReviews.length}</span>
                                     <span className="profile-stat-label">Reviews</span>
                                 </div>
                             </div>
@@ -325,10 +346,53 @@ export default function Profile() {
                 )}
 
                 {activeTab === 'Reviews' && (
-                    <div className="empty-state">
-                        <div className="icon">⭐</div>
-                        <p>Your reviews will appear here.</p>
-                    </div>
+                    <section className="section">
+                        <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
+                            <h2 className="text-headline-md">Your Reviews</h2>
+                        </div>
+                        {myReviews.length === 0 && (
+                            <div className="empty-state">
+                                <div className="icon">⭐</div>
+                                <p>You haven't reviewed any films yet.</p>
+                            </div>
+                        )}
+                        <div className="reviews-list">
+                            {myReviews.map(r => {
+                                const op = OPINIONS.find(o => o.key === r.opinion) || { emoji: '⭐', label: 'Review', color: '#c0392b' };
+                                return (
+                                    <div key={r._id} className="profile-review-card" style={{ borderLeftColor: op.color }}>
+                                        <Link to={`/movie/${r.movieId}`} className="profile-review-poster-link">
+                                            <img 
+                                                src={r.moviePoster || FALLBACK_POSTER} 
+                                                alt={r.movieTitle} 
+                                                className="profile-review-poster"
+                                                onError={e => { e.target.src = FALLBACK_POSTER; }}
+                                            />
+                                        </Link>
+                                        <div className="profile-review-content">
+                                            <div className="profile-review-header">
+                                                <Link to={`/movie/${r.movieId}`} className="profile-review-title">
+                                                    {r.movieTitle} {r.movieYear && <span className="profile-review-year">({r.movieYear})</span>}
+                                                </Link>
+                                                <span className="profile-review-date">
+                                                    {new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                            </div>
+                                            <div className="profile-review-rating" style={{ color: op.color }}>
+                                                <span className="profile-review-emoji">{op.emoji}</span>
+                                                <span className="profile-review-label">{op.label}</span>
+                                            </div>
+                                            {r.comment && (
+                                                <p className="profile-review-comment">
+                                                    "{r.comment}"
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
                 )}
             </div>
 
@@ -415,6 +479,94 @@ export default function Profile() {
                     font-size: 1.4rem; opacity: 0; transition: opacity 0.2s;
                 }
                 .avatar-upload-ring:hover .avatar-upload-overlay { opacity: 1; }
+
+                /* Reviews Tab Styles */
+                .reviews-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+                .profile-review-card {
+                    display: flex;
+                    gap: 1.25rem;
+                    background: var(--clr-surface-low);
+                    border: 1px solid rgba(89,65,61,0.15);
+                    border-left: 4px solid;
+                    border-radius: var(--radius-sm);
+                    padding: 1rem;
+                    align-items: flex-start;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                }
+                .profile-review-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                }
+                .profile-review-poster-link {
+                    flex-shrink: 0;
+                    width: 70px;
+                    height: 105px;
+                    border-radius: var(--radius-sm);
+                    overflow: hidden;
+                    border: 1px solid rgba(255,255,255,0.05);
+                }
+                .profile-review-poster {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .profile-review-content {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                .profile-review-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: baseline;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                }
+                .profile-review-title {
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: var(--clr-on-surface);
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }
+                .profile-review-title:hover {
+                    color: var(--clr-primary);
+                }
+                .profile-review-year {
+                    font-size: 0.9rem;
+                    color: var(--clr-secondary);
+                    font-weight: 400;
+                }
+                .profile-review-date {
+                    font-size: 0.8rem;
+                    color: var(--clr-secondary);
+                }
+                .profile-review-rating {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                }
+                .profile-review-emoji {
+                    font-size: 1.1rem;
+                }
+                .profile-review-comment {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    color: var(--clr-secondary);
+                    line-height: 1.5;
+                    font-style: italic;
+                    background: rgba(255,255,255,0.02);
+                    padding: 0.5rem 0.75rem;
+                    border-radius: 4px;
+                    border-left: 2px solid rgba(89,65,61,0.2);
+                }
             `}</style>
         </main>
     );

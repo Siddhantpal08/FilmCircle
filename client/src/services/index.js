@@ -80,6 +80,7 @@ export const reviewService = {
     update: (id, data) => api.put(`/reviews/${id}`, data),
     getForMovie: (movieId) => api.get(`/reviews/movie/${movieId}`),
     getMyReview: (movieId) => api.get(`/reviews/user/${movieId}`),
+    getMyReviews: () => api.get('/reviews/user'),
 };
 
 export const communityService = {

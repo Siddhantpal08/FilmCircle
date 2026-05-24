@@ -71,6 +71,7 @@ const login = async (req, res, next) => {
 // @access  Private (requires protect middleware)
 const getMe = async (req, res, next) => {
     try {
+        await req.user.populate('joinedClubs', 'name');
         res.json({
             id: req.user._id,
             username: req.user.username,

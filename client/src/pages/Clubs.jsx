@@ -341,7 +341,7 @@ export default function Clubs() {
                                         <div className="form-group club-modal-field">
                                             <label className="form-label">Genre / Theme</label>
                                             <CustomSelect
-                                                className="club-modal-input"
+                                                className="club-modal-custom-select"
                                                 value={form.genre}
                                                 onChange={e => setForm(f => ({ ...f, genre: e.target.value }))}
                                                 options={CLUB_GENRE_OPTIONS}
@@ -683,6 +683,20 @@ export default function Clubs() {
                     font-size: 0.85rem;
                 }
                 .club-modal-input { font-size: 0.9rem; padding: 0.55rem 0.75rem; }
+                .club-modal-custom-select .custom-select-trigger {
+                    padding: 0.55rem 0.75rem;
+                    font-size: 0.9rem;
+                    border: 1px solid rgba(89,65,61,0.4);
+                    border-radius: var(--radius-sm);
+                    background: #0a0a0a;
+                    color: var(--clr-on-surface);
+                    box-sizing: border-box;
+                    width: 100%;
+                }
+                .club-modal-custom-select .custom-select-trigger:hover:not(:disabled) {
+                    border-color: var(--clr-primary-container);
+                    box-shadow: 0 0 0 1px var(--clr-primary-container);
+                }
                 .club-modal-desc {
                     min-height: 52px;
                     max-height: 68px;

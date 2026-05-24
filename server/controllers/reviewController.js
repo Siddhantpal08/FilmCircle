@@ -1,4 +1,6 @@
 const Review = require('../models/Review');
+const Movie = require('../models/Movie');
+const mongoose = require('mongoose');
 
 const FIVE_MINUTES = 5 * 60 * 1000;
 const validOpinions = ['skip', 'considerable', 'goForIt', 'excellent'];
@@ -109,4 +111,73 @@ const getUserReviewForMovie = async (req, res, next) => {
     }
 };
 
-module.exports = { submitReview, updateReview, getReviewsForMovie, getUserReviewForMovie };
+// @route   GET /api/reviews/user
+// @access  Private — get current user's reviews
+const getMyReviews = async (req, res, next) => {
+    try {
+        const reviews = await Review.find({ userId: req.user._id }).sort({ createdAt: -1 });
+        const movieIds = reviews.map(r => r.movieId);
+        
+        // Find movies in local DB
+        const dbMovies = await Movie.find({
+            $or: [
+                { _id: { $in: movieIds.filter(id => mongoose.isValidObjectId(id)) } },
+                { imdbID: { $in: movieIds } }
+            ]
+        });
+
+        const movieMap = {};
+        dbMovies.forEach(m => {
+            movieMap[m._id.toString()] = { title: m.title, posterUrl: m.posterUrl, year: m.year };
+            if (m.imdbID) {
+                movieMap[m.imdbID] = { title: m.title, posterUrl: m.posterUrl, year: m.year };
+            }
+        });
+
+        // For any remaining reviews whose movies are not in local DB (e.g. OMDb imdbIDs),
+        // we can fetch their details from OMDB in parallel.
+        const missingImdbIds = movieIds.filter(id => !/^[a-f\d]{24}$/i.test(id) && !movieMap[id]);
+        
+        const OMDB_BASE = process.env.OMDB_BASE_URL || 'https://www.omdbapi.com/';
+        const OMDB_KEY = process.env.OMDB_API_KEY;
+
+        if (missingImdbIds.length > 0 && OMDB_KEY && OMDB_KEY !== 'your_omdb_api_key_here') {
+            const axios = require('axios');
+            const promises = missingImdbIds.map(async (id) => {
+                try {
+                    const response = await axios.get(OMDB_BASE, { params: { i: id, apikey: OMDB_KEY } });
+                    if (response.data && response.data.Response !== 'False') {
+                        movieMap[id] = {
+                            title: response.data.Title,
+                            posterUrl: response.data.Poster !== 'N/A' ? response.data.Poster : '',
+                            year: response.data.Year
+                        };
+                    }
+                } catch (err) {
+                    console.warn(`Failed to fetch OMDb movie ${id} in getMyReviews:`, err.message);
+                }
+            });
+            await Promise.allSettled(promises);
+        }
+
+        const resolvedReviews = reviews.map(r => {
+            const movie = movieMap[r.movieId];
+            return {
+                _id: r._id,
+                movieId: r.movieId,
+                opinion: r.opinion,
+                comment: r.comment,
+                createdAt: r.createdAt,
+                movieTitle: movie ? movie.title : 'Unknown Movie',
+                moviePoster: movie ? movie.posterUrl : '',
+                movieYear: movie ? movie.year : '',
+            };
+        });
+
+        res.json(resolvedReviews);
+    } catch (err) {
+        next(err);
+    }
+};
+
+module.exports = { submitReview, updateReview, getReviewsForMovie, getUserReviewForMovie, getMyReviews };
