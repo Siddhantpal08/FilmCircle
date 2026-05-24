@@ -86,6 +86,28 @@ const addComment = async (req, res, next) => {
     }
 };
 
+// @route   DELETE /api/community/posts/:id/comment/:commentId
+// @access  Private (comment author only)
+const deleteComment = async (req, res, next) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        const comment = post.comments.id(req.params.commentId);
+        if (!comment) return res.status(404).json({ message: 'Comment not found' });
+
+        if (comment.author.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to delete this comment' });
+        }
+
+        post.comments.pull({ _id: req.params.commentId });
+        await post.save();
+        res.json({ message: 'Comment deleted', commentId: req.params.commentId });
+    } catch (err) {
+        next(err);
+    }
+};
+
 // @route   PUT /api/community/posts/:id
 // @access  Private (owner only, within 5 min)
 const updatePost = async (req, res, next) => {
@@ -179,4 +201,4 @@ const getSidebarData = async (req, res, next) => {
     }
 };
 
-module.exports = { getPosts, createPost, toggleLike, addComment, updatePost, deletePost, getSidebarData };
+module.exports = { getPosts, createPost, toggleLike, addComment, deleteComment, updatePost, deletePost, getSidebarData };

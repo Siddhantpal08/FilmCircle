@@ -26,7 +26,32 @@ function useEditTimer(createdAt) {
     return { canEdit, secsLeft };
 }
 
-function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightComment }) {
+// ── SVG Icons ────────────────────────────────────────────────────────────────
+const HeartIcon = ({ filled }) => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? '#C0392B' : 'none'}
+        stroke={filled ? '#C0392B' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+);
+
+const BubbleIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+);
+
+const TrashIcon = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="3 6 5 6 21 6" />
+        <path d="M19 6l-1 14H6L5 6" />
+        <path d="M10 11v6M14 11v6" />
+        <path d="M9 6V4h6v2" />
+    </svg>
+);
+
+function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightComment, isCommentsTab }) {
     const [showComments, setShowComments] = useState(!!highlightComment);
     const [commentText, setCommentText] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -37,9 +62,31 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
     const [localContent, setLocalContent] = useState(post.content);
     const [isEdited, setIsEdited] = useState(!!post.editedAt);
 
+    // ── Optimistic like state ──────────────────────────────────────────────────
+    const [localLiked, setLocalLiked] = useState(
+        post.likes?.some(id => id === currentUserId) ?? false
+    );
+    const [localLikeCount, setLocalLikeCount] = useState(post.likes?.length || 0);
+
     const isOwner = currentUserId && (post.author?._id === currentUserId || post.author?.id === currentUserId);
-    const liked = post.likes?.some(id => id === currentUserId);
     const { canEdit, secsLeft } = useEditTimer(post.createdAt);
+
+    // ── Optimistic like handler ────────────────────────────────────────────────
+    const handleOptimisticLike = async () => {
+        if (!currentUserId) return;
+        const prevLiked = localLiked;
+        const prevCount = localLikeCount;
+        // Instant UI update
+        setLocalLiked(!prevLiked);
+        setLocalLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
+        try {
+            await communityService.toggleLike(post._id);
+        } catch {
+            // Revert on failure
+            setLocalLiked(prevLiked);
+            setLocalLikeCount(prevCount);
+        }
+    };
 
     const handleComment = async (e) => {
         e.preventDefault();
@@ -51,6 +98,18 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
             setCommentText('');
         } catch { }
         setSubmitting(false);
+    };
+
+    // ── Optimistic comment delete ──────────────────────────────────────────────
+    const handleDeleteComment = async (commentId) => {
+        if (!window.confirm('Delete this comment?')) return;
+        const prev = localComments;
+        setLocalComments(c => c.filter(x => (x._id || x.id) !== commentId));
+        try {
+            await communityService.deleteComment(post._id, commentId);
+        } catch {
+            setLocalComments(prev);
+        }
     };
 
     const handleSaveEdit = async () => {
@@ -76,6 +135,55 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
         return `${Math.floor(seconds / 86400)}d ago`;
     };
 
+    // ── "Your Comments" tab: Twitter-style reply view ─────────────────────────
+    if (isCommentsTab) {
+        const myComments = localComments.filter(
+            c => c.author?._id === currentUserId || c.author?.id === currentUserId
+        );
+        return (
+            <div className="comm-post-card">
+                {/* Quoted post preview — small, muted */}
+                <div className="comm-reply-context">
+                    <span className="comm-reply-context-author">↳ {post.author?.username || 'Unknown'}</span>
+                    <p className="comm-reply-context-text">{localContent}</p>
+                </div>
+
+                {/* User's comments — primary content */}
+                {myComments.map((c) => {
+                    const cid = c._id || c.id;
+                    return (
+                        <div key={cid} className="comm-reply-comment">
+                            <div className="comm-post-avatar" style={{ width: 32, height: 32, fontSize: '0.8rem', flexShrink: 0 }}>
+                                {c.author?.username?.[0]?.toUpperCase() || '?'}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                                    <strong style={{ fontSize: '0.88rem', color: 'var(--clr-on-surface)' }}>
+                                        {c.author?.username || 'You'}
+                                    </strong>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>
+                                        {c.createdAt ? timeAgo(c.createdAt) : ''}
+                                    </span>
+                                    <button
+                                        className="comm-comment-delete-btn"
+                                        onClick={() => handleDeleteComment(cid)}
+                                        title="Delete comment"
+                                    >
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--clr-on-surface)', lineHeight: 1.5 }}>
+                                    {c.text}
+                                </p>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    // ── Default post card view ─────────────────────────────────────────────────
     return (
         <div className="comm-post-card">
             <div className="comm-post-header">
@@ -120,25 +228,43 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
             )}
 
             <div className="comm-post-actions">
-                <button className={`comm-action-btn ${liked ? 'comm-action-liked' : ''}`} onClick={() => onLike(post._id)}>
-                    ♥ <span>{post.likes?.length || 0}</span>
+                <button
+                    className={`comm-action-btn ${localLiked ? 'comm-action-liked' : ''}`}
+                    onClick={handleOptimisticLike}
+                >
+                    <HeartIcon filled={localLiked} />
+                    <span>{localLikeCount}</span>
                 </button>
                 <button className="comm-action-btn" onClick={() => setShowComments(c => !c)}>
-                    💬 <span>{localComments.length}</span>
+                    <BubbleIcon />
+                    <span>{localComments.length}</span>
                 </button>
             </div>
 
             {showComments && (
                 <div className="comm-comments">
-                    {localComments.map((c, i) => (
-                        <div key={i} className={`comm-comment-item ${highlightComment && c.author?._id === currentUserId ? 'comm-comment-highlighted' : ''}`}>
-                            <div className="comm-comment-avatar">{c.author?.username?.[0]?.toUpperCase() || '?'}</div>
-                            <div>
-                                <span className="comm-comment-author">{c.author?.username || 'User'}</span>
-                                <span className="comm-comment-text">{c.text}</span>
+                    {localComments.map((c, i) => {
+                        const cid = c._id || c.id || i;
+                        const isMyComment = c.author?._id === currentUserId || c.author?.id === currentUserId;
+                        return (
+                            <div key={cid} className={`comm-comment-item ${highlightComment && isMyComment ? 'comm-comment-highlighted' : ''}`}>
+                                <div className="comm-comment-avatar">{c.author?.username?.[0]?.toUpperCase() || '?'}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <span className="comm-comment-author">{c.author?.username || 'User'}</span>
+                                    <span className="comm-comment-text">{c.text}</span>
+                                </div>
+                                {isMyComment && (
+                                    <button
+                                        className="comm-comment-delete-btn"
+                                        onClick={() => handleDeleteComment(cid)}
+                                        title="Delete comment"
+                                    >
+                                        <TrashIcon />
+                                    </button>
+                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                     {currentUserId && (
                         <form onSubmit={handleComment} className="comm-comment-form">
                             <input className="form-input" style={{ fontSize: '0.85rem', padding: '0.5rem 0.75rem' }} value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Write a comment…" />
@@ -208,8 +334,9 @@ export default function Community() {
 
     const handleLike = async (id) => {
         if (!isAuthenticated) return;
+        // Optimistic update is handled inside PostCard; just reload silently in background
         try { await communityService.toggleLike(id); } catch { }
-        loadPosts(1);
+        // Don't call loadPosts — PostCard manages its own like state optimistically
     };
 
     const handleDelete = async (id) => {
@@ -345,6 +472,7 @@ export default function Community() {
                                     onUpdate={() => loadPosts(1)}
                                     currentUserId={currentUserId}
                                     highlightComment={activeTab === 'Your Comments'}
+                                    isCommentsTab={activeTab === 'Your Comments'}
                                 />
                             ))}
 
@@ -555,7 +683,52 @@ export default function Community() {
                     transition: color 0.2s; padding: 0.25rem 0;
                 }
                 .comm-action-btn:hover { color: var(--clr-primary-container); }
-                .comm-action-liked { color: #e05050 !important; }
+                .comm-action-liked { color: #C0392B !important; }
+                .comm-action-liked svg { stroke: #C0392B; }
+
+                /* Comment delete button — shows on comment hover */
+                .comm-comment-delete-btn {
+                    background: none; border: none; cursor: pointer;
+                    color: var(--clr-secondary); opacity: 0;
+                    padding: 0.2rem; border-radius: 4px;
+                    display: flex; align-items: center; justify-content: center;
+                    flex-shrink: 0;
+                    transition: opacity 0.15s, color 0.15s;
+                }
+                .comm-comment-item:hover .comm-comment-delete-btn,
+                .comm-reply-comment:hover .comm-comment-delete-btn { opacity: 1; }
+                .comm-comment-delete-btn:hover { color: var(--clr-error); }
+
+                /* Twitter-style reply view */
+                .comm-reply-context {
+                    background: var(--clr-surface-container);
+                    border: 1px solid rgba(89,65,61,0.18);
+                    border-radius: var(--radius-sm);
+                    padding: 0.6rem 0.85rem;
+                    margin-bottom: 1rem;
+                    border-left: 3px solid rgba(89,65,61,0.35);
+                }
+                .comm-reply-context-author {
+                    font-size: 0.72rem; font-weight: 700;
+                    color: var(--clr-secondary); display: block;
+                    margin-bottom: 0.2rem;
+                }
+                .comm-reply-context-text {
+                    margin: 0; font-size: 0.8rem;
+                    color: var(--clr-secondary); line-height: 1.5;
+                    display: -webkit-box; -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical; overflow: hidden;
+                }
+                .comm-reply-comment {
+                    display: flex; gap: 0.75rem; align-items: flex-start;
+                    padding: 0.5rem 0;
+                }
+                .comm-reply-comment + .comm-reply-comment {
+                    border-top: 1px solid rgba(89,65,61,0.1);
+                    margin-top: 0.5rem;
+                }
+
+                @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
                 .comm-comments {
                     margin-top: 1rem; padding-top: 1rem;

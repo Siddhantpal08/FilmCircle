@@ -88,6 +88,7 @@ export const communityService = {
     updatePost: (id, content) => api.put(`/community/posts/${id}`, { content }),
     toggleLike: (id) => api.post(`/community/posts/${id}/like`),
     addComment: (id, text) => api.post(`/community/posts/${id}/comment`, { text }),
+    deleteComment: (postId, commentId) => api.delete(`/community/posts/${postId}/comment/${commentId}`),
     deletePost: (id) => api.delete(`/community/posts/${id}`),
     getSidebar: () => api.get('/community/sidebar'),
 };
