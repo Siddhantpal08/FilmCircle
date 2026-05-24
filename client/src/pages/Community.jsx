@@ -349,6 +349,7 @@ export default function Community() {
     const [trendingPosts, setTrendingPosts] = useState([]);
     const [activeClubs, setActiveClubs] = useState([]);
     const [sidebarLoading, setSidebarLoading] = useState(true);
+    const [failedImageClubIds, setFailedImageClubIds] = useState([]);
 
     const currentUserId = user?._id || user?.id;
 
@@ -434,15 +435,53 @@ export default function Community() {
     };
 
     const handleJoinClub = async (clubId) => {
-        if (!isAuthenticated) return;
+        if (!isAuthenticated || !currentUserId) return;
+
+        const club = activeClubs.find(c => c._id === clubId);
+        if (!club) return;
+
+        const isCurrentlyMember = club.members?.some(mId => String(mId) === String(currentUserId));
+
+        // Optimistic UI updates
+        // 1. Update activeClubs member list and memberCount
+        const updatedClubs = activeClubs.map(c => {
+            if (c._id === clubId) {
+                const members = c.members || [];
+                const newMembers = isCurrentlyMember
+                    ? members.filter(mId => String(mId) !== String(currentUserId))
+                    : [...members, currentUserId];
+                return {
+                    ...c,
+                    members: newMembers,
+                    memberCount: newMembers.length
+                };
+            }
+            return c;
+        });
+        setActiveClubs(updatedClubs);
+
+        // 2. Update user context joinedClubs
+        if (user) {
+            const joinedClubs = user.joinedClubs || [];
+            const newJoinedClubs = isCurrentlyMember
+                ? joinedClubs.filter(c => String(c._id || c) !== String(clubId))
+                : [...joinedClubs, club];
+            updateUser({ joinedClubs: newJoinedClubs });
+        }
+
         try {
-            await clubService.join(clubId);
-            // Refresh sidebar
-            communityService.getSidebar().then(res => {
-                setTrendingPosts(res.data.trendingPosts || []);
-                setActiveClubs(res.data.activeClubs || []);
-            }).catch(() => {});
-        } catch { }
+            if (isCurrentlyMember) {
+                await clubService.leave(clubId);
+            } else {
+                await clubService.join(clubId);
+            }
+        } catch (err) {
+            // Revert state on error
+            setActiveClubs(activeClubs);
+            if (user) {
+                updateUser({ joinedClubs: user.joinedClubs });
+            }
+        }
     };
 
     const truncate = (str, n) => str && str.length > n ? str.slice(0, n) + '…' : str;
@@ -603,28 +642,71 @@ export default function Community() {
                         ) : activeClubs.length === 0 ? (
                             <p style={{ fontSize: '0.8rem', color: 'var(--clr-secondary)', margin: 0 }}>No clubs yet — create one!</p>
                         ) : (
-                            activeClubs.map(club => (
-                                <div key={club._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <div style={{ width: 36, height: 36, borderRadius: 8, background: 'rgba(192,57,43,0.15)', border: '1px solid rgba(192,57,43,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', flexShrink: 0 }}>🎬</div>
-                                        <div>
-                                            <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--clr-on-surface)' }}>{club.name}</p>
-                                            <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>
-                                                {club.recentPostCount > 0 ? `${club.recentPostCount} post${club.recentPostCount !== 1 ? 's' : ''} this week` : 'Quiet this week'}
-                                                {' · '}{club.memberCount} member{club.memberCount !== 1 ? 's' : ''}
-                                            </p>
+                            activeClubs.map(club => {
+                                const isMember = club.members?.some(mId => String(mId) === String(currentUserId));
+                                const hasImage = !failedImageClubIds.includes(club._id) && (club.logoUrl || club.bannerUrl);
+                                return (
+                                    <div key={club._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            {hasImage ? (
+                                                <img
+                                                    src={club.logoUrl || club.bannerUrl}
+                                                    alt={club.name}
+                                                    style={{
+                                                        width: 36,
+                                                        height: 36,
+                                                        borderRadius: 8,
+                                                        objectFit: 'cover',
+                                                        flexShrink: 0,
+                                                        border: '1px solid rgba(192,57,43,0.3)'
+                                                    }}
+                                                    onError={() => {
+                                                        setFailedImageClubIds(prev => [...prev, club._id]);
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div style={{
+                                                    width: 36,
+                                                    height: 36,
+                                                    borderRadius: 8,
+                                                    background: '#C0392B',
+                                                    color: '#fff',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontWeight: 'bold',
+                                                    fontSize: '1rem',
+                                                    flexShrink: 0
+                                                }}>
+                                                    {club.name?.[0]?.toUpperCase()}
+                                                </div>
+                                            )}
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: 'var(--clr-on-surface)' }}>{club.name}</p>
+                                                <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>
+                                                    {club.recentPostCount > 0 ? `${club.recentPostCount} post${club.recentPostCount !== 1 ? 's' : ''} this week` : 'Quiet this week'}
+                                                    {' · '}{club.memberCount} member{club.memberCount !== 1 ? 's' : ''}
+                                                </p>
+                                            </div>
                                         </div>
+                                        {isAuthenticated && (
+                                        <button
+                                            style={{
+                                                fontSize: '0.75rem',
+                                                fontWeight: 700,
+                                                color: isMember ? '#8c8c8c' : 'var(--clr-primary-container)',
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                            onClick={() => handleJoinClub(club._id)}
+                                        >
+                                            {isMember ? 'Joined' : 'Join'}
+                                        </button>
+                                        )}
                                     </div>
-                                    {isAuthenticated && (
-                                    <button
-                                        style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--clr-primary-container)', background: 'none', border: 'none', cursor: 'pointer' }}
-                                        onClick={() => handleJoinClub(club._id)}
-                                    >
-                                        Join
-                                    </button>
-                                    )}
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 </aside>

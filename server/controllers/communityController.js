@@ -175,12 +175,15 @@ const getSidebarData = async (req, res, next) => {
 
         // All clubs — compute recentPostCount (posts in last 7 days) for activity sorting
         const clubs = await Club.find()
-            .select('name members posts')
+            .select('name members posts logoUrl bannerUrl')
             .lean();
 
         const clubsWithActivity = clubs.map(club => ({
             _id: club._id,
             name: club.name,
+            logoUrl: club.logoUrl || '',
+            bannerUrl: club.bannerUrl || '',
+            members: club.members || [],
             memberCount: club.members?.length || 0,
             recentPostCount: (club.posts || []).filter(
                 p => new Date(p.createdAt) >= sevenDaysAgo

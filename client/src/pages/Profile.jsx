@@ -27,6 +27,9 @@ export default function Profile() {
     const [deleteInput, setDeleteInput] = useState('');
     const [deleting, setDeleting] = useState(false);
 
+    const [filmToDeleteId, setFilmToDeleteId] = useState(null);
+    const [deletingFilm, setDeletingFilm] = useState(false);
+
     useEffect(() => {
         movieService.getIndependent()
             .then(res => {
@@ -87,9 +90,22 @@ export default function Profile() {
         }
     };
 
-    const handleDeleteFilm = async (id) => {
-        if (!window.confirm('Delete this film listing?')) return;
-        try { await movieService.delete(id); setUploadedFilms(f => f.filter(m => m._id !== id)); } catch { }
+    const handleDeleteFilm = (id) => {
+        setFilmToDeleteId(id);
+    };
+
+    const confirmDeleteFilm = async () => {
+        if (!filmToDeleteId) return;
+        setDeletingFilm(true);
+        try {
+            await movieService.delete(filmToDeleteId);
+            setUploadedFilms(f => f.filter(m => m._id !== filmToDeleteId));
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setDeletingFilm(false);
+            setFilmToDeleteId(null);
+        }
     };
 
     if (!user) return null;
@@ -205,6 +221,40 @@ export default function Profile() {
                                 <button className="btn btn-outline btn-sm" onClick={() => setShowDeleteConfirm(false)} disabled={deleting}>Cancel</button>
                                 <button className="btn btn-danger btn-sm" onClick={handleDeleteAccount} disabled={deleteInput !== 'DELETE' || deleting}>
                                     {deleting ? 'Deleting...' : 'Delete My Account'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Delete Film Modal */}
+                {filmToDeleteId && (
+                    <div
+                        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+                        onClick={() => setFilmToDeleteId(null)}
+                    >
+                        <div
+                            style={{ background: '#1a1a1a', border: '1px solid rgba(89,65,61,0.25)', borderRadius: 'var(--radius)', padding: '1.75rem', maxWidth: '400px', width: '90%', boxShadow: '0 24px 48px rgba(0,0,0,0.5)' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', fontWeight: 700, color: '#ffffff' }}>Delete Film?</h3>
+                            <p style={{ margin: '0 0 1.5rem', fontSize: '0.9rem', color: '#8c8c8c', lineHeight: 1.5 }}>This action cannot be undone.</p>
+                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                                <button
+                                    type="button"
+                                    style={{ background: '#333333', color: '#ffffff', border: 'none', padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}
+                                    onClick={() => setFilmToDeleteId(null)}
+                                    disabled={deletingFilm}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    style={{ background: '#C0392B', color: '#ffffff', border: 'none', padding: '0.55rem 1.1rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontWeight: 700, fontSize: '0.875rem' }}
+                                    onClick={confirmDeleteFilm}
+                                    disabled={deletingFilm}
+                                >
+                                    {deletingFilm ? 'Deleting...' : 'Delete'}
                                 </button>
                             </div>
                         </div>

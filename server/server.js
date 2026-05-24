@@ -14,7 +14,9 @@ const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 const app = express();
 
 // ── Connect to MongoDB ────────────────────────────────────────────────────────
-connectDB();
+if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+    connectDB();
+}
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 const allowedOrigin = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
@@ -77,8 +79,10 @@ app.use(errorHandler);
 
 // ── Start Server ──────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`✅ FilmCircle server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+    app.listen(PORT, () => {
+        console.log(`✅ FilmCircle server running on http://localhost:${PORT}`);
+    });
+}
 
 module.exports = app; // exported for testing
