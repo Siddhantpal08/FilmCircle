@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { movieService } from '../../services';
 import logoImg from '../../../LOGO/logo.png';
+import searchIcon from '../../../LOGO/search-interface-symbol.png';
 import './Navbar.css';
 
 const FALLBACK_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='60' viewBox='0 0 40 60'%3E%3Crect width='40' height='60' fill='%23201f1f'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' fill='%23c0392b' font-size='20'%3E🎬%3C/text%3E%3C/svg%3E";
@@ -123,7 +124,9 @@ export default function Navbar() {
                         />
                         {suggestLoading
                             ? <span className="search-spinner" />
-                            : <button type="submit" className="search-btn" aria-label="Search">🔍</button>
+                            : <button type="submit" className="search-btn" aria-label="Search">
+                                <img src={searchIcon} alt="Search" className="search-btn-icon" />
+                              </button>
                         }
                     </form>
 
