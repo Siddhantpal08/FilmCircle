@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { communityService, clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const FIVE_MIN = 5 * 60 * 1000;
 const TABS = ['All Posts', 'Your Posts', 'Your Comments', 'Your Likes'];
@@ -41,9 +42,17 @@ const BubbleIcon = () => (
     </svg>
 );
 
-const TrashIcon = () => (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const PencilIcon = ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+);
+
+const TrashIcon = ({ size = 13 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <polyline points="3 6 5 6 21 6" />
         <path d="M19 6l-1 14H6L5 6" />
         <path d="M10 11v6M14 11v6" />
@@ -51,7 +60,12 @@ const TrashIcon = () => (
     </svg>
 );
 
-function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightComment, isCommentsTab }) {
+function userLikedPost(likes, userId) {
+    if (!userId) return false;
+    return (likes || []).some(id => String(id) === String(userId));
+}
+
+function PostCard({ post, onLikeChange, onDelete, onUpdate, currentUserId, highlightComment, isCommentsTab }) {
     const [showComments, setShowComments] = useState(!!highlightComment);
     const [commentText, setCommentText] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -62,29 +76,34 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
     const [localContent, setLocalContent] = useState(post.content);
     const [isEdited, setIsEdited] = useState(!!post.editedAt);
 
-    // ── Optimistic like state ──────────────────────────────────────────────────
-    const [localLiked, setLocalLiked] = useState(
-        post.likes?.some(id => id === currentUserId) ?? false
-    );
+    // ── Optimistic like state (synced with parent posts for "Your Likes" tab) ───
+    const [localLiked, setLocalLiked] = useState(() => userLikedPost(post.likes, currentUserId));
     const [localLikeCount, setLocalLikeCount] = useState(post.likes?.length || 0);
+    const [commentToDelete, setCommentToDelete] = useState(null);
+    const [deletingComment, setDeletingComment] = useState(false);
+
+    useEffect(() => {
+        setLocalLiked(userLikedPost(post.likes, currentUserId));
+        setLocalLikeCount(post.likes?.length || 0);
+    }, [post.likes, currentUserId]);
 
     const isOwner = currentUserId && (post.author?._id === currentUserId || post.author?.id === currentUserId);
     const { canEdit, secsLeft } = useEditTimer(post.createdAt);
 
-    // ── Optimistic like handler ────────────────────────────────────────────────
     const handleOptimisticLike = async () => {
         if (!currentUserId) return;
         const prevLiked = localLiked;
         const prevCount = localLikeCount;
-        // Instant UI update
-        setLocalLiked(!prevLiked);
-        setLocalLikeCount(prevLiked ? prevCount - 1 : prevCount + 1);
+        const nextLiked = !prevLiked;
+        setLocalLiked(nextLiked);
+        setLocalLikeCount(nextLiked ? prevCount + 1 : prevCount - 1);
+        onLikeChange?.(post._id, nextLiked);
         try {
             await communityService.toggleLike(post._id);
         } catch {
-            // Revert on failure
             setLocalLiked(prevLiked);
             setLocalLikeCount(prevCount);
+            onLikeChange?.(post._id, prevLiked);
         }
     };
 
@@ -100,16 +119,23 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
         setSubmitting(false);
     };
 
-    // ── Optimistic comment delete ──────────────────────────────────────────────
-    const handleDeleteComment = async (commentId) => {
-        if (!window.confirm('Delete this comment?')) return;
+    const handleDeleteComment = (commentId) => {
+        setCommentToDelete(commentId);
+    };
+
+    const confirmDeleteComment = async () => {
+        if (!commentToDelete) return;
+        const commentId = commentToDelete;
+        setDeletingComment(true);
         const prev = localComments;
         setLocalComments(c => c.filter(x => (x._id || x.id) !== commentId));
         try {
             await communityService.deleteComment(post._id, commentId);
+            setCommentToDelete(null);
         } catch {
             setLocalComments(prev);
         }
+        setDeletingComment(false);
     };
 
     const handleSaveEdit = async () => {
@@ -141,6 +167,7 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
             c => c.author?._id === currentUserId || c.author?.id === currentUserId
         );
         return (
+            <>
             <div className="comm-post-card">
                 {/* Quoted post preview — small, muted */}
                 <div className="comm-reply-context">
@@ -180,11 +207,21 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
                     );
                 })}
             </div>
+            <ConfirmModal
+                open={!!commentToDelete}
+                title="Delete Comment?"
+                message="This action cannot be undone."
+                onConfirm={confirmDeleteComment}
+                onCancel={() => setCommentToDelete(null)}
+                confirming={deletingComment}
+            />
+            </>
         );
     }
 
     // ── Default post card view ─────────────────────────────────────────────────
     return (
+        <>
         <div className="comm-post-card">
             <div className="comm-post-header">
                 <div className="comm-post-avatar">{post.author?.username?.[0]?.toUpperCase() || '?'}</div>
@@ -198,15 +235,27 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
                     </p>
                 </div>
                 {isOwner && (
-                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    <div className="comm-post-actions-group">
                         {canEdit && !editing && (
-                            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
+                            <button
+                                type="button"
+                                className="comm-post-action-btn comm-post-action-edit"
                                 onClick={() => setEditing(true)}
-                                title={`Edit (${Math.floor(secsLeft / 60)}:${String(secsLeft % 60).padStart(2, '0')} left)`}>
-                                ✏️
+                                title={`Edit (${Math.floor(secsLeft / 60)}:${String(secsLeft % 60).padStart(2, '0')} left)`}
+                                aria-label="Edit post"
+                            >
+                                <PencilIcon />
                             </button>
                         )}
-                        <button className="btn btn-ghost btn-sm" style={{ color: 'var(--clr-error)', padding: '0.2rem 0.5rem' }} onClick={() => onDelete(post._id)}>🗑</button>
+                        <button
+                            type="button"
+                            className="comm-post-action-btn comm-post-action-delete"
+                            onClick={() => onDelete(post._id)}
+                            title="Delete post"
+                            aria-label="Delete post"
+                        >
+                            <TrashIcon size={16} />
+                        </button>
                     </div>
                 )}
             </div>
@@ -274,6 +323,15 @@ function PostCard({ post, onLike, onDelete, onUpdate, currentUserId, highlightCo
                 </div>
             )}
         </div>
+        <ConfirmModal
+            open={!!commentToDelete}
+            title="Delete Comment?"
+            message="This action cannot be undone."
+            onConfirm={confirmDeleteComment}
+            onCancel={() => setCommentToDelete(null)}
+            confirming={deletingComment}
+        />
+        </>
     );
 }
 
@@ -332,12 +390,21 @@ export default function Community() {
         setPosting(false);
     };
 
-    const handleLike = async (id) => {
-        if (!isAuthenticated) return;
-        // Optimistic update is handled inside PostCard; just reload silently in background
-        try { await communityService.toggleLike(id); } catch { }
-        // Don't call loadPosts — PostCard manages its own like state optimistically
-    };
+    const handleLikeChange = useCallback((postId, liked) => {
+        if (!currentUserId) return;
+        setPosts(prev => prev.map(p => {
+            if (String(p._id) !== String(postId)) return p;
+            const likes = [...(p.likes || [])];
+            const already = userLikedPost(likes, currentUserId);
+            if (liked && !already) {
+                return { ...p, likes: [...likes, currentUserId] };
+            }
+            if (!liked && already) {
+                return { ...p, likes: likes.filter(id => String(id) !== String(currentUserId)) };
+            }
+            return p;
+        }));
+    }, [currentUserId]);
 
     const handleDelete = async (id) => {
         try { await communityService.deletePost(id); } catch { }
@@ -355,7 +422,7 @@ export default function Community() {
             );
         }
         if (activeTab === 'Your Likes') {
-            return posts.filter(p => p.likes?.some(id => id === currentUserId));
+            return posts.filter(p => userLikedPost(p.likes, currentUserId));
         }
         return posts;
     })();
@@ -383,14 +450,14 @@ export default function Community() {
     return (
         <main className="page">
             <div className="comm-layout container">
+                <div className="comm-page-header">
+                    <h1 className="text-headline-md">Community</h1>
+                    <p style={{ color: 'var(--clr-secondary)', marginTop: '0.25rem', fontSize: '0.9rem' }}>Connect with the cinema elite.</p>
+                </div>
 
+                <div className="comm-body">
                 {/* ── Left Feed ── */}
                 <div className="comm-feed">
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <h1 className="text-headline-md">Community</h1>
-                        <p style={{ color: 'var(--clr-secondary)', marginTop: '0.25rem', fontSize: '0.9rem' }}>Connect with the cinema elite.</p>
-                    </div>
-
                     {/* Compose box */}
                     {isAuthenticated && (
                         <form className="comm-compose" onSubmit={handleCreatePost}>
@@ -467,7 +534,7 @@ export default function Community() {
                                 <PostCard
                                     key={p._id}
                                     post={p}
-                                    onLike={handleLike}
+                                    onLikeChange={handleLikeChange}
                                     onDelete={handleDelete}
                                     onUpdate={() => loadPosts(1)}
                                     currentUserId={currentUserId}
@@ -561,15 +628,22 @@ export default function Community() {
                         )}
                     </div>
                 </aside>
+                </div>
             </div>
 
             <style>{`
                 .comm-layout {
+                    padding-top: 1.5rem;
+                }
+                .comm-page-header {
+                    margin-bottom: 1.5rem;
+                }
+                .comm-body {
                     display: grid;
                     grid-template-columns: minmax(0, 1fr) 280px;
-                    gap: 2rem;
+                    gap: 3.5rem;
                     align-items: start;
-                    padding-top: 1.5rem;
+                    width: 100%;
                 }
                 .comm-feed { min-width: 0; }
                 .comm-sidebar {
@@ -578,9 +652,11 @@ export default function Community() {
                     position: sticky;
                     top: 90px;
                     align-self: start;
+                    display: flex;
+                    flex-direction: column;
                 }
                 @media (max-width: 1024px) {
-                    .comm-layout { grid-template-columns: 1fr; }
+                    .comm-body { grid-template-columns: 1fr; }
                     .comm-sidebar { display: none; }
                 }
 
@@ -589,8 +665,76 @@ export default function Community() {
                     border: 1px solid rgba(89,65,61,0.15);
                     border-radius: var(--radius);
                     padding: 1.25rem;
-                    margin-bottom: 1.25rem;
+                    margin-bottom: 1.5rem;
                 }
+
+                .confirm-modal-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.72);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 1000;
+                    padding: 1rem;
+                }
+                .confirm-modal {
+                    background: #0f0f0f;
+                    border: 1px solid rgba(89, 65, 61, 0.25);
+                    border-radius: var(--radius);
+                    padding: 1.75rem;
+                    max-width: 400px;
+                    width: 100%;
+                    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+                }
+                .confirm-modal-title {
+                    margin: 0 0 0.5rem;
+                    font-size: 1.15rem;
+                    font-weight: 700;
+                    color: var(--clr-on-surface);
+                }
+                .confirm-modal-message {
+                    margin: 0 0 1.5rem;
+                    font-size: 0.9rem;
+                    color: var(--clr-secondary);
+                    line-height: 1.5;
+                }
+                .confirm-modal-actions {
+                    display: flex;
+                    gap: 0.75rem;
+                    justify-content: flex-end;
+                }
+                .confirm-modal-cancel {
+                    padding: 0.55rem 1.1rem;
+                    border-radius: var(--radius-sm);
+                    border: 1px solid rgba(89, 65, 61, 0.35);
+                    background: rgba(89, 65, 61, 0.2);
+                    color: rgba(168, 138, 133, 0.95);
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    font-family: inherit;
+                    cursor: pointer;
+                    transition: background 0.15s, color 0.15s;
+                }
+                .confirm-modal-cancel:hover:not(:disabled) {
+                    background: rgba(89, 65, 61, 0.32);
+                    color: var(--clr-on-surface);
+                }
+                .confirm-modal-delete {
+                    padding: 0.55rem 1.1rem;
+                    border-radius: var(--radius-sm);
+                    border: none;
+                    background: #C0392B;
+                    color: #fff;
+                    font-size: 0.875rem;
+                    font-weight: 700;
+                    font-family: inherit;
+                    cursor: pointer;
+                    transition: background 0.15s;
+                }
+                .confirm-modal-delete:hover:not(:disabled) { background: #a93226; }
+                .confirm-modal-cancel:disabled,
+                .confirm-modal-delete:disabled { opacity: 0.6; cursor: not-allowed; }
 
                 /* Filter tabs */
                 .comm-tabs {
@@ -661,6 +805,28 @@ export default function Community() {
                 }
                 .comm-post-card:hover { border-color: rgba(89,65,61,0.3); }
                 .comm-post-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+                .comm-post-actions-group {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.25rem;
+                    flex-shrink: 0;
+                }
+                .comm-post-action-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0.35rem;
+                    background: none;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    color: var(--clr-secondary);
+                    opacity: 0.85;
+                    transition: color 0.15s, opacity 0.15s;
+                }
+                .comm-post-action-btn:hover { opacity: 1; }
+                .comm-post-action-edit:hover { color: #C0392B; }
+                .comm-post-action-delete:hover { color: #e74c3c; }
                 .comm-post-avatar {
                     width: 38px; height: 38px; border-radius: 50%;
                     background: var(--clr-primary-container);

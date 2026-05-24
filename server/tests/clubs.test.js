@@ -7,6 +7,8 @@ const Club = require('../models/Club');
 
 let mongoServer, tokenA, tokenB, clubId;
 
+const TEST_BANNER = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
 beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     await mongoose.connect(mongoServer.getUri());
@@ -24,26 +26,32 @@ afterAll(async () => {
 beforeEach(async () => {
     await Club.deleteMany({});
     // recreate a test club
-    const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ name: 'Sci-Fi Fans', genre: 'Sci-Fi' });
+    const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ name: 'Sci-Fi Fans', genre: 'Sci-Fi', bannerUrl: TEST_BANNER });
     clubId = res.body._id;
 });
 
 describe('POST /api/clubs (create)', () => {
     it('should create a club and set creator as first member', async () => {
-        const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ name: 'Thriller Tribe', genre: 'Thriller' });
+        const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ name: 'Thriller Tribe', genre: 'Thriller', bannerUrl: TEST_BANNER });
         expect(res.statusCode).toBe(201);
         expect(res.body.name).toBe('Thriller Tribe');
         expect(res.body.members).toHaveLength(1);
     });
 
     it('should return 409 for duplicate club name', async () => {
-        const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ name: 'Sci-Fi Fans', genre: 'Sci-Fi' });
+        const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ name: 'Sci-Fi Fans', genre: 'Sci-Fi', bannerUrl: TEST_BANNER });
         expect(res.statusCode).toBe(409);
     });
 
     it('should return 400 for missing name', async () => {
-        const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ genre: 'Drama' });
+        const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ genre: 'Drama', bannerUrl: TEST_BANNER });
         expect(res.statusCode).toBe(400);
+    });
+
+    it('should return 400 for missing banner', async () => {
+        const res = await request(app).post('/api/clubs').set('Authorization', `Bearer ${tokenA}`).send({ name: 'No Banner Club', genre: 'Drama' });
+        expect(res.statusCode).toBe(400);
+        expect(res.body.message).toMatch(/banner/i);
     });
 });
 

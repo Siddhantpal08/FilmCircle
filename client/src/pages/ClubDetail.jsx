@@ -4,7 +4,7 @@ import { clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
 
-const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi', 'Thriller', 'Romance', 'Documentary', 'Animation', 'General', 'Other'];
+const GENRES = ['Drama', 'Horror', 'Sci-Fi', 'Action', 'Independent', 'Bollywood', 'General'];
 
 const getClubBanner = (genre) => {
     const g = (genre || '').toLowerCase();
@@ -117,7 +117,25 @@ export default function ClubDetail() {
 
                 {/* Header */}
                 <div className="card" style={{ overflow: 'hidden', padding: 0, marginBottom: '2rem' }}>
-                    <div className="club-detail-banner" style={{ backgroundImage: `url(${getClubBanner(club.genre)})`, height: '160px', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }} />
+                    <div className="club-detail-banner" style={{ backgroundImage: `url(${club.bannerUrl || getClubBanner(club.genre)})`, height: '160px', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                        {club.logoUrl && (
+                            <img
+                                src={club.logoUrl}
+                                alt=""
+                                style={{
+                                    position: 'absolute',
+                                    bottom: '1rem',
+                                    left: '1.5rem',
+                                    width: 64,
+                                    height: 64,
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    border: '3px solid #0f0f0f',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.45)',
+                                }}
+                            />
+                        )}
+                    </div>
                     <div style={{ padding: '2rem' }}>
                         {editMode ? (
                             <form onSubmit={handleSaveEdit}>

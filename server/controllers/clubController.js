@@ -23,13 +23,18 @@ const getClubs = async (req, res, next) => {
 // @access  Private
 const createClub = async (req, res, next) => {
     try {
-        const { name, description, genre } = req.body;
+        const { name, description, genre, bannerUrl, logoUrl } = req.body;
         if (!name || name.trim() === '') return res.status(400).json({ message: 'Club name is required' });
+        if (!bannerUrl || !String(bannerUrl).trim()) {
+            return res.status(400).json({ message: 'Banner image is required' });
+        }
 
         const club = await Club.create({
             name: name.trim(),
             description: description || '',
             genre: genre || 'General',
+            bannerUrl: String(bannerUrl).trim(),
+            logoUrl: logoUrl ? String(logoUrl).trim() : '',
             createdBy: req.user._id,
             members: [req.user._id], // creator is first member
         });
@@ -146,10 +151,17 @@ const updateClub = async (req, res, next) => {
             return res.status(403).json({ message: 'Only the club creator can edit this club' });
         }
 
-        const { name, description, genre } = req.body;
+        const { name, description, genre, bannerUrl, logoUrl } = req.body;
         if (name) club.name = name.trim();
         if (description !== undefined) club.description = description;
         if (genre !== undefined) club.genre = genre;
+        if (bannerUrl !== undefined) {
+            if (!String(bannerUrl).trim()) {
+                return res.status(400).json({ message: 'Banner image is required' });
+            }
+            club.bannerUrl = String(bannerUrl).trim();
+        }
+        if (logoUrl !== undefined) club.logoUrl = logoUrl ? String(logoUrl).trim() : '';
 
         await club.save();
         res.json(club);

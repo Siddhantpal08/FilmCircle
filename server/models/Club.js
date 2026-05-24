@@ -15,6 +15,8 @@ const clubSchema = new mongoose.Schema({
     },
     description: { type: String, default: '', maxlength: [400, 'Description cannot exceed 400 characters'] },
     genre: { type: String, default: 'General' },
+    bannerUrl: { type: String, default: '' },
+    logoUrl: { type: String, default: '' },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     posts: [clubPostSchema],
