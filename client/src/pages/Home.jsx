@@ -58,6 +58,10 @@ export default function Home() {
     const [leaderboard, setLeaderboard] = useState([]);
     const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
+    // ── Sidebar: Recommended For You ─────────────────────────────────────────────
+    const [recommended, setRecommended] = useState([]);
+    const [recommendedVisible, setRecommendedVisible] = useState(false);
+
 
     // ── Fetch OMDB indie films on mount ───────────────────────────────────────
     useEffect(() => {
@@ -112,6 +116,63 @@ export default function Home() {
             .then(res => setLeaderboard(res.data || []))
             .catch(err => console.error('[Leaderboard] fetch error:', err))
             .finally(() => setLeaderboardLoading(false));
+    }, []);
+
+    // ── Fetch Recommended For You on mount ────────────────────────────────────────
+    useEffect(() => {
+        const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
+        const TMDB_BASE = 'https://api.tmdb.org/3';
+        const TMDB_IMG = 'https://image.tmdb.org/t/p/w185';
+        const twoWeeksAgo = (() => {
+            const d = new Date();
+            d.setDate(d.getDate() - 14);
+            return d.toISOString().slice(0, 10);
+        })();
+
+        const tmdbGet = (path) =>
+            fetch(`${TMDB_BASE}${path}${path.includes('?') ? '&' : '?'}api_key=${TMDB_KEY}&language=en-US`)
+                .then(r => { if (!r.ok) throw new Error(`TMDB ${r.status}`); return r.json(); })
+                .then(d => d.results || [])
+                .catch(() => []);
+
+        Promise.all([
+            tmdbGet('/trending/movie/week'),
+            tmdbGet('/movie/top_rated'),
+            tmdbGet('/discover/movie?with_original_language=hi&sort_by=popularity.desc&region=IN'),
+            tmdbGet(`/discover/movie?primary_release_date.gte=${twoWeeksAgo}&sort_by=popularity.desc`),
+        ]).then(([trending, topRated, indian, newRelease]) => {
+            const toEntry = (m, tag) => ({
+                tmdbId: m.id,
+                title: m.title || m.name || 'Untitled',
+                year: m.release_date ? m.release_date.slice(0, 4) : '',
+                poster: m.poster_path ? `${TMDB_IMG}${m.poster_path}` : null,
+                tag,
+            });
+
+            const raw = [
+                ...trending.slice(0, 2).map(m => toEntry(m, '🔥 Trending')),
+                ...topRated.slice(0, 1).map(m => toEntry(m, '⭐ Top Rated')),
+                ...indian.slice(0, 1).map(m => toEntry(m, '🎬 Popular in India')),
+                ...newRelease.slice(0, 1).map(m => toEntry(m, '🆕 New Release')),
+            ];
+
+            // Deduplicate by tmdbId
+            const seen = new Set();
+            const unique = raw.filter(m => {
+                if (seen.has(m.tmdbId)) return false;
+                seen.add(m.tmdbId);
+                return true;
+            });
+
+            // Light shuffle: swap a couple of adjacent pairs so order feels natural
+            if (unique.length >= 4) { [unique[1], unique[2]] = [unique[2], unique[1]]; }
+
+            const final = unique.slice(0, 5);
+            if (final.length > 0) {
+                setRecommended(final);
+                setRecommendedVisible(true);
+            }
+        }).catch(() => { /* silently hide on error */ });
     }, []);
 
     // ── OMDB search when query changes (untouched logic) ──────────────────────
@@ -272,6 +333,60 @@ export default function Home() {
 
                     {/* ── Right Sidebar (restored fully — untouched) ── */}
                     <aside className="home-sidebar">
+
+                        {/* 0. Recommended For You (TMDB) */}
+                        {recommendedVisible && (
+                            <div className="home-sidebar-card">
+                                <div style={{ marginBottom: '1.25rem' }}>
+                                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', margin: 0 }}>
+                                        <span>🎯</span> Recommended For You
+                                    </h3>
+                                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--clr-secondary)', letterSpacing: '0.02em' }}>
+                                        Based on trends &amp; popularity
+                                    </p>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                    {recommended.map((m) => (
+                                        <div
+                                            key={m.tmdbId}
+                                            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+                                            onClick={() => navigate(`/movie/${m.tmdbId}?title=${encodeURIComponent(m.title)}&year=${encodeURIComponent(m.year)}&poster=${encodeURIComponent(m.poster || '')}`)}
+                                        >
+                                            {m.poster ? (
+                                                <img
+                                                    src={m.poster}
+                                                    alt={m.title}
+                                                    style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0, border: '1px solid rgba(89,65,61,0.3)' }}
+                                                    onError={e => { e.target.style.background = 'var(--clr-surface-high)'; e.target.src = ''; }}
+                                                />
+                                            ) : (
+                                                <div style={{ width: 40, height: 56, borderRadius: 6, flexShrink: 0, background: 'var(--clr-surface-container)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>🎬</div>
+                                            )}
+                                            <div style={{ minWidth: 0, flex: 1 }}>
+                                                <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: 'var(--clr-on-surface)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {m.title}
+                                                </p>
+                                                <p style={{ margin: '0.15rem 0 0.3rem', fontSize: '0.72rem', color: 'var(--clr-secondary)' }}>{m.year}</p>
+                                                <span style={{
+                                                    display: 'inline-block',
+                                                    fontSize: '0.64rem',
+                                                    fontWeight: 700,
+                                                    color: 'var(--clr-primary-container)',
+                                                    background: 'rgba(192,57,43,0.08)',
+                                                    border: '1px solid rgba(192,57,43,0.2)',
+                                                    borderRadius: 'var(--radius-full)',
+                                                    padding: '0.08rem 0.4rem',
+                                                    whiteSpace: 'nowrap',
+                                                }}>
+                                                    {m.tag}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* 1. Community "Most Interesting" Leaderboard */}
                         <div className="home-sidebar-card">

@@ -134,6 +134,117 @@ function OpinionForm({ movieId, existingReview, secsLeft, onUpdate }) {
     );
 }
 
+// Horizontal bar graph — 4 opinion parameters as vote-count bars
+function OpinionBarGraph({ distribution, percentages, total }) {
+    const BARS = [
+        { key: 'skip',         label: 'Skip',       emoji: '⏭️', color: '#888' },
+        { key: 'considerable', label: 'Timepass',   emoji: '🤔', color: '#c8c6c5' },
+        { key: 'goForIt',      label: 'Go For It',  emoji: '✅', color: '#ffb4a9' },
+        { key: 'excellent',    label: 'Perfection', emoji: '⭐', color: '#c0392b' },
+    ];
+
+    const hasReviews = total > 0;
+
+    return (
+        <div className="opinion-bar-graph">
+            {BARS.map(({ key, label, emoji, color }) => {
+                const pct = percentages?.[key] ?? 0;
+                const count = distribution?.[key] ?? 0;
+                return (
+                    <div key={key} className="obg-row">
+                        <div className="obg-label">
+                            <span className="obg-emoji">{emoji}</span>
+                            <span className="obg-name">{label}</span>
+                        </div>
+                        <div className="obg-track">
+                            <div
+                                className="obg-fill"
+                                style={{
+                                    width: hasReviews ? `${pct}%` : '0%',
+                                    background: color,
+                                    opacity: hasReviews ? 1 : 0.25,
+                                }}
+                            />
+                        </div>
+                        <span className="obg-score" style={{ color: hasReviews ? color : 'var(--clr-secondary)' }}>
+                            {hasReviews ? count : '—'}
+                        </span>
+                    </div>
+                );
+            })}
+            <div className="obg-footer">
+                {hasReviews
+                    ? `Based on ${total} review${total === 1 ? '' : 's'}`
+                    : 'No reviews yet'}
+            </div>
+            <style>{`
+                .opinion-bar-graph {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    gap: 0.7rem;
+                    flex: 1;
+                    min-width: 180px;
+                }
+                .obg-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.55rem;
+                }
+                .obg-label {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.3rem;
+                    width: 92px;
+                    flex-shrink: 0;
+                }
+                .obg-emoji { font-size: 0.85rem; line-height: 1; }
+                .obg-name {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: var(--clr-on-surface);
+                    white-space: nowrap;
+                }
+                .obg-track {
+                    flex: 1;
+                    height: 8px;
+                    border-radius: 99px;
+                    background: rgba(89,65,61,0.2);
+                    overflow: hidden;
+                }
+                .obg-fill {
+                    height: 100%;
+                    border-radius: 99px;
+                    transition: width 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                }
+                .obg-score {
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    min-width: 22px;
+                    text-align: right;
+                    flex-shrink: 0;
+                }
+                .obg-footer {
+                    font-size: 0.68rem;
+                    color: var(--clr-secondary);
+                    margin-top: 0.2rem;
+                    letter-spacing: 0.02em;
+                }
+                .community-opinion-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 2rem;
+                    flex-wrap: wrap;
+                }
+                @media (max-width: 600px) {
+                    .community-opinion-row { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+                    .opinion-bar-graph { min-width: 0; width: 100%; }
+                }
+            `}</style>
+        </div>
+    );
+}
+
 // Shows a handful of other community opinions below the chart
 function ReviewFeed({ reviews }) {
     if (!reviews || reviews.length === 0) return null;
@@ -396,13 +507,22 @@ export default function MovieDetail() {
                                 {/* Community Opinion chart + reviews */}
                                 <div className="review-section">
                                     <h3>Community Opinion</h3>
-                                    {reviewData && reviewData.total > 0 ? (
-                                        <>
-                                            <InfographicChart distribution={reviewData.distribution} total={reviewData.total} percentages={reviewData.percentages} />
-                                            <ReviewFeed reviews={reviewData.reviews} />
-                                        </>
-                                    ) : (
-                                        <p style={{ color: 'var(--clr-secondary)', fontSize: '0.9rem' }}>No opinions yet. Be the first!</p>
+                                    <div className="community-opinion-row">
+                                        {reviewData && reviewData.total > 0 && (
+                                            <InfographicChart
+                                                distribution={reviewData.distribution}
+                                                total={reviewData.total}
+                                                percentages={reviewData.percentages}
+                                            />
+                                        )}
+                                        <OpinionBarGraph
+                                            distribution={reviewData?.distribution}
+                                            total={reviewData?.total ?? 0}
+                                            percentages={reviewData?.percentages}
+                                        />
+                                    </div>
+                                    {reviewData && reviewData.total > 0 && (
+                                        <ReviewFeed reviews={reviewData.reviews} />
                                     )}
                                 </div>
 
