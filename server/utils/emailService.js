@@ -5,15 +5,40 @@ const nodemailer = require('nodemailer');
 const FROM_NAME = 'FilmCircle';
 const FROM_ADDR = () => process.env.SMTP_FROM || 'noreply@filmcircle.app';
 
-// ─── Mailtrap Sandbox API sender ───────────────────────────────────────────────
-// Endpoint: POST https://sandbox.api.mailtrap.io/api/send/{inbox_id}
-// Requires: MAILTRAP_API_KEY and MAILTRAP_INBOX_ID env vars
-// (Inbox ID is the numeric ID visible in your Mailtrap sandbox URL)
+// ─── SMTP sender (Mailtrap Sandbox SMTP — primary) ────────────────────────────
+// Credentials: sandbox.smtp.mailtrap.io, port 2525, user/pass from Mailtrap inbox
+const sendViaSmtp = async (toEmail, subject, html) => {
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587', 10),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+        tls: { rejectUnauthorized: false }, // required for Gmail on some hosts
+    });
+
+    const info = await transporter.sendMail({
+        from: `"${FROM_NAME}" <${FROM_ADDR()}>`,
+        to: toEmail,
+        subject,
+        html,
+    });
+
+    console.log(`[emailService] SMTP sent → messageId: ${info.messageId}`);
+    return info;
+};
+
+// ─── Mailtrap Sandbox REST API sender (fallback) ───────────────────────────────
+// Only used when SMTP_USER/PASS are not set but MAILTRAP_API_KEY + MAILTRAP_INBOX_ID are.
 const sendViaMailtrapApi = (toEmail, subject, html) => {
     return new Promise((resolve, reject) => {
         const inboxId = process.env.MAILTRAP_INBOX_ID;
-        if (!inboxId) {
-            return reject(new Error('MAILTRAP_INBOX_ID is not set in .env. Find it in your Mailtrap inbox URL.'));
+        const apiKey = process.env.MAILTRAP_API_KEY;
+
+        if (!inboxId || !apiKey) {
+            return reject(new Error('MAILTRAP_API_KEY and MAILTRAP_INBOX_ID must both be set.'));
         }
 
         const body = JSON.stringify({
@@ -29,7 +54,7 @@ const sendViaMailtrapApi = (toEmail, subject, html) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.MAILTRAP_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Length': Buffer.byteLength(body),
             },
         };
@@ -38,7 +63,7 @@ const sendViaMailtrapApi = (toEmail, subject, html) => {
             let data = '';
             res.on('data', chunk => { data += chunk; });
             res.on('end', () => {
-                console.log(`[emailService] Mailtrap API response ${res.statusCode}: ${data}`);
+                console.log(`[emailService] Mailtrap API ${res.statusCode}: ${data}`);
                 if (res.statusCode >= 200 && res.statusCode < 300) {
                     resolve(JSON.parse(data));
                 } else {
@@ -53,39 +78,22 @@ const sendViaMailtrapApi = (toEmail, subject, html) => {
     });
 };
 
-// ─── SMTP fallback (uses SMTP_* env vars) ─────────────────────────────────────
-const sendViaSmtp = async (toEmail, subject, html) => {
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'sandbox.smtp.mailtrap.io',
-        port: parseInt(process.env.SMTP_PORT || '2525', 10),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
-
-    await transporter.sendMail({
-        from: `"${FROM_NAME}" <${FROM_ADDR()}>`,
-        to: toEmail,
-        subject,
-        html,
-    });
-};
-
 // ─── Unified send ─────────────────────────────────────────────────────────────
-// Prefers Mailtrap REST API (just needs API key + inbox ID)
-// Falls back to nodemailer SMTP (needs SMTP_USER + SMTP_PASS)
+// Priority: SMTP (if SMTP_USER + SMTP_PASS set) → Mailtrap API → error
 const sendEmail = async (toEmail, subject, html) => {
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        console.log(`[emailService] Sending via SMTP to ${toEmail}`);
+        return sendViaSmtp(toEmail, subject, html);
+    }
+
     if (process.env.MAILTRAP_API_KEY && process.env.MAILTRAP_INBOX_ID) {
         console.log(`[emailService] Sending via Mailtrap API to ${toEmail}`);
-        await sendViaMailtrapApi(toEmail, subject, html);
-    } else if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-        console.log(`[emailService] Sending via SMTP to ${toEmail}`);
-        await sendViaSmtp(toEmail, subject, html);
-    } else {
-        throw new Error('No email transport configured. Set MAILTRAP_API_KEY + MAILTRAP_INBOX_ID, or SMTP_USER + SMTP_PASS in .env');
+        return sendViaMailtrapApi(toEmail, subject, html);
     }
+
+    throw new Error(
+        'No email transport configured. Set SMTP_USER + SMTP_PASS (or MAILTRAP_API_KEY + MAILTRAP_INBOX_ID) in your .env'
+    );
 };
 
 // ─── HTML email wrapper ────────────────────────────────────────────────────────
@@ -122,9 +130,6 @@ const htmlWrapper = (body) => `
 
 /**
  * Send a 6-digit OTP to the given email address.
- * @param {string} toEmail
- * @param {string} username
- * @param {string} otp
  */
 const sendOtpEmail = async (toEmail, username, otp) => {
     const mins = parseInt(process.env.OTP_EXPIRY_MINUTES || '10', 10);
@@ -141,15 +146,12 @@ const sendOtpEmail = async (toEmail, username, otp) => {
 
 /**
  * Send a password-reset link email.
- * @param {string} toEmail
- * @param {string} username
- * @param {string} resetUrl
  */
 const sendPasswordResetEmail = async (toEmail, username, resetUrl) => {
     const html = htmlWrapper(`
         <p>Hi <strong style="color:#fff">${username}</strong>,</p>
         <p>Someone requested a password reset for your FilmCircle account.
-           Click the button below to set a new password — this link expires in <strong>1 hour</strong>.</p>
+           Click the button below — this link expires in <strong>1 hour</strong>.</p>
         <div class="otp-box"><a href="${resetUrl}" class="cta-btn">Reset Password</a></div>
         <p class="note">If you didn't request this, you can safely ignore this email.</p>
     `);
