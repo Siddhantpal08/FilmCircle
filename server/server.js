@@ -1,6 +1,7 @@
 require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
@@ -66,12 +67,29 @@ app.get('/api', (req, res) => {
     `);
 });
 
-// Serve frontend in production
-app.use(express.static(path.join(__dirname, '../client/dist')));
-app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+// Serve frontend in production (only when client/dist has been built)
+const clientDist = path.join(__dirname, '../client/dist');
+const clientDistIndex = path.join(clientDist, 'index.html');
+
+if (fs.existsSync(clientDistIndex)) {
+    // Full-stack deployment — serve the React SPA
+    app.use(express.static(clientDist));
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api')) return next();
+        res.sendFile(clientDistIndex);
+    });
+} else {
+    // API-only deployment (e.g. Render backend service) — return helpful JSON for unknown routes
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api')) return next();
+        res.status(200).json({
+            service: 'FilmCircle API',
+            status: 'online',
+            docs: '/api',
+            note: 'Frontend is deployed separately. Hit /api/* endpoints directly.',
+        });
+    });
+}
 
 // ── Error Handling ────────────────────────────────────────────────────────────
 app.use(notFound);
