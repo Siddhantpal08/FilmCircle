@@ -347,44 +347,59 @@ const getTrendingMovies = async (req, res, next) => {
 };
 
 // @route   GET /api/movies/suggest?q=partial
-// @access  Public — lightweight autocomplete (returns up to 8 titles)
-// Uses raw axios (not omdbGet) so a "no results" response from OMDB doesn't throw
-// and kill suggestions for short/partial queries.
+// @access  Public — lightweight autocomplete using TMDB search (returns up to 8 results)
+// Uses TMDB multi-search since it provides instant, high-quality results and the key
+// is already configured. Falls back gracefully to empty array on any error.
 const suggestMovies = async (req, res, next) => {
     try {
         const { q } = req.query;
         if (!q || q.trim().length < 2) return res.json([]);
 
-        if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
-            return res.json([]);
-        }
-
-        // Raw axios call — we inspect Response ourselves instead of letting omdbGet throw
-        const omdbSearch = async (term) => {
+        if (!TMDB_KEY) {
+            // Fallback to OMDB if TMDB key unavailable
+            if (!OMDB_KEY || OMDB_KEY === 'your_omdb_api_key_here') {
+                return res.json([]);
+            }
             const resp = await axios.get(OMDB_BASE, {
-                params: { s: term, type: 'movie', apikey: OMDB_KEY },
+                params: { s: q.trim(), type: 'movie', apikey: OMDB_KEY },
             });
-            return resp.data; // { Response, Search?, totalResults? }
-        };
-
-        let data = await omdbSearch(q.trim());
-
-        // Typo / prefix fallback: if partial query returned nothing and it's long enough,
-        // retry with the first 5 characters (e.g. "incep" instead of "incepti")
-        if (data.Response === 'False' && q.trim().length > 5) {
-            const fallbackData = await omdbSearch(q.trim().slice(0, 5));
-            if (fallbackData.Response !== 'False') data = fallbackData;
+            const data = resp.data;
+            const suggestions = (data.Search || []).slice(0, 8).map(m => ({
+                id: m.imdbID,
+                imdbID: m.imdbID,
+                title: m.Title,
+                year: m.Year,
+                poster: m.Poster !== 'N/A' ? m.Poster : null,
+                source: 'omdb',
+            }));
+            return res.json(suggestions);
         }
 
-        const suggestions = (data.Search || []).slice(0, 8).map(m => ({
-            imdbID: m.imdbID,
-            title: m.Title,
-            year: m.Year,
-            poster: m.Poster !== 'N/A' ? m.Poster : null,
+        // Primary path: TMDB multi-search (movies only)
+        const tmdbResp = await axios.get(`${TMDB_BASE}/search/movie`, {
+            params: {
+                api_key: TMDB_KEY,
+                query: q.trim(),
+                language: 'en-US',
+                page: 1,
+                include_adult: false,
+            },
+        });
+
+        const results = (tmdbResp.data.results || []).slice(0, 8);
+        const suggestions = results.map(m => ({
+            id: String(m.id),
+            imdbID: String(m.id),   // use TMDB numeric id as the navigation key
+            title: m.title || m.name || 'Unknown',
+            year: m.release_date ? m.release_date.slice(0, 4) : '',
+            poster: m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : null,
+            source: 'tmdb',
         }));
+
         res.json(suggestions);
     } catch (err) {
         // Autocomplete failure is non-critical — return empty array gracefully
+        console.error('[suggest] error:', err.message);
         res.json([]);
     }
 };

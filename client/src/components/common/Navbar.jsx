@@ -32,19 +32,21 @@ export default function Navbar() {
     // Debounced autosuggest
     const fetchSuggestions = useCallback((q) => {
         clearTimeout(debounceRef.current);
-        if (q.trim().length < 2) { setSuggestions([]); setSuggestOpen(false); return; }
+        if (q.trim().length < 2) { setSuggestions([]); setSuggestOpen(false); setSuggestLoading(false); return; }
+        setSuggestLoading(true);
         debounceRef.current = setTimeout(async () => {
-            setSuggestLoading(true);
             try {
                 const res = await movieService.suggest(q.trim());
-                setSuggestions(res.data || []);
-                setSuggestOpen((res.data || []).length > 0);
+                const data = res.data || [];
+                setSuggestions(data);
+                setSuggestOpen(data.length > 0);
             } catch {
                 setSuggestions([]);
+                setSuggestOpen(false);
             } finally {
                 setSuggestLoading(false);
             }
-        }, 300);
+        }, 250);
     }, []);
 
     // Close dropdown on outside click
@@ -90,8 +92,13 @@ export default function Navbar() {
             e.preventDefault();
             const chosen = suggestions[activeSug];
             setSuggestOpen(false);
-            navigate(`/movie/${chosen.imdbID}`);
             setQuery('');
+            const id = chosen.id || chosen.imdbID;
+            const params = new URLSearchParams();
+            if (chosen.title) params.set('title', chosen.title);
+            if (chosen.year) params.set('year', chosen.year);
+            if (chosen.poster) params.set('poster', chosen.poster);
+            navigate(`/movie/${id}${params.toString() ? '?' + params.toString() : ''}`);
         }
         else if (e.key === 'Escape') { setSuggestOpen(false); setActiveSug(-1); }
     };
@@ -130,34 +137,53 @@ export default function Navbar() {
                         }
                     </form>
 
-                    {/* Dropdown */}
-                    {suggestOpen && suggestions.length > 0 && (
+                    {/* Suggest Dropdown */}
+                    {(suggestLoading || suggestOpen) && query.trim().length >= 2 && (
                         <div className="suggest-dropdown">
-                            {suggestions.map((s, i) => (
-                                <div
-                                    key={s.imdbID}
-                                    className={`suggest-item ${activeSug === i ? 'suggest-active' : ''}`}
-                                    onMouseDown={() => { navigate(`/movie/${s.imdbID}`); setSuggestOpen(false); setQuery(''); }}
-                                    onMouseEnter={() => setActiveSug(i)}
-                                >
-                                    <img
-                                        src={s.poster || FALLBACK_POSTER}
-                                        alt={s.title}
-                                        className="suggest-poster"
-                                        onError={e => { e.target.src = FALLBACK_POSTER; }}
-                                    />
-                                    <div className="suggest-info">
-                                        <span className="suggest-title">{s.title}</span>
-                                        {s.year && <span className="suggest-year">{s.year}</span>}
-                                    </div>
+                            {suggestLoading && suggestions.length === 0 && (
+                                <div className="suggest-loading-row">
+                                    <span className="search-spinner" style={{ display: 'inline-block', marginRight: '0.5rem' }} />
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--clr-secondary)' }}>Searching...</span>
                                 </div>
-                            ))}
-                            <div
-                                className="suggest-footer"
-                                onMouseDown={() => commitSearch(query)}
-                            >
-                                See all results for "<strong>{query}</strong>" →
-                            </div>
+                            )}
+                            {!suggestLoading && suggestions.length === 0 && (
+                                <div className="suggest-empty">No results for "{query}"</div>
+                            )}
+                            {suggestions.map((s, i) => {
+                                const id = s.id || s.imdbID;
+                                const params = new URLSearchParams();
+                                if (s.title) params.set('title', s.title);
+                                if (s.year) params.set('year', s.year);
+                                if (s.poster) params.set('poster', s.poster);
+                                const movieUrl = `/movie/${id}${params.toString() ? '?' + params.toString() : ''}`;
+                                return (
+                                    <div
+                                        key={id || i}
+                                        className={`suggest-item ${activeSug === i ? 'suggest-active' : ''}`}
+                                        onMouseDown={() => { navigate(movieUrl); setSuggestOpen(false); setQuery(''); }}
+                                        onMouseEnter={() => setActiveSug(i)}
+                                    >
+                                        <img
+                                            src={s.poster || FALLBACK_POSTER}
+                                            alt={s.title}
+                                            className="suggest-poster"
+                                            onError={e => { e.target.src = FALLBACK_POSTER; }}
+                                        />
+                                        <div className="suggest-info">
+                                            <span className="suggest-title">{s.title}</span>
+                                            {s.year && <span className="suggest-year">{s.year}</span>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {suggestions.length > 0 && (
+                                <div
+                                    className="suggest-footer"
+                                    onMouseDown={() => commitSearch(query)}
+                                >
+                                    See all results for "<strong>{query}</strong>" →
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
