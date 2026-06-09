@@ -20,8 +20,21 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 }
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-const allowedOrigin = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
-app.use(cors({ origin: [allowedOrigin, `${allowedOrigin}/`], credentials: true }));
+// ALLOWED_ORIGINS = comma-separated list, e.g. "https://film-circle.vercel.app,http://localhost:5173"
+const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = rawOrigins.split(',').flatMap(o => {
+    const clean = o.trim().replace(/\/$/, '');
+    return [clean, `${clean}/`];
+});
+app.use(cors({
+    origin: (origin, cb) => {
+        // Allow requests with no origin (curl, Postman, server-to-server)
+        if (!origin) return cb(null, true);
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        cb(new Error(`CORS: origin '${origin}' not allowed`));
+    },
+    credentials: true,
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
