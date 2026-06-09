@@ -339,7 +339,7 @@ export default function Home() {
                             <div className="home-sidebar-card">
                                 <div style={{ marginBottom: '1.25rem' }}>
                                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', margin: 0 }}>
-                                        <span>🎯</span> Recommended For You
+                                        Recommended For You
                                     </h3>
                                     <p style={{ margin: '0.25rem 0 0', fontSize: '0.7rem', color: 'var(--clr-secondary)', letterSpacing: '0.02em' }}>
                                         Based on trends &amp; popularity
@@ -532,13 +532,19 @@ export default function Home() {
                     width: 280px;
                     min-width: 0;
                     position: sticky;
-                    top: 90px;
+                    top: 80px;
                     align-self: start;
+                    max-height: calc(100vh - 80px);
+                    overflow-y: auto;
+                    overflow-x: hidden;
                     display: flex;
                     flex-direction: column;
                     /* align top with the first poster row (below the Trending Now heading) */
                     padding-top: 2.9rem;
+                    /* hide scrollbar visually but keep it functional */
+                    scrollbar-width: none;
                 }
+                .home-sidebar::-webkit-scrollbar { display: none; }
 
                 /* Tablet: collapse to single column, hide sidebar */
                 @media (max-width: 1024px) {

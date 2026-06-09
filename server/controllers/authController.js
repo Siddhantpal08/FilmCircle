@@ -1,18 +1,126 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const Review = require('../models/Review');
 const Movie = require('../models/Movie');
 const Post = require('../models/Post');
 const Club = require('../models/Club');
+const { sendOtpEmail, sendPasswordResetEmail } = require('../utils/emailService');
 
 // Helper: sign JWT
 const generateToken = (id) =>
     jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
 
-// @route   POST /api/auth/register
+// ─── OTP helpers ──────────────────────────────────────────────────────────────
+const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+const hashOtp = (otp) => crypto.createHash('sha256').update(otp).digest('hex');
+
+// @route   POST /api/auth/send-otp
+// @desc    Send a 6-digit OTP to email before account creation
 // @access  Public
+const sendOtp = async (req, res, next) => {
+    try {
+        const { username, email, password } = req.body;
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'Username, email and password are required' });
+        }
+
+        const existingEmail    = await User.findOne({ email: email.toLowerCase().trim() });
+        const existingUsername = await User.findOne({ username: username.trim() });
+
+        // A user is "pending" if they called sendOtp before but never verified.
+        // A user is "registered" if (a) isEmailVerified=true OR (b) they have no OTP fields
+        // (i.e. they're an old account created before the OTP system was added).
+        const isPending    = (u) => u && !u.isEmailVerified && (u.otp || u.otpExpiry);
+        const isRegistered = (u) => u && !isPending(u);
+
+        if (isRegistered(existingEmail)) {
+            return res.status(409).json({ message: 'Email already registered. Please log in instead.' });
+        }
+        if (isRegistered(existingUsername)) {
+            return res.status(409).json({ message: 'Username already taken. Please choose another.' });
+        }
+
+        const otp = generateOtp();
+        const otpExpiry = new Date(Date.now() + parseInt(process.env.OTP_EXPIRY_MINUTES || '10', 10) * 60 * 1000);
+
+        // Reuse stale pending record if one exists, otherwise create fresh
+        let pendingUser = (isPending(existingEmail) ? existingEmail : null)
+                       || (isPending(existingUsername) ? existingUsername : null);
+
+        if (pendingUser) {
+            pendingUser.username  = username.trim();
+            pendingUser.email     = email.toLowerCase().trim();
+            pendingUser.password  = password; // hashed by pre-save hook
+            pendingUser.otp       = hashOtp(otp);
+            pendingUser.otpExpiry = otpExpiry;
+            await pendingUser.save();
+        } else {
+            pendingUser = await User.create({
+                username: username.trim(),
+                email:    email.toLowerCase().trim(),
+                password,
+                otp:      hashOtp(otp),
+                otpExpiry,
+                isEmailVerified: false,
+            });
+        }
+
+        await sendOtpEmail(pendingUser.email, pendingUser.username, otp);
+        console.log(`[sendOtp] OTP dispatched to ${pendingUser.email}`);
+
+        res.json({ message: 'OTP sent. Check your email inbox.' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @route   POST /api/auth/verify-otp
+// @desc    Verify OTP and complete account registration
+// @access  Public
+const verifyOtp = async (req, res, next) => {
+    try {
+        const { email, otp } = req.body;
+        if (!email || !otp) {
+            return res.status(400).json({ message: 'Email and OTP are required' });
+        }
+
+        const user = await User.findOne({
+            email: email.toLowerCase().trim(),
+            isEmailVerified: false,
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'No pending registration found for this email' });
+        }
+        if (!user.otp || !user.otpExpiry) {
+            return res.status(400).json({ message: 'OTP not requested. Please start registration again.' });
+        }
+        if (new Date() > user.otpExpiry) {
+            return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+        }
+        if (user.otp !== hashOtp(otp.toString().trim())) {
+            return res.status(400).json({ message: 'Incorrect OTP. Please try again.' });
+        }
+
+        // Mark verified and clear OTP fields
+        user.isEmailVerified = true;
+        user.otp = undefined;
+        user.otpExpiry = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        const token = generateToken(user._id);
+        res.status(201).json({
+            token,
+            user: { id: user._id, username: user.username, email: user.email, avatarUrl: user.avatarUrl },
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// @route   POST /api/auth/register
+// @access  Public — kept for backward-compat; OTP path is preferred
 const register = async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
@@ -190,73 +298,10 @@ const forgotPassword = async (req, res, next) => {
         user.resetTokenExpiry = Date.now() + 60 * 60 * 1000; // 1 hour
         await user.save({ validateBeforeSave: false });
 
-        // Build reset URL — use VITE_API_URL base or CLIENT_URL
         const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
         const resetUrl = `${clientUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
 
-        // Send email via nodemailer
-        let host = process.env.SMTP_HOST;
-        let port = parseInt(process.env.SMTP_PORT || '587', 10);
-        let userAuth = process.env.SMTP_USER;
-        let passAuth = process.env.SMTP_PASS;
-
-        // If using live.smtp.mailtrap.io but sending from unverified domain (e.g. gmail.com),
-        // fallback dynamically to Mailtrap Sandbox SMTP using their API Token!
-        if (host === 'live.smtp.mailtrap.io' && process.env.SMTP_FROM?.endsWith('gmail.com')) {
-            try {
-                console.log('[forgotPassword] Detected live Mailtrap with Gmail sender. Fetching Sandbox SMTP credentials dynamically...');
-                const accountsRes = await fetch('https://mailtrap.io/api/accounts', {
-                    headers: { 'Authorization': `Bearer ${process.env.SMTP_PASS}` }
-                });
-                if (accountsRes.ok) {
-                    const accounts = await accountsRes.json();
-                    if (accounts.length > 0) {
-                        const inboxesRes = await fetch(`https://mailtrap.io/api/accounts/${accounts[0].id}/inboxes`, {
-                            headers: { 'Authorization': `Bearer ${process.env.SMTP_PASS}` }
-                        });
-                        if (inboxesRes.ok) {
-                            const inboxes = await inboxesRes.json();
-                            if (inboxes.length > 0) {
-                                host = inboxes[0].domain || 'sandbox.smtp.mailtrap.io';
-                                port = 2525;
-                                userAuth = inboxes[0].username;
-                                passAuth = inboxes[0].password;
-                                console.log('[forgotPassword] Successfully fell back to Mailtrap Sandbox:', userAuth);
-                            }
-                        }
-                    }
-                }
-            } catch (fallbackErr) {
-                console.error('[forgotPassword] Sandbox fallback retrieval failed:', fallbackErr.message);
-            }
-        }
-
-        const transporter = nodemailer.createTransport({
-            host,
-            port,
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: userAuth,
-                pass: passAuth,
-            },
-        });
-
-        await transporter.sendMail({
-            from: `"FilmCircle" <${process.env.SMTP_FROM || 'noreply@filmcircle.app'}>`,
-            to: user.email,
-            subject: 'Reset your FilmCircle password',
-            html: `
-                <div style="font-family:sans-serif;max-width:480px;margin:auto;">
-                    <h2 style="color:#c0392b;">🎬 FilmCircle Password Reset</h2>
-                    <p>Hi <strong>${user.username}</strong>,</p>
-                    <p>Someone requested a password reset for your account. Click the button below to set a new password. This link expires in 1 hour.</p>
-                    <a href="${resetUrl}" style="display:inline-block;background:#c0392b;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin:16px 0;">Reset Password</a>
-                    <p style="color:#888;font-size:0.85rem;">If you didn't request this, you can safely ignore this email.</p>
-                    <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
-                    <p style="color:#aaa;font-size:0.75rem;">FilmCircle — Your cinema, your circle.</p>
-                </div>
-            `,
-        });
+        await sendPasswordResetEmail(user.email, user.username, resetUrl);
 
         res.json({ message: 'If that email is registered, a reset link has been sent.' });
     } catch (err) {
@@ -304,4 +349,4 @@ const resetPassword = async (req, res, next) => {
     }
 };
 
-module.exports = { register, login, getMe, updateProfile, deleteAccount, forgotPassword, resetPassword };
+module.exports = { register, login, getMe, updateProfile, deleteAccount, forgotPassword, resetPassword, sendOtp, verifyOtp };

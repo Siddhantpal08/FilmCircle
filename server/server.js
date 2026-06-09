@@ -1,6 +1,7 @@
 require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
@@ -19,8 +20,21 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 }
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-const allowedOrigin = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
-app.use(cors({ origin: [allowedOrigin, `${allowedOrigin}/`], credentials: true }));
+// ALLOWED_ORIGINS = comma-separated list, e.g. "https://film-circle.vercel.app,http://localhost:5173"
+const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = rawOrigins.split(',').flatMap(o => {
+    const clean = o.trim().replace(/\/$/, '');
+    return [clean, `${clean}/`];
+});
+app.use(cors({
+    origin: (origin, cb) => {
+        // Allow requests with no origin (curl, Postman, server-to-server)
+        if (!origin) return cb(null, true);
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        cb(new Error(`CORS: origin '${origin}' not allowed`));
+    },
+    credentials: true,
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -66,12 +80,29 @@ app.get('/api', (req, res) => {
     `);
 });
 
-// Serve frontend in production
-app.use(express.static(path.join(__dirname, '../client/dist')));
-app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+// Serve frontend in production (only when client/dist has been built)
+const clientDist = path.join(__dirname, '../client/dist');
+const clientDistIndex = path.join(clientDist, 'index.html');
+
+if (fs.existsSync(clientDistIndex)) {
+    // Full-stack deployment — serve the React SPA
+    app.use(express.static(clientDist));
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api')) return next();
+        res.sendFile(clientDistIndex);
+    });
+} else {
+    // API-only deployment (e.g. Render backend service) — return helpful JSON for unknown routes
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api')) return next();
+        res.status(200).json({
+            service: 'FilmCircle API',
+            status: 'online',
+            docs: '/api',
+            note: 'Frontend is deployed separately. Hit /api/* endpoints directly.',
+        });
+    });
+}
 
 // ── Error Handling ────────────────────────────────────────────────────────────
 app.use(notFound);

@@ -20,6 +20,9 @@ export default function Profile() {
     const { user, logout, updateUser } = useAuth();
     const navigate = useNavigate();
     const avatarFileRef = useRef(null);
+    const menuRef = useRef(null);
+
+    const [showMenu, setShowMenu] = useState(false);
     const [uploadedFilms, setUploadedFilms] = useState([]);
     const [myReviews, setMyReviews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,6 +40,17 @@ export default function Profile() {
 
     const [filmToDeleteId, setFilmToDeleteId] = useState(null);
     const [deletingFilm, setDeletingFilm] = useState(false);
+
+    // Close three-dot menu when clicking outside
+    useEffect(() => {
+        const handler = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setShowMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
     useEffect(() => {
         setLoading(true);
@@ -176,11 +190,41 @@ export default function Profile() {
                             )}
                         </div>
 
-                        {/* Actions */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flexShrink: 0 }}>
-                            <button className="btn btn-outline btn-sm" onClick={openEdit}>Edit Profile</button>
-                            <button className="btn btn-ghost btn-sm" onClick={logout}>Logout</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => { setDeleteInput(''); setShowDeleteConfirm(true); }}>Delete Account</button>
+                        {/* Three-dot menu */}
+                        <div ref={menuRef} style={{ position: 'relative', flexShrink: 0, alignSelf: 'flex-start' }}>
+                            <button
+                                className="profile-menu-btn"
+                                onClick={() => setShowMenu(v => !v)}
+                                aria-label="Profile options"
+                                aria-haspopup="true"
+                                aria-expanded={showMenu}
+                            >
+                                ⋯
+                            </button>
+
+                            {showMenu && (
+                                <div className="profile-dropdown">
+                                    <button
+                                        className="profile-dropdown-item"
+                                        onClick={() => { setShowMenu(false); openEdit(); }}
+                                    >
+                                        Edit Profile
+                                    </button>
+                                    <button
+                                        className="profile-dropdown-item"
+                                        onClick={() => { setShowMenu(false); logout(); }}
+                                    >
+                                        Logout
+                                    </button>
+                                    <div className="profile-dropdown-divider" />
+                                    <button
+                                        className="profile-dropdown-item profile-dropdown-danger"
+                                        onClick={() => { setShowMenu(false); setDeleteInput(''); setShowDeleteConfirm(true); }}
+                                    >
+                                        Delete Account
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </section>
                 ) : (
@@ -467,6 +511,75 @@ export default function Profile() {
                 .btn-danger { background: var(--clr-error-container); color: var(--clr-error); border: none; }
                 .btn-danger:hover { opacity: 0.85; }
                 .btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+                /* ── Three-dot menu ── */
+                .profile-menu-btn {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    border: 1px solid rgba(89,65,61,0.25);
+                    background: var(--clr-surface-container);
+                    color: var(--clr-secondary);
+                    font-size: 1.25rem;
+                    letter-spacing: 0.05em;
+                    cursor: pointer;
+                    transition: background 0.18s, color 0.18s, border-color 0.18s;
+                    line-height: 1;
+                }
+                .profile-menu-btn:hover {
+                    background: var(--clr-surface-high);
+                    color: var(--clr-on-surface);
+                    border-color: rgba(192,57,43,0.4);
+                }
+                .profile-dropdown {
+                    position: absolute;
+                    top: calc(100% + 8px);
+                    right: 0;
+                    min-width: 172px;
+                    background: var(--clr-surface-high);
+                    border: 1px solid rgba(89,65,61,0.22);
+                    border-radius: var(--radius-sm);
+                    box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+                    z-index: 200;
+                    overflow: hidden;
+                    animation: dropdownIn 0.14s ease;
+                }
+                @keyframes dropdownIn {
+                    from { opacity: 0; transform: translateY(-6px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+                .profile-dropdown-item {
+                    display: block;
+                    width: 100%;
+                    padding: 0.65rem 1rem;
+                    background: none;
+                    border: none;
+                    text-align: left;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    color: var(--clr-on-surface);
+                    cursor: pointer;
+                    transition: background 0.15s;
+                    letter-spacing: 0.01em;
+                }
+                .profile-dropdown-item:hover {
+                    background: rgba(255,255,255,0.05);
+                }
+                .profile-dropdown-divider {
+                    height: 1px;
+                    background: rgba(89,65,61,0.2);
+                    margin: 0.25rem 0;
+                }
+                .profile-dropdown-danger {
+                    color: #e05252;
+                }
+                .profile-dropdown-danger:hover {
+                    background: rgba(192,57,43,0.1);
+                    color: #f07070;
+                }
 
                 .avatar-upload-ring {
                     width: 88px; height: 88px; border-radius: 50%; overflow: hidden;

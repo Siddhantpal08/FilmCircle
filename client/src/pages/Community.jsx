@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { communityService, clubService } from '../services';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/common/Loader';
+import DeleteCommentModal from '../components/common/DeleteCommentModal';
 import ConfirmModal from '../components/common/ConfirmModal';
 
 const FIVE_MIN = 5 * 60 * 1000;
@@ -120,7 +121,12 @@ function PostCard({ post, onLikeChange, onDelete, onUpdate, currentUserId, highl
     };
 
     const handleDeleteComment = (commentId) => {
-        setCommentToDelete(commentId);
+        // Delay by one event-loop tick so the modal only opens AFTER the
+        // current click event (mousedown → mouseup → click) has fully propagated.
+        // Without this, React flushes the state update synchronously and the
+        // modal's "Delete" button renders at the same screen position as the
+        // trash icon — causing the mouseup to immediately fire on it.
+        setTimeout(() => setCommentToDelete(commentId), 0);
     };
 
     const confirmDeleteComment = async () => {
@@ -207,10 +213,8 @@ function PostCard({ post, onLikeChange, onDelete, onUpdate, currentUserId, highl
                     );
                 })}
             </div>
-            <ConfirmModal
+            <DeleteCommentModal
                 open={!!commentToDelete}
-                title="Delete Comment?"
-                message="This action cannot be undone."
                 onConfirm={confirmDeleteComment}
                 onCancel={() => setCommentToDelete(null)}
                 confirming={deletingComment}
@@ -323,10 +327,8 @@ function PostCard({ post, onLikeChange, onDelete, onUpdate, currentUserId, highl
                 </div>
             )}
         </div>
-        <ConfirmModal
+        <DeleteCommentModal
             open={!!commentToDelete}
-            title="Delete Comment?"
-            message="This action cannot be undone."
             onConfirm={confirmDeleteComment}
             onCancel={() => setCommentToDelete(null)}
             confirming={deletingComment}
@@ -750,35 +752,46 @@ export default function Community() {
                     margin-bottom: 1.5rem;
                 }
 
+                /* ── Comment delete confirmation modal ── */
                 .confirm-modal-overlay {
                     position: fixed;
                     inset: 0;
-                    background: rgba(0, 0, 0, 0.72);
+                    background: rgba(0, 0, 0, 0.75);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     z-index: 1000;
                     padding: 1rem;
+                    animation: overlayIn 0.15s ease;
+                }
+                @keyframes overlayIn {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
                 }
                 .confirm-modal {
-                    background: #0f0f0f;
-                    border: 1px solid rgba(89, 65, 61, 0.25);
+                    background: #141414;
+                    border: 1px solid rgba(89, 65, 61, 0.28);
                     border-radius: var(--radius);
-                    padding: 1.75rem;
+                    padding: 1.75rem 2rem;
                     max-width: 400px;
                     width: 100%;
-                    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+                    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.6);
+                    animation: modalIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+                }
+                @keyframes modalIn {
+                    from { opacity: 0; transform: scale(0.94) translateY(8px); }
+                    to   { opacity: 1; transform: scale(1) translateY(0); }
                 }
                 .confirm-modal-title {
                     margin: 0 0 0.5rem;
-                    font-size: 1.15rem;
+                    font-size: 1.2rem;
                     font-weight: 700;
-                    color: var(--clr-on-surface);
+                    color: #ffffff;
                 }
                 .confirm-modal-message {
-                    margin: 0 0 1.5rem;
-                    font-size: 0.9rem;
-                    color: var(--clr-secondary);
+                    margin: 0 0 1.75rem;
+                    font-size: 0.875rem;
+                    color: #8c8c8c;
                     line-height: 1.5;
                 }
                 .confirm-modal-actions {
@@ -787,11 +800,11 @@ export default function Community() {
                     justify-content: flex-end;
                 }
                 .confirm-modal-cancel {
-                    padding: 0.55rem 1.1rem;
+                    padding: 0.55rem 1.2rem;
                     border-radius: var(--radius-sm);
-                    border: 1px solid rgba(89, 65, 61, 0.35);
-                    background: rgba(89, 65, 61, 0.2);
-                    color: rgba(168, 138, 133, 0.95);
+                    border: none;
+                    background: #333333;
+                    color: #cccccc;
                     font-size: 0.875rem;
                     font-weight: 600;
                     font-family: inherit;
@@ -799,15 +812,15 @@ export default function Community() {
                     transition: background 0.15s, color 0.15s;
                 }
                 .confirm-modal-cancel:hover:not(:disabled) {
-                    background: rgba(89, 65, 61, 0.32);
-                    color: var(--clr-on-surface);
+                    background: #3d3d3d;
+                    color: #ffffff;
                 }
                 .confirm-modal-delete {
-                    padding: 0.55rem 1.1rem;
+                    padding: 0.55rem 1.2rem;
                     border-radius: var(--radius-sm);
                     border: none;
                     background: #C0392B;
-                    color: #fff;
+                    color: #ffffff;
                     font-size: 0.875rem;
                     font-weight: 700;
                     font-family: inherit;
@@ -816,7 +829,7 @@ export default function Community() {
                 }
                 .confirm-modal-delete:hover:not(:disabled) { background: #a93226; }
                 .confirm-modal-cancel:disabled,
-                .confirm-modal-delete:disabled { opacity: 0.6; cursor: not-allowed; }
+                .confirm-modal-delete:disabled { opacity: 0.55; cursor: not-allowed; }
 
                 /* Filter tabs */
                 .comm-tabs {
