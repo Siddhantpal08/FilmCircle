@@ -3,13 +3,9 @@
 /**
  * TmdbMovieCard.jsx
  * ─────────────────
- * Card for TMDB-sourced movies (homepage discovery only).
- * Visually identical to MovieCard.
- *
- * ROUTING: Navigates to /movie/<tmdbId>?title=<title>
- *   - The backend getMovieById detects the numeric TMDB ID and uses ?title
- *     to perform an OMDB title-lookup (t= param), returning full OMDB movie data.
- *   - All OMDB detail-page logic (plot, cast, ratings, reviews) stays 100% untouched.
+ * Card for TMDB-sourced movies (homepage discovery + search results).
+ * Accepts both lowercase TMDB-shape props (poster/title/year/imdbRating)
+ * and uppercase OMDB-shape props (Poster/Title/Year/Rating).
  */
 
 import { Link } from 'react-router-dom';
@@ -18,14 +14,21 @@ const FALLBACK =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' viewBox='0 0 200 300'%3E%3Crect width='200' height='300' fill='%23201f1f'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23c0392b' font-size='30'%3E🎬%3C/text%3E%3Ctext x='50%25' y='63%25' text-anchor='middle' fill='%23a88a85' font-size='12'%3ENo Poster%3C/text%3E%3C/svg%3E";
 
 export default function TmdbMovieCard({ movie }) {
-    const poster = (movie.Poster && movie.Poster !== 'N/A') ? movie.Poster : FALLBACK;
-    const title  = movie.Title;
-    const year   = movie.Year || '';
-    const rating = movie.Rating; // e.g. "7.8"
+    // Support both lowercase (TMDB search shape) and uppercase (OMDB shape)
+    const rawPoster = movie.poster || (movie.Poster && movie.Poster !== 'N/A' ? movie.Poster : null);
+    const poster    = rawPoster || FALLBACK;
+    const title     = movie.title || movie.Title || '';
+    const year      = movie.year  || movie.Year  || '';
+    const rating    = movie.imdbRating || movie.Rating; // e.g. "7.8"
+    const tmdbId    = movie.tmdbId || movie.imdbID;
 
-    // Navigate to /movie/<tmdbId>?title=<title>
-    // Backend resolves the numeric tmdbId via OMDB t= (exact title) lookup.
-    const to = `/movie/${movie.tmdbId}?title=${encodeURIComponent(title)}&poster=${encodeURIComponent(poster)}&year=${encodeURIComponent(year)}`;
+    // Navigate to /movie/<tmdbId>?title=<title>&poster=<poster>&year=<year>
+    // Backend resolves the numeric tmdbId via TMDB → OMDB enrichment.
+    const params = new URLSearchParams();
+    if (title) params.set('title', title);
+    if (year)  params.set('year', year);
+    if (rawPoster) params.set('poster', rawPoster);
+    const to = `/movie/${tmdbId}?${params.toString()}`;
 
     return (
         <Link to={to} className="movie-card group" style={{ textDecoration: 'none' }}>
@@ -41,7 +44,7 @@ export default function TmdbMovieCard({ movie }) {
                 <div className="movie-score-overlay">
                     <div className="movie-score-badge tmdb-rating-badge">
                         {rating
-                            ? <><span style={{ fontSize: '0.65rem', marginRight: '1px' }}>★</span>{rating}</>
+                            ? <><span style={{ fontSize: '0.65rem', marginRight: '1px' }}>★</span>{parseFloat(rating).toFixed(1)}</>
                             : <span>✦</span>
                         }
                     </div>
@@ -66,3 +69,4 @@ export default function TmdbMovieCard({ movie }) {
         </Link>
     );
 }
+
