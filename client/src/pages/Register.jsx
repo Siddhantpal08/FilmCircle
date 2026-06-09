@@ -106,6 +106,7 @@ export default function Register() {
     const [resendCooldown, setResendCooldown] = useState(0);
 
     const [error, setError] = useState('');
+    const [isConflict, setIsConflict] = useState(false); // true when 409 — show login link
     const [loading, setLoading] = useState(false);
 
     const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -114,6 +115,7 @@ export default function Register() {
     const handleSendOtp = async (e) => {
         e.preventDefault();
         setError('');
+        setIsConflict(false);
         if (form.username.length < 3) { setError('Username must be at least 3 characters'); return; }
         if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
         if (form.password !== form.confirmPassword) { setError('Passwords do not match'); return; }
@@ -124,8 +126,13 @@ export default function Register() {
             setStep('otp');
             startCooldown();
         } catch (err) {
-            const errs = err.response?.data?.errors;
-            setError(errs?.length ? errs.map(e => e.message).join(', ') : err.response?.data?.message || 'Failed to send OTP. Please try again.');
+            if (err.response?.status === 409) {
+                setIsConflict(true);
+                setError(err.response.data?.message || 'Account already exists.');
+            } else {
+                const errs = err.response?.data?.errors;
+                setError(errs?.length ? errs.map(e => e.message).join(', ') : err.response?.data?.message || 'Failed to send OTP. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -197,7 +204,23 @@ export default function Register() {
                     <p className="auth-brand-sub">Your cinema, your circle.</p>
                 </div>
 
-                {error && <div className="alert alert-error" style={{ marginBottom: '1.25rem' }}>{error}</div>}
+                {error && !isConflict && (
+                    <div className="alert alert-error" style={{ marginBottom: '1.25rem' }}>{error}</div>
+                )}
+                {isConflict && (
+                    <div style={{
+                        marginBottom: '1.25rem', padding: '1rem 1.25rem',
+                        background: 'rgba(192,57,43,0.12)', border: '1px solid rgba(192,57,43,0.35)',
+                        borderRadius: 'var(--radius-sm)',
+                    }}>
+                        <p style={{ margin: '0 0 0.5rem', color: '#e87c6a', fontWeight: 600, fontSize: '0.9rem' }}>
+                            {error}
+                        </p>
+                        <Link to="/login" className="btn btn-primary" style={{ display: 'inline-block', padding: '0.5rem 1.25rem', fontSize: '0.875rem' }}>
+                            Log In →
+                        </Link>
+                    </div>
+                )}
 
                 {/* ── Step 1: Registration form ───────────────────────────────── */}
                 {step === 'form' && (

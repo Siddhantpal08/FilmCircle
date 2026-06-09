@@ -25,43 +25,49 @@ const sendOtp = async (req, res, next) => {
             return res.status(400).json({ message: 'Username, email and password are required' });
         }
 
-        // Reject if email already taken by a verified account
-        const existingEmail = await User.findOne({ email: email.toLowerCase().trim() });
-        if (existingEmail && existingEmail.isEmailVerified) {
-            return res.status(409).json({ message: 'Email already registered' });
-        }
-
-        // Reject if username already taken by a verified account
+        const existingEmail    = await User.findOne({ email: email.toLowerCase().trim() });
         const existingUsername = await User.findOne({ username: username.trim() });
-        if (existingUsername && existingUsername.isEmailVerified) {
-            return res.status(409).json({ message: 'Username already taken' });
+
+        // A user is "pending" if they called sendOtp before but never verified.
+        // A user is "registered" if (a) isEmailVerified=true OR (b) they have no OTP fields
+        // (i.e. they're an old account created before the OTP system was added).
+        const isPending    = (u) => u && !u.isEmailVerified && (u.otp || u.otpExpiry);
+        const isRegistered = (u) => u && !isPending(u);
+
+        if (isRegistered(existingEmail)) {
+            return res.status(409).json({ message: 'Email already registered. Please log in instead.' });
+        }
+        if (isRegistered(existingUsername)) {
+            return res.status(409).json({ message: 'Username already taken. Please choose another.' });
         }
 
         const otp = generateOtp();
         const otpExpiry = new Date(Date.now() + parseInt(process.env.OTP_EXPIRY_MINUTES || '10', 10) * 60 * 1000);
 
-        // Upsert a pending (unverified) user record to hold OTP + credentials
-        let pendingUser = existingEmail || existingUsername || null;
+        // Reuse stale pending record if one exists, otherwise create fresh
+        let pendingUser = (isPending(existingEmail) ? existingEmail : null)
+                       || (isPending(existingUsername) ? existingUsername : null);
+
         if (pendingUser) {
-            // Refresh stale pending record
-            pendingUser.username = username.trim();
-            pendingUser.email = email.toLowerCase().trim();
-            pendingUser.password = password; // will be hashed by pre-save hook
-            pendingUser.otp = hashOtp(otp);
+            pendingUser.username  = username.trim();
+            pendingUser.email     = email.toLowerCase().trim();
+            pendingUser.password  = password; // hashed by pre-save hook
+            pendingUser.otp       = hashOtp(otp);
             pendingUser.otpExpiry = otpExpiry;
             await pendingUser.save();
         } else {
             pendingUser = await User.create({
                 username: username.trim(),
-                email: email.toLowerCase().trim(),
+                email:    email.toLowerCase().trim(),
                 password,
-                otp: hashOtp(otp),
+                otp:      hashOtp(otp),
                 otpExpiry,
                 isEmailVerified: false,
             });
         }
 
         await sendOtpEmail(pendingUser.email, pendingUser.username, otp);
+        console.log(`[sendOtp] OTP dispatched to ${pendingUser.email}`);
 
         res.json({ message: 'OTP sent. Check your email inbox.' });
     } catch (err) {
