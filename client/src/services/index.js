@@ -22,6 +22,10 @@ export const authService = {
     deleteAccount: () => api.delete('/auth/account'),
     forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
     resetPassword: (token, email, password) => api.post('/auth/reset-password', { token, email, password }),
+    /** Step 1 – send OTP (pre-creates unverified user record) */
+    sendOtp: (username, email, password) => api.post('/auth/send-otp', { username, email, password }),
+    /** Step 2 – verify OTP and complete account creation */
+    verifyOtp: (email, otp) => api.post('/auth/verify-otp', { email, otp }),
 };
 
 export const movieService = {

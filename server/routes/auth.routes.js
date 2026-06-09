@@ -1,10 +1,25 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getMe, updateProfile, deleteAccount, forgotPassword, resetPassword } = require('../controllers/authController');
+const { register, login, getMe, updateProfile, deleteAccount, forgotPassword, resetPassword, sendOtp, verifyOtp } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const { validateBody } = require('../middleware/validateBody');
 
 const router = express.Router();
+
+// POST /api/auth/send-otp  — step 1: validate fields & send OTP
+router.post('/send-otp', [
+    body('username').trim().isLength({ min: 3, max: 30 }).withMessage('Username must be 3–30 characters'),
+    body('email').isEmail().withMessage('Enter a valid email'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    validateBody,
+], sendOtp);
+
+// POST /api/auth/verify-otp — step 2: confirm OTP & create account
+router.post('/verify-otp', [
+    body('email').isEmail().withMessage('Enter a valid email'),
+    body('otp').isLength({ min: 6, max: 6 }).isNumeric().withMessage('OTP must be a 6-digit number'),
+    validateBody,
+], verifyOtp);
 
 // POST /api/auth/register
 router.post('/register', [

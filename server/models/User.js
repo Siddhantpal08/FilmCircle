@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     // Password reset
     resetToken: { type: String },
     resetTokenExpiry: { type: Date },
+    // Email OTP verification
+    otp: { type: String },
+    otpExpiry: { type: Date },
+    isEmailVerified: { type: Boolean, default: false },
 }, { timestamps: true });
 
 // Hash password before saving
