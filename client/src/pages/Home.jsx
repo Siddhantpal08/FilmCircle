@@ -239,7 +239,11 @@ export default function Home() {
                                     </div>
                                 )}
                                 <div className="grid-movies-6x2">
-                                    {results.slice(0, 12).map(m => <MovieCard key={m.imdbID || m._id} movie={m} />)}
+                                    {results.slice(0, 18).map(m =>
+                                        m.source === 'tmdb' || m.tmdbId
+                                            ? <TmdbMovieCard key={m.tmdbId || m.imdbID} movie={{ tmdbId: m.tmdbId || m.imdbID, title: m.title || m.Title, year: m.year || m.Year, poster: m.poster || (m.Poster !== 'N/A' ? m.Poster : null) }} />
+                                            : <MovieCard key={m.imdbID || m._id} movie={m} />
+                                    )}
                                 </div>
                             </section>
                         )}

@@ -72,13 +72,60 @@ const omdbGet = async (params) => {
 
 // @route   GET /api/movies/search?q=title
 // @access  Public
+// Primary: TMDB search/movie (fast, no key limits for common use)
+// Fallback: OMDB if TMDB key is unavailable
 const searchMovies = async (req, res, next) => {
     try {
         const { q } = req.query;
         if (!q || q.trim() === '') {
             return res.status(400).json({ message: 'Search query cannot be empty' });
         }
-        // OMDB returns max 10 per page; fetch 2 pages to get up to 12 results for a 6×2 grid
+
+        // ── Primary: TMDB search ──────────────────────────────────────────────
+        if (TMDB_KEY) {
+            const [page1Res, page2Res] = await Promise.allSettled([
+                axios.get(`${TMDB_BASE}/search/movie`, {
+                    params: { api_key: TMDB_KEY, query: q.trim(), language: 'en-US', page: 1, include_adult: false },
+                }),
+                axios.get(`${TMDB_BASE}/search/movie`, {
+                    params: { api_key: TMDB_KEY, query: q.trim(), language: 'en-US', page: 2, include_adult: false },
+                }),
+            ]);
+
+            const results1 = page1Res.status === 'fulfilled' ? (page1Res.value.data.results || []) : [];
+            const results2 = page2Res.status === 'fulfilled' ? (page2Res.value.data.results || []) : [];
+            const totalResults = page1Res.status === 'fulfilled'
+                ? String(page1Res.value.data.total_results || 0)
+                : '0';
+
+            // Deduplicate & cap at 18 results
+            const seen = new Set();
+            const merged = [];
+            for (const m of [...results1, ...results2]) {
+                if (!seen.has(m.id)) {
+                    seen.add(m.id);
+                    merged.push({
+                        // Map to a shape compatible with both MovieCard and TmdbMovieCard
+                        imdbID: String(m.id),   // numeric TMDB id used as the navigation key
+                        tmdbId: String(m.id),
+                        Title: m.title || 'Unknown',
+                        title: m.title || 'Unknown',
+                        Year: m.release_date ? m.release_date.slice(0, 4) : '',
+                        year: m.release_date ? m.release_date.slice(0, 4) : '',
+                        Poster: m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : 'N/A',
+                        poster: m.poster_path ? `https://image.tmdb.org/t/p/w342${m.poster_path}` : null,
+                        Genre: '',
+                        imdbRating: m.vote_average ? m.vote_average.toFixed(1) : null,
+                        source: 'tmdb',
+                    });
+                }
+                if (merged.length >= 18) break;
+            }
+
+            return res.json({ results: merged, totalResults });
+        }
+
+        // ── Fallback: OMDB (only if TMDB key is unavailable) ─────────────────
         const [page1, page2] = await Promise.allSettled([
             omdbGet({ s: q.trim(), page: 1 }),
             omdbGet({ s: q.trim(), page: 2 }),
@@ -87,7 +134,6 @@ const searchMovies = async (req, res, next) => {
         const results2 = page2.status === 'fulfilled' ? (page2.value.Search || []) : [];
         const totalResults = page1.status === 'fulfilled' ? page1.value.totalResults : '0';
 
-        // Merge & deduplicate by imdbID, then cap at 12
         const seen = new Set();
         const merged = [];
         for (const m of [...results1, ...results2]) {
